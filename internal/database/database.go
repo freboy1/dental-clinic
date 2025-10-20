@@ -15,6 +15,6 @@ func NewPgPool(ctx context.Context, connStr string) (*pgxpool.Pool, error) {
 	if err = pool.Ping(ctx); err != nil {
 		return nil, err
 	}
-	log.Println("✅ Connected to PostgreSQL")
+	log.Println("Connected to db")
 	return pool, nil
 }

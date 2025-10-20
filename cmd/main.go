@@ -8,12 +8,11 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"github.com/kamilakamilkami/dental-clinic/internal/config"
-	"github.com/kamilakamilkami/dental-clinic/internal/database"
-	"github.com/kamilakamilkami/dental-clinic/internal/handlers"
-	"github.com/kamilakamilkami/dental-clinic/internal/redis"
-	"github.com/kamilakamilkami/dental-clinic/internal/repository"
-	"github.com/kamilakamilkami/dental-clinic/internal/server"
+	"github.com/freboy1/dental-clinic/internal/config"
+	"github.com/freboy1/dental-clinic/internal/database"
+	"github.com/freboy1/dental-clinic/internal/handlers"
+	"github.com/freboy1/dental-clinic/internal/repository"
+	"github.com/freboy1/dental-clinic/internal/server"
 )
 
 func main() {
@@ -27,25 +26,22 @@ func main() {
 	}
 	defer dbpool.Close(ctx)
 
-	rdb := redis.NewRedis(cfg.RedisAddr)
-	defer rdb.Close()
-
 	userRepo := repository.NewUserRepository(dbpool)
 	loginRepo := repository.NewLoginHistoryRepository(dbpool)
 
-	h := handlers.NewHandler(cfg, userRepo, loginRepo, rdb)
+	h := handlers.NewHandler(cfg, userRepo, loginRepo)
 
 	router := server.NewRouter(h, cfg.JWTSecret)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
-		Handler:      loggingMiddleware(router), // тут теперь router, не mux
+		Handler:      loggingMiddleware(router),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 
-	log.Println("✅ Server started on port", cfg.Port)
+	log.Println("Server started on port", cfg.Port)
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
