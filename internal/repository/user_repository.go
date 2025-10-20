@@ -22,7 +22,7 @@ func NewUserRepository(db *sql.DB) UserRepository {
 
 func (r *userRepo) Create(user *models.User) (*models.User, error) {
 	query := `INSERT INTO users (role, email, password, name, gender, age, push_consent)
-			  VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+			  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
 	err := r.db.QueryRow(query, user.Role, user.Email, user.Password, user.Name, user.Gender, user.Age, user.Push_consent).
 		Scan(&user.Id)
 	return user, err
