@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+
+	"dental_clinic/internal/config"
 )
 
 func main() {
-	fmt.Println("Hello World")
+	cfg := config.LoadConfig()
+	fmt.Println(cfg.Port)
+	
 }
