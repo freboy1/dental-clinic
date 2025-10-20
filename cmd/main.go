@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
-
+	"dental_clinic/internal/database"
 	"dental_clinic/internal/config"
 )
 
 func main() {
 	cfg := config.LoadConfig()
-	fmt.Println(cfg.Port)
-	
+	db := database.ConnectDB(cfg.DB_DSN)
+	defer db.Close()
+
 }
