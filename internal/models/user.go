@@ -11,4 +11,5 @@ type User struct {
 	Gender string
 	Age int
 	Push_consent bool
+	IsVerified   bool
 }

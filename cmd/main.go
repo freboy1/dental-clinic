@@ -19,7 +19,7 @@ func main() {
 	defer db.Close()
 
 	userRepo := repository.NewUserRepository(db)
-	userService := services.NewUserService(userRepo)
+	userService := services.NewUserService(userRepo, *cfg)
 	userHandler := handlers.NewUserHandler(userService)
 
 	router := mux.NewRouter()
@@ -31,6 +31,7 @@ func main() {
 		api.HandleFunc("/users/{id}", userHandler.GetUserByID).Methods("GET")
 		api.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods("PUT")
 		api.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
+		api.HandleFunc("/verify", userHandler.VerifyAccountByLink).Methods("GET")
 	}
 
 	log.Printf("Server running on port %s", cfg.Port)

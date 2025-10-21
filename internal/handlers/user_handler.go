@@ -5,8 +5,10 @@ import (
 	"dental_clinic/internal/services"
 	"encoding/json"
 	"errors"
-	"github.com/gorilla/mux"
+	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type UserHandler struct {
@@ -95,4 +97,20 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "User deleted successfully"})
+}
+
+func (h *UserHandler) VerifyAccountByLink(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		http.Error(w, "Missing token", http.StatusBadRequest)
+		return
+	}
+
+	err := h.service.VerifyUserEmail(token)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Invalid or expired token", http.StatusBadRequest)
+		return
+	}
+
 }

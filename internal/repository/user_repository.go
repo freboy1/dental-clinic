@@ -11,6 +11,9 @@ type UserRepository interface {
 	Update(id string, user *models.User) (*models.User, error)
 	Delete(id string) error
 	GetAll() ([]models.User, error)
+	FindUserIdByToken(token string) (string, error)
+	MarkUserAsVerified(user_id string) (error)
+	SaveVerificationToken(user_id, token string) (error)
 }
 
 type userRepo struct {
@@ -121,4 +124,33 @@ func (r *userRepo) Delete(id string) error {
 	}
 
 	return nil
+}
+
+func (r *userRepo) FindUserIdByToken(token string) (string, error) {
+	query := "SELECT user_id FROM verification_tokens WHERE token = $1 AND expires_at > NOW()"
+	var user_id string
+	err := r.db.QueryRow(query, token).Scan(&user_id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil
+		}
+		return "", err
+	}
+	return user_id, nil
+}
+
+func (r *userRepo) MarkUserAsVerified(user_id string) (error) {
+	query := "UPDATE users SET is_verified=TRUE WHERE id=$1"
+	_, err := r.db.Exec(query, user_id)
+	
+	return err
+}
+
+func (r *userRepo) SaveVerificationToken(user_id, token string) (error) {
+	query := `
+		INSERT INTO verification_tokens (user_id, token)
+		VALUES ($1, $2)
+	`
+	_, err := r.db.Exec(query, user_id, token)
+	return err
 }

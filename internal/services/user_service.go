@@ -1,19 +1,27 @@
 package services
 
 import (
+	"dental_clinic/internal/config"
 	"dental_clinic/internal/models"
 	"dental_clinic/internal/repository"
+	"dental_clinic/internal/utils"
 
 	"errors"
+
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
 	repo repository.UserRepository
+	cfx config.Config
 }
 
-func NewUserService(r repository.UserRepository) *UserService {
-	return &UserService{repo: r}
+func NewUserService(r repository.UserRepository, cfx config.Config) *UserService {
+	return &UserService{
+		repo: r,
+		cfx: cfx,
+	}
 }
 
 type RegisterRequest struct {
@@ -46,8 +54,19 @@ func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
 		Age:          req.Age,
 		Push_consent: req.PushConsent,
 	}
+	created_user, err := s.repo.Create(user)
+	if (err != nil) {
+		return created_user, err
+	}
 
-	return s.repo.Create(user)
+	token := uuid.NewString()
+	err = s.repo.SaveVerificationToken(created_user.Id.String(), token)
+	if (err != nil) {
+		return created_user, err
+	}
+	utils.SendVerificationEmail(&s.cfx, user.Email, token)
+
+	return created_user, err
 }
 
 func (s *UserService) GetAllUsers() ([]models.User, error) {
@@ -108,4 +127,13 @@ func isValidEmail(email string) bool {
 func isValidPassword(password string) bool {
 	// do it a bit later
 	return true
+}
+
+func (s *UserService) VerifyUserEmail(token string) error {
+	userID, err := s.repo.FindUserIdByToken(token)
+	if err != nil {
+		return err
+	}
+	return s.repo.MarkUserAsVerified(userID)
+
 }
