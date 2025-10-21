@@ -13,6 +13,8 @@ type Config struct {
 	JWTSecret  string
 	SMTPUser   string
 	SMTPPass   string
+	SMTPHost string
+	SMTPPort string
 }
 
 func LoadConfig() *Config {
@@ -26,6 +28,8 @@ func LoadConfig() *Config {
 		JWTSecret: getEnv("JWT_SECRET", "secret_key"),
 		SMTPUser:  getEnv("SMTP_USER", ""),
 		SMTPPass:  getEnv("SMTP_PASS", ""),
+		SMTPHost:  getEnv("SMTP_HOST", ""),
+		SMTPPort:  getEnv("SMTP_PORT", ""),
 	}
 
 	return cfg
