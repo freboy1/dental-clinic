@@ -10,6 +10,7 @@ type UserRepository interface {
 	GetByID(id string) (*models.User, error)
 	Update(id string, user *models.User) error
 	Delete(id string) error
+	GetAll() ([]models.User, error)
 }
 
 type userRepo struct {
@@ -28,6 +29,30 @@ func (r *userRepo) Create(user *models.User) (*models.User, error) {
 	return user, err
 }
 
+func (r *userRepo) GetAll() ([]models.User, error) {
+	query := `SELECT id, role, email, name, gender, age, push_consent FROM users`
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var u models.User
+		if err := rows.Scan(&u.Id, &u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
 func (r *userRepo) Delete(id string) error {
 	panic("unimplemented")
 }
@@ -39,5 +64,3 @@ func (r *userRepo) GetByID(id string) (*models.User, error) {
 func (r *userRepo) Update(id string, user *models.User) error {
 	panic("unimplemented")
 }
-
-

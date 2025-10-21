@@ -4,8 +4,8 @@ import (
 	"dental_clinic/internal/models"
 	"dental_clinic/internal/repository"
 
-	"golang.org/x/crypto/bcrypt"
 	"errors"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -17,12 +17,12 @@ func NewUserService(r repository.UserRepository) *UserService {
 }
 
 type RegisterRequest struct {
-	Role    string `json:"role"`
+	Role        string `json:"role"`
 	Email       string `json:"email"`
 	Password    string `json:"password"`
-	Name   string `json:"name"`
-	Gender       string `json:"gender"`
-	Age       int `json:"age"`
+	Name        string `json:"name"`
+	Gender      string `json:"gender"`
+	Age         int    `json:"age"`
 	PushConsent bool   `json:"push_consent"`
 }
 
@@ -33,29 +33,37 @@ func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
 	if !isValidPassword(req.Password) {
 		return nil, errors.New("weak password")
 	}
-	
+
 	// add check for existing user
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	user := &models.User{
-		Role:    req.Role,
-		Email:       req.Email,
-		Password:    string(hash),
-		Name:   req.Name,
+		Role:         req.Role,
+		Email:        req.Email,
+		Password:     string(hash),
+		Name:         req.Name,
 		Gender:       req.Gender,
-		Age: req.Age,
+		Age:          req.Age,
 		Push_consent: req.PushConsent,
 	}
 
 	return s.repo.Create(user)
 }
 
+func (s *UserService) GetAllUsers() ([]models.User, error) {
+	users, err := s.repo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func isValidEmail(email string) bool {
 	// do it a bit later
 	return true
-} 
+}
 
 func isValidPassword(password string) bool {
 	// do it a bit later
 	return true
-} 
+}

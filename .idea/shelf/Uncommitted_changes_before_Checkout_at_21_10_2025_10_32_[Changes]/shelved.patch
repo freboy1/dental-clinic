@@ -1,0 +1,21 @@
+Index: cmd/main.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package main\r\n\r\nimport (\r\n\t\"context\"\r\n\t\"log\"\r\n\t\"net/http\"\r\n\t\"time\"\r\n\r\n\t\"github.com/joho/godotenv\"\r\n\r\n\t\"github.com/freboy1/dental-clinic/internal/config\"\r\n\t\"github.com/freboy1/dental-clinic/internal/database\"\r\n\t\"github.com/freboy1/dental-clinic/internal/handlers\"\r\n\t\"github.com/freboy1/dental-clinic/internal/repository\"\r\n\t\"github.com/freboy1/dental-clinic/internal/server\"\r\n)\r\n\r\nfunc main() {\r\n\t_ = godotenv.Load()\r\n\tcfg := config.Load()\r\n\tctx := context.Background()\r\n\r\n\tdbpool, err := database.NewPgPool(ctx, cfg.DatabaseURL)\r\n\tif err != nil {\r\n\t\tlog.Fatalf(\"failed to connect db: %v\", err)\r\n\t}\r\n\tdefer dbpool.Close(ctx)\r\n\r\n\tuserRepo := repository.NewUserRepository(dbpool)\r\n\tloginRepo := repository.NewLoginHistoryRepository(dbpool)\r\n\r\n\th := handlers.NewHandler(cfg, userRepo, loginRepo)\r\n\r\n\trouter := server.NewRouter(h, cfg.JWTSecret)\r\n\r\n\tsrv := &http.Server{\r\n\t\tAddr:         \":\" + cfg.Port,\r\n\t\tHandler:      loggingMiddleware(router),\r\n\t\tReadTimeout:  15 * time.Second,\r\n\t\tWriteTimeout: 15 * time.Second,\r\n\t\tIdleTimeout:  60 * time.Second,\r\n\t}\r\n\r\n\tlog.Println(\"Server started on port\", cfg.Port)\r\n\tif err := srv.ListenAndServe(); err != nil {\r\n\t\tlog.Fatalf(\"server error: %v\", err)\r\n\t}\r\n}\r\n\r\nfunc loggingMiddleware(next http.Handler) http.Handler {\r\n\treturn http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\r\n\t\tlog.Printf(\"%s %s %s\", r.RemoteAddr, r.Method, r.URL.Path)\r\n\t\tnext.ServeHTTP(w, r)\r\n\t})\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/cmd/main.go b/cmd/main.go
+--- a/cmd/main.go	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ b/cmd/main.go	(date 1760976949293)
+@@ -46,10 +46,3 @@
+ 		log.Fatalf("server error: %v", err)
+ 	}
+ }
+-
+-func loggingMiddleware(next http.Handler) http.Handler {
+-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+-		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL.Path)
+-		next.ServeHTTP(w, r)
+-	})
+-}
