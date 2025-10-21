@@ -8,7 +8,7 @@ import (
 type UserRepository interface {
 	Create(user *models.User) (*models.User, error)
 	GetByID(id string) (*models.User, error)
-	Update(id string, user *models.User) error
+	Update(id string, user *models.User) (*models.User, error)
 	Delete(id string) error
 	GetAll() ([]models.User, error)
 }
@@ -53,9 +53,6 @@ func (r *userRepo) GetAll() ([]models.User, error) {
 
 	return users, nil
 }
-func (r *userRepo) Delete(id string) error {
-	panic("unimplemented")
-}
 
 func (r *userRepo) GetByID(id string) (*models.User, error) {
 	query := `SELECT id, role, email, name, gender, age, push_consent FROM users WHERE id = $1`
@@ -63,13 +60,65 @@ func (r *userRepo) GetByID(id string) (*models.User, error) {
 	err := r.db.QueryRow(query, id).Scan(&u.Id, &u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil // пользователь не найден
+			return nil, nil
 		}
 		return nil, err
 	}
 	return &u, nil
 }
 
-func (r *userRepo) Update(id string, user *models.User) error {
-	panic("unimplemented")
+func (r *userRepo) Update(id string, user *models.User) (*models.User, error) {
+	query := `
+		UPDATE users
+		SET name=$1, email=$2, role=$3, gender=$4, age=$5, push_consent=$6
+		WHERE id=$7
+		RETURNING id, role, email, name, gender, age, push_consent
+	`
+
+	err := r.db.QueryRow(
+		query,
+		user.Name,
+		user.Email,
+		user.Role,
+		user.Gender,
+		user.Age,
+		user.Push_consent,
+		id,
+	).Scan(
+		&user.Id,
+		&user.Role,
+		&user.Email,
+		&user.Name,
+		&user.Gender,
+		&user.Age,
+		&user.Push_consent,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *userRepo) Delete(id string) error {
+	query := `DELETE FROM users WHERE id=$1`
+	result, err := r.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }

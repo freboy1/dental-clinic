@@ -69,6 +69,37 @@ func (s *UserService) GetUserByID(id string) (*models.User, error) {
 	return user, nil
 }
 
+func (s *UserService) UpdateUser(id string, req RegisterRequest) (*models.User, error) {
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	user.Name = req.Name
+	user.Email = req.Email
+	user.Role = req.Role
+	user.Gender = req.Gender
+	user.Age = req.Age
+	user.Push_consent = req.PushConsent
+
+	return s.repo.Update(id, user)
+}
+
+func (s *UserService) DeleteUser(id string) error {
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	return s.repo.Delete(id)
+}
+
 func isValidEmail(email string) bool {
 	// do it a bit later
 	return true
