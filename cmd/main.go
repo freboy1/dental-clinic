@@ -28,7 +28,7 @@ func main() {
 	{
 		api.HandleFunc("/register", userHandler.Register).Methods("POST")
 		api.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET")
-		//api.HandleFunc("/users/{id}", userHandler.GetUserByID).Methods("GET")
+		api.HandleFunc("/users/{id}", userHandler.GetUserByID).Methods("GET")
 		//api.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods("PUT")
 		//api.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
 	}

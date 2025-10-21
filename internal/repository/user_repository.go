@@ -58,7 +58,16 @@ func (r *userRepo) Delete(id string) error {
 }
 
 func (r *userRepo) GetByID(id string) (*models.User, error) {
-	panic("unimplemented")
+	query := `SELECT id, role, email, name, gender, age, push_consent FROM users WHERE id = $1`
+	var u models.User
+	err := r.db.QueryRow(query, id).Scan(&u.Id, &u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // пользователь не найден
+		}
+		return nil, err
+	}
+	return &u, nil
 }
 
 func (r *userRepo) Update(id string, user *models.User) error {

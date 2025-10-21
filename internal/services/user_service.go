@@ -58,6 +58,17 @@ func (s *UserService) GetAllUsers() ([]models.User, error) {
 	return users, nil
 }
 
+func (s *UserService) GetUserByID(id string) (*models.User, error) {
+	user, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+	return user, nil
+}
+
 func isValidEmail(email string) bool {
 	// do it a bit later
 	return true
