@@ -6,6 +6,7 @@ import (
 	"dental_clinic/internal/handlers"
 	"dental_clinic/internal/repository"
 	"dental_clinic/internal/services"
+	"dental_clinic/internal/middleware"
 	"net/http"
 
 	"log"
@@ -20,19 +21,27 @@ func main() {
 
 	userRepo := repository.NewUserRepository(db)
 	userService := services.NewUserService(userRepo, *cfg)
-	userHandler := handlers.NewUserHandler(userService)
+	userHandler := handlers.NewUserHandler(userService, *cfg)
 
 	router := mux.NewRouter()
 
 	api := router.PathPrefix("/api").Subrouter()
+
+	public := api.NewRoute().Subrouter()
 	{
-		api.HandleFunc("/register", userHandler.Register).Methods("POST")
-		api.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET")
-		api.HandleFunc("/users/{id}", userHandler.GetUserByID).Methods("GET")
-		api.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods("PUT")
-		api.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
-		api.HandleFunc("/verify", userHandler.VerifyAccountByLink).Methods("GET")
+		public.HandleFunc("/register", userHandler.Register).Methods("POST")
+		public.HandleFunc("/login", userHandler.Login).Methods("POST")
+		public.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET")
+		public.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods("PUT")
+		public.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
+		public.HandleFunc("/verify", userHandler.VerifyAccountByLink).Methods("GET")
 	}
+	private := api.NewRoute().Subrouter()
+	private.Use(middleware.JWTAuth(cfg.JWTSecret))
+	{
+		private.HandleFunc("/users/{id}", userHandler.GetUserByID).Methods("GET")
+	}
+
 
 	log.Printf("Server running on port %s", cfg.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Port, router))

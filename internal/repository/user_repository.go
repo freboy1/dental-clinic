@@ -14,6 +14,7 @@ type UserRepository interface {
 	FindUserIdByToken(token string) (string, error)
 	MarkUserAsVerified(user_id string) (error)
 	SaveVerificationToken(user_id, token string) (error)
+	GetUserByEmail(email string) (*models.User, error)
 }
 
 type userRepo struct {
@@ -142,7 +143,7 @@ func (r *userRepo) FindUserIdByToken(token string) (string, error) {
 func (r *userRepo) MarkUserAsVerified(user_id string) (error) {
 	query := "UPDATE users SET is_verified=TRUE WHERE id=$1"
 	_, err := r.db.Exec(query, user_id)
-	
+
 	return err
 }
 
@@ -153,4 +154,17 @@ func (r *userRepo) SaveVerificationToken(user_id, token string) (error) {
 	`
 	_, err := r.db.Exec(query, user_id, token)
 	return err
+}
+
+func (r *userRepo) GetUserByEmail(email string) (*models.User, error) {
+	query := `SELECT id, password, role, email, name, gender, age, push_consent FROM users WHERE email = $1`
+	var u models.User
+	err := r.db.QueryRow(query, email).Scan(&u.Id, &u.Password, &u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &u, nil
 }

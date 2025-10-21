@@ -5,6 +5,7 @@ import (
 	"dental_clinic/internal/models"
 	"dental_clinic/internal/repository"
 	"dental_clinic/internal/utils"
+	"fmt"
 
 	"errors"
 
@@ -32,6 +33,11 @@ type RegisterRequest struct {
 	Gender      string `json:"gender"`
 	Age         int    `json:"age"`
 	PushConsent bool   `json:"push_consent"`
+}
+
+type LoginRequest struct {
+	Email 		string `json:"email"`
+	Password 	string `json:"password"`
 }
 
 func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
@@ -136,4 +142,28 @@ func (s *UserService) VerifyUserEmail(token string) error {
 	}
 	return s.repo.MarkUserAsVerified(userID)
 
+}
+
+func (s *UserService) Login(req LoginRequest) (*models.User, error) {
+	
+	// add check for existing user
+	if (req.Email == "") {
+		return nil, errors.New("email is empty")
+	}
+	user, err := s.repo.GetUserByEmail(req.Email)
+	if (err != nil) {
+		return nil, err
+	}
+	fmt.Println(user.Password)
+	fmt.Println(req.Password)
+	if !CheckPassword(user.Password, req.Password) {
+		return nil, errors.New("Invalid credentials")
+	}
+
+	return user, err
+}
+
+func CheckPassword(hashedPassword, plainPassword string) bool {
+    err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
+    return err == nil
 }

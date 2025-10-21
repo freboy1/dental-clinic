@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"database/sql"
+	"dental_clinic/internal/config"
 	"dental_clinic/internal/services"
+	"dental_clinic/internal/utils"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,10 +15,14 @@ import (
 
 type UserHandler struct {
 	service *services.UserService
+	cfg config.Config
 }
 
-func NewUserHandler(s *services.UserService) *UserHandler {
-	return &UserHandler{service: s}
+func NewUserHandler(s *services.UserService, cfg config.Config) *UserHandler {
+	return &UserHandler{
+		service: s,
+		cfg: cfg,
+	}
 }
 
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
@@ -113,4 +119,22 @@ func (h *UserHandler) VerifyAccountByLink(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+}
+
+func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var req services.LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.service.Login(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	
+	token, _ := utils.GenerateJWT(user.Id.String(), user.Email, user.Role, h.cfg.JWTSecret)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }
