@@ -149,24 +149,36 @@ func (s *UserService) VerifyUserEmail(token string) error {
 
 }
 
-func (s *UserService) Login(req LoginRequest) (*models.User, error) {
+func (s *UserService) Login(req LoginRequest, ip string) (*models.User, error) {
 	
 	// add check for existing user
 	if (req.Email == "") {
+		s.repo.LogLogin("", ip, false)
 		return nil, errors.New("email is empty")
 	}
 	user, err := s.repo.GetUserByEmail(req.Email)
 	if (err != nil) {
+		_ = s.repo.LogLogin("", ip, false)
 		return nil, err
 	}
-	fmt.Println(user.Password)
-	fmt.Println(req.Password)
-	if !CheckPassword(user.Password, req.Password) {
-		return nil, errors.New("Invalid credentials")
+
+	if user == nil {
+		_ = s.repo.LogLogin("", ip, false)
+		return nil, errors.New("user not found")
 	}
 
+
+	fmt.Println(user.Password)
+	fmt.Println(req.Password)
+
+	if !CheckPassword(user.Password, req.Password) {
+		s.repo.LogLogin(user.Id.String(), ip, false)
+		return nil, errors.New("Invalid credentials")
+	} 
+	s.repo.LogLogin(user.Id.String(), ip, true)
 	return user, err
 }
+
 
 func CheckPassword(hashedPassword, plainPassword string) bool {
     err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))

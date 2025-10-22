@@ -127,8 +127,8 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-
-	user, err := h.service.Login(req)
+	ip := r.RemoteAddr
+	user, err := h.service.Login(req, ip)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

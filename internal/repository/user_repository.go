@@ -17,6 +17,7 @@ type UserRepository interface {
 	GetUserByEmail(email string) (*models.User, error)
 	UpdatePassword(user_id, new_password string) (error)
 	GetUserByID(id string) (*models.User, error)
+	LogLogin(userID, ip string, success bool) error
 }
 
 type userRepo struct {
@@ -189,4 +190,16 @@ func (r *userRepo) GetUserByID(id string) (*models.User, error) {
 		return nil, err
 	}
 	return &u, nil
+}
+
+func (r *userRepo) LogLogin(userID, ip string, success bool) error {
+	if (userID == "") {
+		query := `INSERT INTO login_logs (user_id, ip_address, success)
+                  VALUES (NULL, $1, $2)`
+        _, err := r.db.Exec(query, ip, success)
+        return err
+	}
+	query := `INSERT INTO login_logs (user_id, ip_address, success) VALUES ($1, $2, $3)`
+    _, err := r.db.Exec(query, userID, ip, success)
+    return err
 }
