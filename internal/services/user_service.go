@@ -137,8 +137,11 @@ func isValidEmail(email string) bool {
 }
 
 func isValidPassword(password string) bool {
-	re := regexp.MustCompile(`^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+={}\[\]:;"'<>,.?/~` + "`" + `-]{8,}$`)
-	return re.MatchString(password)
+	re := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+	if !re.MatchString(password) || len(password) < 8 {
+		return false
+	}
+	return true
 }
 
 func (s *UserService) VerifyUserEmail(token string) error {
