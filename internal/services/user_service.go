@@ -6,6 +6,7 @@ import (
 	"dental_clinic/internal/repository"
 	"dental_clinic/internal/utils"
 	"fmt"
+	"regexp"
 
 	"errors"
 
@@ -15,13 +16,13 @@ import (
 
 type UserService struct {
 	repo repository.UserRepository
-	cfx config.Config
+	cfx  config.Config
 }
 
 func NewUserService(r repository.UserRepository, cfx config.Config) *UserService {
 	return &UserService{
 		repo: r,
-		cfx: cfx,
+		cfx:  cfx,
 	}
 }
 
@@ -36,13 +37,13 @@ type RegisterRequest struct {
 }
 
 type LoginRequest struct {
-	Email 		string `json:"email"`
-	Password 	string `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type UpdatePasswordRequest struct {
-	OldPassword 	string `json:"old_password"`
-	NewPassword 	string `json:"new_password"`
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
 }
 
 func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
@@ -66,13 +67,13 @@ func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
 		Push_consent: req.PushConsent,
 	}
 	created_user, err := s.repo.Create(user)
-	if (err != nil) {
+	if err != nil {
 		return created_user, err
 	}
 
 	token := uuid.NewString()
 	err = s.repo.SaveVerificationToken(created_user.Id.String(), token)
-	if (err != nil) {
+	if err != nil {
 		return created_user, err
 	}
 	utils.SendVerificationEmail(&s.cfx, user.Email, token)
@@ -135,13 +136,13 @@ func (s *UserService) DeleteUser(id, tokenStr string) error {
 }
 
 func isValidEmail(email string) bool {
-	// do it a bit later
-	return true
+	re := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+	return re.MatchString(email)
 }
 
 func isValidPassword(password string) bool {
-	// do it a bit later
-	return true
+	re := regexp.MustCompile(`^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+={}\[\]:;"'<>,.?/~` + "`" + `-]{8,}$`)
+	return re.MatchString(password)
 }
 
 func (s *UserService) VerifyUserEmail(token string) error {
@@ -185,13 +186,11 @@ func (s *UserService) Login(req LoginRequest, ip string) (*models.User, error) {
 
 
 func CheckPassword(hashedPassword, plainPassword string) bool {
-    err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
-    return err == nil
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
+	return err == nil
 }
 
-
-
-func (s *UserService) UpdatePassword(tokenStr string, req UpdatePasswordRequest) (error) {
+func (s *UserService) UpdatePassword(tokenStr string, req UpdatePasswordRequest) error {
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
 	userIDAny := claims["user_id"]
 	userID, _ := userIDAny.(string)
@@ -211,18 +210,18 @@ func (s *UserService) UpdatePassword(tokenStr string, req UpdatePasswordRequest)
 		return errors.New("Invalid credentials")
 	}
 
-	if (!isValidPassword(req.NewPassword)) {
+	if !isValidPassword(req.NewPassword) {
 		return errors.New("weak password")
 	}
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 
-	err =  s.repo.UpdatePassword(userID, string(hash))
+	err = s.repo.UpdatePassword(userID, string(hash))
 	if err != nil {
 		return err
 	}
 	err = utils.SendEmail(&s.cfx, user.Email, "You have updated your Password", "You have updated your Password")
-	if (err != nil) {
+	if err != nil {
 		return err
 	}
 	return nil
