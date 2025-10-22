@@ -33,7 +33,7 @@ func main() {
 		public.HandleFunc("/login", userHandler.Login).Methods("POST")
 		public.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET")
 		public.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods("PUT")
-		public.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
+		// public.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
 		public.HandleFunc("/verify", userHandler.VerifyAccountByLink).Methods("GET")
 	}
 	private := api.NewRoute().Subrouter()
@@ -41,6 +41,7 @@ func main() {
 	{
 		private.HandleFunc("/users/{id}", userHandler.GetUserByID).Methods("GET")
 		private.HandleFunc("/users/update-password", userHandler.UpdatePassword).Methods("POST")
+		private.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
 	}
 
 

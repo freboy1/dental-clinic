@@ -119,16 +119,20 @@ func (s *UserService) UpdateUser(id string, req RegisterRequest) (*models.User, 
 	return s.repo.Update(id, user)
 }
 
-func (s *UserService) DeleteUser(id string) error {
-	user, err := s.repo.GetByID(id)
-	if err != nil {
-		return err
-	}
-	if user == nil {
-		return errors.New("user not found")
-	}
+func (s *UserService) DeleteUser(id, tokenStr string) error {
+	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
+	if (claims["role"] == "admin" || claims["user_id"].(string) == id) {
+		user, err := s.repo.GetByID(id)
+		if err != nil {
+			return err
+		}
+		if user == nil {
+			return errors.New("user not found")
+		}
 
-	return s.repo.Delete(id)
+		return s.repo.Delete(id)
+	}
+	return errors.New("do not have rights")
 }
 
 func isValidEmail(email string) bool {
@@ -153,24 +157,36 @@ func (s *UserService) VerifyUserEmail(token string) error {
 
 }
 
-func (s *UserService) Login(req LoginRequest) (*models.User, error) {
-
+func (s *UserService) Login(req LoginRequest, ip string) (*models.User, error) {
+	
 	// add check for existing user
-	if req.Email == "" {
+	if (req.Email == "") {
+		s.repo.LogLogin("", ip, false)
 		return nil, errors.New("email is empty")
 	}
 	user, err := s.repo.GetUserByEmail(req.Email)
-	if err != nil {
+	if (err != nil) {
+		_ = s.repo.LogLogin("", ip, false)
 		return nil, err
 	}
-	fmt.Println(user.Password)
-	fmt.Println(req.Password)
-	if !CheckPassword(user.Password, req.Password) {
-		return nil, errors.New("Invalid credentials")
+
+	if user == nil {
+		_ = s.repo.LogLogin("", ip, false)
+		return nil, errors.New("user not found")
 	}
 
+
+	fmt.Println(user.Password)
+	fmt.Println(req.Password)
+
+	if !CheckPassword(user.Password, req.Password) {
+		s.repo.LogLogin(user.Id.String(), ip, false)
+		return nil, errors.New("Invalid credentials")
+	} 
+	s.repo.LogLogin(user.Id.String(), ip, true)
 	return user, err
 }
+
 
 func CheckPassword(hashedPassword, plainPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))

@@ -90,8 +90,8 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-
-	err := h.service.DeleteUser(id)
+	tokenStr := getToken(r)
+	err := h.service.DeleteUser(id, tokenStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) || err.Error() == "user not found" {
 			http.Error(w, "User not found", http.StatusNotFound)
@@ -127,8 +127,8 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-
-	user, err := h.service.Login(req)
+	ip := r.RemoteAddr
+	user, err := h.service.Login(req, ip)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
