@@ -57,6 +57,9 @@ func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
 	if !isValidPassword(req.Password) {
 		return nil, errors.New("weak password")
 	}
+	if !isValidName(req.Name) {
+		return nil, errors.New("invalid name")
+	}
 
 	// add check for existing user
 
@@ -125,7 +128,7 @@ func (s *UserService) UpdateUser(id string, req RegisterRequest) (*models.User, 
 
 func (s *UserService) DeleteUser(id, tokenStr string) error {
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
-	if (claims["role"] == "admin" || claims["user_id"].(string) == id) {
+	if claims["role"] == "admin" || claims["user_id"].(string) == id {
 		user, err := s.repo.GetByID(id)
 		if err != nil {
 			return err
@@ -152,6 +155,14 @@ func isValidPassword(password string) bool {
 	return true
 }
 
+func isValidName(name string) bool {
+	if name == "" {
+		return false
+	}
+	re := regexp.MustCompile(`^[A-Za-zА-Яа-яЁё]+$`)
+	return re.MatchString(name)
+}
+
 func (s *UserService) VerifyUserEmail(token string) error {
 	userID, err := s.repo.FindUserIdByToken(token)
 	if err != nil {
@@ -162,14 +173,14 @@ func (s *UserService) VerifyUserEmail(token string) error {
 }
 
 func (s *UserService) Login(req LoginRequest, ip string) (*models.User, error) {
-	
+
 	// add check for existing user
-	if (req.Email == "") {
+	if req.Email == "" {
 		s.repo.LogLogin("", ip, false)
 		return nil, errors.New("email is empty")
 	}
 	user, err := s.repo.GetUserByEmail(req.Email)
-	if (err != nil) {
+	if err != nil {
 		_ = s.repo.LogLogin("", ip, false)
 		return nil, err
 	}
@@ -179,18 +190,16 @@ func (s *UserService) Login(req LoginRequest, ip string) (*models.User, error) {
 		return nil, errors.New("user not found")
 	}
 
-
 	fmt.Println(user.Password)
 	fmt.Println(req.Password)
 
 	if !CheckPassword(user.Password, req.Password) {
 		s.repo.LogLogin(user.Id.String(), ip, false)
 		return nil, errors.New("Invalid credentials")
-	} 
+	}
 	s.repo.LogLogin(user.Id.String(), ip, true)
 	return user, err
 }
-
 
 func CheckPassword(hashedPassword, plainPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
