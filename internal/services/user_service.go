@@ -40,6 +40,11 @@ type LoginRequest struct {
 	Password 	string `json:"password"`
 }
 
+type UpdatePasswordRequest struct {
+	OldPassword 	string `json:"old_password"`
+	NewPassword 	string `json:"new_password"`
+}
+
 func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
 	if !isValidEmail(req.Email) {
 		return nil, errors.New("invalid email format")
@@ -166,4 +171,43 @@ func (s *UserService) Login(req LoginRequest) (*models.User, error) {
 func CheckPassword(hashedPassword, plainPassword string) bool {
     err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
     return err == nil
+}
+
+
+
+func (s *UserService) UpdatePassword(tokenStr string, req UpdatePasswordRequest) (error) {
+	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
+	userIDAny := claims["user_id"]
+	userID, _ := userIDAny.(string)
+	fmt.Println("User id")
+	fmt.Println(userID)
+	fmt.Println(req.OldPassword)
+	user, err := s.repo.GetUserByID(userID)
+	fmt.Println(user.Password)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	if !CheckPassword(user.Password, req.OldPassword) {
+		return errors.New("Invalid credentials")
+	}
+
+	if (!isValidPassword(req.NewPassword)) {
+		return errors.New("weak password")
+	}
+
+	hash, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+
+	err =  s.repo.UpdatePassword(userID, string(hash))
+	if err != nil {
+		return err
+	}
+	err = utils.SendEmail(&s.cfx, user.Email, "You have updated your Password", "You have updated your Password")
+	if (err != nil) {
+		return err
+	}
+	return nil
 }

@@ -15,6 +15,8 @@ type UserRepository interface {
 	MarkUserAsVerified(user_id string) (error)
 	SaveVerificationToken(user_id, token string) (error)
 	GetUserByEmail(email string) (*models.User, error)
+	UpdatePassword(user_id, new_password string) (error)
+	GetUserByID(id string) (*models.User, error)
 }
 
 type userRepo struct {
@@ -160,6 +162,26 @@ func (r *userRepo) GetUserByEmail(email string) (*models.User, error) {
 	query := `SELECT id, password, role, email, name, gender, age, push_consent FROM users WHERE email = $1`
 	var u models.User
 	err := r.db.QueryRow(query, email).Scan(&u.Id, &u.Password, &u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &u, nil
+}
+
+
+func (r *userRepo) UpdatePassword(user_id, new_password string) (error) {
+	query := "UPDATE users SET password=$1 WHERE id=$2"
+	_, err := r.db.Exec(query, new_password, user_id)
+	return err
+}
+
+func (r *userRepo) GetUserByID(id string) (*models.User, error) {
+	query := `SELECT id, password, role, email, name, gender, age, push_consent FROM users WHERE id = $1`
+	var u models.User
+	err := r.db.QueryRow(query, id).Scan(&u.Id, &u.Password, &u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

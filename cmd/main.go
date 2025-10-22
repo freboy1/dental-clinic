@@ -40,6 +40,7 @@ func main() {
 	private.Use(middleware.JWTAuth(cfg.JWTSecret))
 	{
 		private.HandleFunc("/users/{id}", userHandler.GetUserByID).Methods("GET")
+		private.HandleFunc("/users/update-password", userHandler.UpdatePassword).Methods("POST")
 	}
 
 

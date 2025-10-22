@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-
+	"strings"
 	"github.com/gorilla/mux"
 )
 
@@ -137,4 +137,30 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	token, _ := utils.GenerateJWT(user.Id.String(), user.Email, user.Role, h.cfg.JWTSecret)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"token": token})
+}
+
+func (h *UserHandler) UpdatePassword (w http.ResponseWriter, r *http.Request) {
+	var req services.UpdatePasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	tokenStr := getToken(r)
+	err := h.service.UpdatePassword(tokenStr, req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return 
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"updated": "successfully"})
+
+}
+
+func getToken(r *http.Request) string {
+	authHeader := r.Header.Get("Authorization")
+	parts := strings.Split(authHeader, " ")
+	tokenStr := parts[1]
+	return tokenStr
 }
