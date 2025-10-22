@@ -39,9 +39,11 @@ func main() {
 	private := api.NewRoute().Subrouter()
 	private.Use(middleware.JWTAuth(cfg.JWTSecret))
 	{
+		private.HandleFunc("/users/verify-email", userHandler.VerifyNewEmail).Methods("GET")
 		private.HandleFunc("/users/{id}", userHandler.GetUserByID).Methods("GET")
 		private.HandleFunc("/users/update-password", userHandler.UpdatePassword).Methods("POST")
 		private.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
+		private.HandleFunc("/users/update-email", userHandler.UpdateEmail).Methods("POST")
 	}
 
 

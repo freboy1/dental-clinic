@@ -18,6 +18,9 @@ type UserRepository interface {
 	UpdatePassword(user_id, new_password string) (error)
 	GetUserByID(id string) (*models.User, error)
 	LogLogin(userID, ip string, success bool) error
+	SaveEmailVerificationToken(userID, NewEmail, verifyToken string) error
+	VerifyEmailToken(token string) (string, string, error)
+	UpdateEmailInDatabase(userId, newEmail string) error
 }
 
 type userRepo struct {
@@ -202,4 +205,31 @@ func (r *userRepo) LogLogin(userID, ip string, success bool) error {
 	query := `INSERT INTO login_logs (user_id, ip_address, success) VALUES ($1, $2, $3)`
     _, err := r.db.Exec(query, userID, ip, success)
     return err
+}
+func (r *userRepo) SaveEmailVerificationToken(userID, NewEmail, verifyToken string) error {
+	query := `
+		INSERT INTO email_change_tokens (user_id, new_email, token)
+		VALUES ($1, $2, $3)
+	`
+	_, err := r.db.Exec(query, userID, NewEmail, verifyToken)
+	return err
+}
+
+func (r *userRepo) VerifyEmailToken(token string) (string, string, error) {
+	var userID, newEmail string
+	query := `SELECT user_id, new_email FROM email_change_tokens WHERE token = $1`
+	err := r.db.QueryRow(query, token).Scan(&userID, &newEmail)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", "", nil
+		}
+		return "", "", err
+	}
+	return userID, newEmail, nil
+}
+
+func (r *userRepo) UpdateEmailInDatabase(userId, newEmail string) error {
+	query := "UPDATE users SET email=$1 WHERE id=$2"
+	_, err := r.db.Exec(query, newEmail, userId)
+	return err
 }

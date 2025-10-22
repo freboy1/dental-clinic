@@ -46,6 +46,10 @@ type UpdatePasswordRequest struct {
 	NewPassword string `json:"new_password"`
 }
 
+type UpdateEmailRequest struct {
+	NewEmail string `json:"new_email"`
+}
+
 func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
 	if !isValidEmail(req.Email) {
 		return nil, errors.New("invalid email format")
@@ -226,6 +230,45 @@ func (s *UserService) UpdatePassword(tokenStr string, req UpdatePasswordRequest)
 	err = utils.SendEmail(&s.cfx, user.Email, "You have updated your Password", "You have updated your Password")
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+
+func (s *UserService) UpdateEmail(tokenStr string, req UpdateEmailRequest) error {
+	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
+	userIDAny := claims["user_id"]
+	userID, _ := userIDAny.(string)
+	existingUser, _ := s.repo.GetUserByEmail(req.NewEmail)
+    if existingUser != nil {
+        return errors.New("email already in use")
+    }
+	if !isValidEmail(req.NewEmail) {
+        return errors.New("invalid email format")
+    }
+	verifyToken := uuid.NewString()
+	err := s.repo.SaveEmailVerificationToken(userID, req.NewEmail, verifyToken)
+    if err != nil {
+        return err
+    }
+
+	link := fmt.Sprintf("http://localhost:8080/api/users/verify-email?token=%s", verifyToken)
+    body := fmt.Sprintf("You need to do to the link: %s", link)
+
+    return utils.SendEmail(&s.cfx, req.NewEmail, "Confirm email", body)
+}
+
+func (s *UserService) VerifyEmailToken(token string) error {
+	userID, newEmail, err := s.repo.VerifyEmailToken(token)
+	if err != nil {
+		return err
+	}
+	if userID == "" || newEmail == "" {
+		return errors.New("invalid verification data")
+	}
+	err = s.repo.UpdateEmailInDatabase(userID, newEmail)
+	if err != nil {
+		return errors.New("Could not update email")
 	}
 	return nil
 }

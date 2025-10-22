@@ -164,3 +164,33 @@ func getToken(r *http.Request) string {
 	tokenStr := parts[1]
 	return tokenStr
 }
+
+func (h *UserHandler) UpdateEmail (w http.ResponseWriter, r *http.Request) {
+	var req services.UpdateEmailRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	tokenStr := getToken(r)
+	err := h.service.UpdateEmail(tokenStr, req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return 
+	}
+}
+
+func (h *UserHandler) VerifyNewEmail(w http.ResponseWriter, r *http.Request) {
+    token := r.URL.Query().Get("token")
+    if token == "" {
+        http.Error(w, "Token missing", http.StatusBadRequest)
+        return
+    }
+
+    err := h.service.VerifyEmailToken(token)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"updated": "successfully"})
+}
