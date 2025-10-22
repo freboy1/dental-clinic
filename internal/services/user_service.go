@@ -118,16 +118,20 @@ func (s *UserService) UpdateUser(id string, req RegisterRequest) (*models.User, 
 	return s.repo.Update(id, user)
 }
 
-func (s *UserService) DeleteUser(id string) error {
-	user, err := s.repo.GetByID(id)
-	if err != nil {
-		return err
-	}
-	if user == nil {
-		return errors.New("user not found")
-	}
+func (s *UserService) DeleteUser(id, tokenStr string) error {
+	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
+	if (claims["role"] == "admin" || claims["user_id"].(string) == id) {
+		user, err := s.repo.GetByID(id)
+		if err != nil {
+			return err
+		}
+		if user == nil {
+			return errors.New("user not found")
+		}
 
-	return s.repo.Delete(id)
+		return s.repo.Delete(id)
+	}
+	return errors.New("do not have rights")
 }
 
 func isValidEmail(email string) bool {
