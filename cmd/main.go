@@ -34,7 +34,6 @@ func main() {
 
 	router := mux.NewRouter()
 
-	// Swagger UI endpoint
     router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	api := router.PathPrefix("/api").Subrouter()
@@ -43,7 +42,6 @@ func main() {
 	{
 		public.HandleFunc("/register", userHandler.Register).Methods("POST")
 		public.HandleFunc("/login", userHandler.Login).Methods("POST")
-		public.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET")
 		public.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods("PUT")
 		// public.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
 		public.HandleFunc("/verify", userHandler.VerifyAccountByLink).Methods("GET")
@@ -56,6 +54,7 @@ func main() {
 		private.HandleFunc("/users/update-password", userHandler.UpdatePassword).Methods("POST")
 		private.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
 		private.HandleFunc("/users/update-email", userHandler.UpdateEmail).Methods("POST")
+		private.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET")
 	}
 
 

@@ -52,7 +52,8 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	_ = r
-	users, err := h.service.GetAllUsers()
+	tokenStr := getToken(r)
+	users, err := h.service.GetAllUsers(tokenStr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -202,4 +203,19 @@ func (h *UserHandler) VerifyNewEmail(w http.ResponseWriter, r *http.Request) {
     }
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"updated": "successfully"})
+}
+
+
+func (h *UserHandler) GetUserByIDAdmin(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	user, err := h.service.GetUserByID(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
 }

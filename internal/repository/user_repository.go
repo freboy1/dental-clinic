@@ -40,7 +40,7 @@ func (r *userRepo) Create(user *models.User) (*models.User, error) {
 }
 
 func (r *userRepo) GetAll() ([]models.User, error) {
-	query := `SELECT id, role, email, name, gender, age, push_consent FROM users`
+	query := `SELECT id, role, email, name, gender, age, push_consent, created_at FROM users`
 
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -65,9 +65,9 @@ func (r *userRepo) GetAll() ([]models.User, error) {
 }
 
 func (r *userRepo) GetByID(id string) (*models.User, error) {
-	query := `SELECT id, role, email, name, gender, age, push_consent FROM users WHERE id = $1`
+	query := `SELECT role, email, name, gender, age, push_consent FROM users WHERE id = $1`
 	var u models.User
-	err := r.db.QueryRow(query, id).Scan(&u.Id, &u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent)
+	err := r.db.QueryRow(query, id).Scan(&u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

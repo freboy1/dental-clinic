@@ -88,12 +88,16 @@ func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
 	return created_user, err
 }
 
-func (s *UserService) GetAllUsers() ([]models.User, error) {
-	users, err := s.repo.GetAll()
-	if err != nil {
-		return nil, err
+func (s *UserService) GetAllUsers(tokenStr string) ([]models.User, error) {
+	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
+	if claims["role"] == "admin" {
+		users, err := s.repo.GetAll()
+		if err != nil {
+			return nil, err
+		}
+		return users, nil
 	}
-	return users, nil
+	return nil, errors.New("does not have access")
 }
 
 func (s *UserService) GetUserByID(id string) (*models.User, error) {
