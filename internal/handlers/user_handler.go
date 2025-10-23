@@ -24,7 +24,16 @@ func NewUserHandler(s *services.UserService, cfg config.Config) *UserHandler {
 		cfg: cfg,
 	}
 }
-
+// Register godoc
+// @Summary Register new user
+// @Description Creates a new user account
+// @Tags Users
+// @Accept  json
+// @Produce  json
+// @Param request body services.RegisterRequest true "User registration data"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Router /api/register [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req services.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

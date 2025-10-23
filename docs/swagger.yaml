@@ -1,0 +1,57 @@
+basePath: /api
+definitions:
+  services.RegisterRequest:
+    properties:
+      age:
+        type: integer
+      email:
+        type: string
+      gender:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      push_consent:
+        type: boolean
+      role:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for managing users, authentication, and clinic operations.
+  title: Dental Clinic API
+  version: "1.0"
+paths:
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account
+      parameters:
+      - description: User registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register new user
+      tags:
+      - Users
+swagger: "2.0"

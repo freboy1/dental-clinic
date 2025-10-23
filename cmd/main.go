@@ -12,8 +12,15 @@ import (
 	"log"
 
 	"github.com/gorilla/mux"
+	_ "dental_clinic/docs" 
+    httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @title Dental Clinic API
+// @version 1.0
+// @description API for managing users, authentication, and clinic operations.
+// @host localhost:8080
+// @BasePath /api
 func main() {
 	cfg := config.LoadConfig()
 	db := database.ConnectDB(cfg.DB_DSN)
@@ -26,6 +33,9 @@ func main() {
 	userHandler := handlers.NewUserHandler(userService, *cfg)
 
 	router := mux.NewRouter()
+
+	// Swagger UI endpoint
+    router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	api := router.PathPrefix("/api").Subrouter()
 
