@@ -6,12 +6,14 @@
   <component name="ChangeListManager">
     <list default="true" id="6cddf09d-d57f-442a-9b9a-f7efc243241a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/database/database.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/database/database.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/middleware/jwt.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/middleware/jwt.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/repository/user_repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/repository/user_repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/0001_create_users_table.down.sql" beforeDir="false" afterPath="$PROJECT_DIR$/migrations/0001_create_users_table.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/0001_create_users_table.up.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/0002_create_verification_tokens.down.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/0002_create_verification_tokens.up.sql" beforeDir="false" afterPath="$PROJECT_DIR$/migrations/0002_create_verification_tokens.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/0003_create_login_logs.down.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/0003_create_login_logs.up.sql" beforeDir="false" afterPath="$PROJECT_DIR$/migrations/0003_create_login_logs.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/0004_create_email_change_tokens.down.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/migrations/0004_create_email_change_tokens.up.sql" beforeDir="false" afterPath="$PROJECT_DIR$/migrations/0004_create_email_change_tokens.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
