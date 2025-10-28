@@ -4,16 +4,16 @@ import (
 	"dental_clinic/internal/config"
 	"dental_clinic/internal/database"
 	"dental_clinic/internal/handlers"
+	"dental_clinic/internal/middleware"
 	"dental_clinic/internal/repository"
 	"dental_clinic/internal/services"
-	"dental_clinic/internal/middleware"
 	"net/http"
 
 	"log"
 
+	_ "dental_clinic/docs"
 	"github.com/gorilla/mux"
-	_ "dental_clinic/docs" 
-    httpSwagger "github.com/swaggo/http-swagger"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 // @title Dental Clinic API
@@ -34,7 +34,7 @@ func main() {
 
 	router := mux.NewRouter()
 
-    router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	api := router.PathPrefix("/api").Subrouter()
 
@@ -56,7 +56,6 @@ func main() {
 		private.HandleFunc("/users/update-email", userHandler.UpdateEmail).Methods("POST")
 		private.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET")
 	}
-
 
 	log.Printf("Server running on port %s", cfg.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Port, router))

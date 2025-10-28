@@ -27,7 +27,6 @@ func JWTAuth(secret string) func(http.Handler) http.Handler {
 				// return
 			}
 
-			
 			tokenStr := parts[1]
 
 			token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
