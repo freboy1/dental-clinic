@@ -26,8 +26,6 @@ func main() {
 	db := database.ConnectDB(cfg.DB_DSN)
 	defer db.Close()
 
-	config.RunMigrations(*cfg)
-
 	userRepo := repository.NewUserRepository(db)
 	userService := services.NewUserService(userRepo, *cfg)
 	userHandler := handlers.NewUserHandler(userService, *cfg)
