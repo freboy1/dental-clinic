@@ -35,19 +35,30 @@ func NewUserHandler(s *services.UserService, cfg config.Config) *UserHandler {
 // @Failure 400 {object} map[string]string
 // @Router /api/register [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
+	response := map[string]string{
+		"success": "0",
+		"message":   "",
+		"user_id": "",
+	}
 	var req services.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		response["message"] = "Invalid request body"
+		json.NewEncoder(w).Encode(response)
+		// http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.service.Register(req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		response["message"] = err.Error()
+		json.NewEncoder(w).Encode(response)
+		// http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	json.NewEncoder(w).Encode(user)
+	response["success"] = "1"
+	response["message"] = "successfully created"
+	response["user_id"] = user.Id.String()
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
@@ -134,19 +145,21 @@ func (h *UserHandler) VerifyAccountByLink(w http.ResponseWriter, r *http.Request
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req services.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"success": "0", "token": ""})
+		// http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 	ip := r.RemoteAddr
 	user, err := h.service.Login(req, ip)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"success": "0", "token": ""})
+		// http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	
 	token, _ := utils.GenerateJWT(user.Id.String(), user.Email, user.Role, h.cfg.JWTSecret)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	json.NewEncoder(w).Encode(map[string]string{"success": "1", "token": token})
 }
 
 func (h *UserHandler) UpdatePassword (w http.ResponseWriter, r *http.Request) {

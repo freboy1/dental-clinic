@@ -163,7 +163,7 @@ func (r *userRepo) SaveVerificationToken(user_id, token string) error {
 }
 
 func (r *userRepo) GetUserByEmail(email string) (*models.User, error) {
-	query := `SELECT id, password, role, email, name, gender, age, push_consent FROM users WHERE email = $1`
+	query := `SELECT id, password, role, email, name, gender, age, push_consent FROM users WHERE email = $1 AND is_verified = true`
 	var u models.User
 	err := r.db.QueryRow(context.Background(), query, email).Scan(&u.Id, &u.Password, &u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent)
 	if err != nil {

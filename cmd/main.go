@@ -13,6 +13,7 @@ import (
 
 	_ "dental_clinic/docs"
 	"github.com/gorilla/mux"
+	gorilla_handler "github.com/gorilla/handlers"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -54,8 +55,12 @@ func main() {
 		private.HandleFunc("/users/update-email", userHandler.UpdateEmail).Methods("POST")
 		private.HandleFunc("/users", userHandler.GetAllUsers).Methods("GET")
 	}
+	headersOk := gorilla_handler.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	originsOk := gorilla_handler.AllowedOrigins([]string{"http://localhost:3000"})
+	methodsOk := gorilla_handler.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
 
 	log.Printf("Server running on port %s", cfg.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Port, router))
+	log.Fatal(http.ListenAndServe(":"+cfg.Port, gorilla_handler.CORS(originsOk, headersOk, methodsOk)(router)))
+
 
 }

@@ -1,6 +1,6 @@
 .PHONY: run migrate-up migrate-down migrate-reset create-migration tidy build
 
-DB_URL=postgres://postgres:0000@localhost:5432/dental_clinic?sslmode=disable
+DB_URL=postgres://postgres:1234@localhost:5432/dental_clinic?sslmode=disable
 
 # Run the application
 run:
