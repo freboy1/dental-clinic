@@ -3,7 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"dental_clinic/internal/config"
-	"dental_clinic/internal/services"
+	"dental_clinic/internal/modules/user/services"
 	"dental_clinic/internal/utils"
 	"encoding/json"
 	"errors"

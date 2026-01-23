@@ -2,7 +2,11 @@ package repository
 
 import (
 	"context"
-	"dental_clinic/internal/models"
+	
+	// "dental_clinic/internal"
+
+
+	"dental_clinic/internal/modules/user/models"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
