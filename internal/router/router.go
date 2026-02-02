@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	gorilla_handler "github.com/gorilla/handlers"
 	httpSwagger "github.com/swaggo/http-swagger"
+	_ "dental_clinic/docs"
 
 )
 
