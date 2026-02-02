@@ -23,20 +23,20 @@ services:
     ports:
       - "5432:5432"
 
-  # migrate:
-  #   image: golang:1.24.9-alpine
-  #   working_dir: /app
-  #   volumes:
-  #     - ..:/app
-  #   depends_on:
-  #     - db
-  #   entrypoint: ["sh", "-c"]
-  #   command:
-  #   - |
-  #     go install github.com/pressly/goose/v3/cmd/goose@v3.24.1 && \
-  #     goose -dir ./migrations postgres "$DB_URL" up
-  #   environment:
-  #     DB_URL: postgres://postgres:1234@db:5432/dental_clinic?sslmode=disable
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    working_dir: /app
+    volumes:
+      - ..:/app
+    depends_on:
+      - db
+
+
+
+
+
 
 volumes:
   postgres_data:
