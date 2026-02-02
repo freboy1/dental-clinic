@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../.env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: dental_clinic
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # migrate:
+  #   image: golang:1.24.9-alpine
+  #   working_dir: /app
+  #   volumes:
+  #     - ..:/app
+  #   depends_on:
+  #     - db
+  #   entrypoint: ["sh", "-c"]
+  #   command:
+  #   - |
+  #     go install github.com/pressly/goose/v3/cmd/goose@v3.24.1 && \
+  #     goose -dir ./migrations postgres "$DB_URL" up
+  #   environment:
+  #     DB_URL: postgres://postgres:1234@db:5432/dental_clinic?sslmode=disable
+
+volumes:
+  postgres_data:
