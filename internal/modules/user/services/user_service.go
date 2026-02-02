@@ -2,8 +2,8 @@ package services
 
 import (
 	"dental_clinic/internal/config"
-	"dental_clinic/internal/models"
-	"dental_clinic/internal/repository"
+	"dental_clinic/internal/modules/user/models"
+	"dental_clinic/internal/modules/user/repository"
 	"dental_clinic/internal/utils"
 	"fmt"
 	"regexp"
