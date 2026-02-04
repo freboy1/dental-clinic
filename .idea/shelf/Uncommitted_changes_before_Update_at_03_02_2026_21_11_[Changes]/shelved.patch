@@ -1,0 +1,2594 @@
+Index: internal/models/user.go
+===================================================================
+diff --git a/internal/models/user.go b/internal/models/user.go
+deleted file mode 100644
+--- a/internal/models/user.go	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ /dev/null	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
+@@ -1,17 +0,0 @@
+-package models
+-
+-import "time"
+-
+-type User struct {
+-	ID              string    `json:"id"`
+-	Email           string    `json:"email"`
+-	PasswordHash    string    `json:"-"`
+-	Phone           string    `json:"phone,omitempty"`
+-	FirstName       string    `json:"first_name"`
+-	LastName        string    `json:"last_name"`
+-	Role            string    `json:"role"`
+-	PushConsent     bool      `json:"push_consent"`
+-	Activated       bool      `json:"activated"`
+-	RegisteredAt    time.Time `json:"registered_at"`
+-	ActivationToken string    `json:"-"`
+-}
+Index: internal/handlers/user_handler.go
+===================================================================
+diff --git a/internal/handlers/user_handler.go b/internal/handlers/user_handler.go
+deleted file mode 100644
+--- a/internal/handlers/user_handler.go	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ /dev/null	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
+@@ -1,1 +0,0 @@
+-package handlers
+\ No newline at end of file
+Index: internal/middleware/auth_middleware.go
+===================================================================
+diff --git a/internal/middleware/auth_middleware.go b/internal/middleware/auth_middleware.go
+deleted file mode 100644
+--- a/internal/middleware/auth_middleware.go	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ /dev/null	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
+@@ -1,56 +0,0 @@
+-package middleware
+-
+-import (
+-	"context"
+-	"net/http"
+-	"strings"
+-
+-	"github.com/freboy1/dental-clinic/internal/utils"
+-)
+-
+-type contextKey string
+-
+-const (
+-	ContextUserID   contextKey = "userID"
+-	ContextUserRole contextKey = "userRole"
+-)
+-
+-func AuthMiddleware(jwtManager *utils.JWTManager) func(http.Handler) http.Handler {
+-	return func(next http.Handler) http.Handler {
+-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+-			authHeader := r.Header.Get("Authorization")
+-			if authHeader == "" {
+-				http.Error(w, "missing Authorization header", http.StatusUnauthorized)
+-				return
+-			}
+-
+-			parts := strings.Split(authHeader, " ")
+-			if len(parts) != 2 || parts[0] != "Bearer" {
+-				http.Error(w, "invalid token format", http.StatusUnauthorized)
+-				return
+-			}
+-
+-			tokenStr := parts[1]
+-			claims, err := jwtManager.Verify(tokenStr)
+-			if err != nil {
+-				http.Error(w, "invalid or expired token", http.StatusUnauthorized)
+-				return
+-			}
+-
+-			ctx := context.WithValue(r.Context(), ContextUserID, claims.UserID)
+-			ctx = context.WithValue(ctx, ContextUserRole, claims.Role)
+-
+-			next.ServeHTTP(w, r.WithContext(ctx))
+-		})
+-	}
+-}
+-
+-func GetUserIDFromContext(ctx context.Context) (string, bool) {
+-	id, ok := ctx.Value(ContextUserID).(string)
+-	return id, ok
+-}
+-
+-func GetUserRoleFromContext(ctx context.Context) (string, bool) {
+-	role, ok := ctx.Value(ContextUserRole).(string)
+-	return role, ok
+-}
+Index: internal/repository/user_repository.go
+===================================================================
+diff --git a/internal/repository/user_repository.go b/internal/repository/user_repository.go
+deleted file mode 100644
+--- a/internal/repository/user_repository.go	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ /dev/null	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
+@@ -1,99 +0,0 @@
+-package repository
+-
+-import (
+-	"context"
+-	"errors"
+-
+-	"github.com/freboy1/dental-clinic/internal/models"
+-	"github.com/jackc/pgx/v5/pgxpool"
+-)
+-
+-type UserRepository interface {
+-	Create(ctx context.Context, user *models.User) error
+-	GetByEmail(ctx context.Context, email string) (*models.User, error)
+-	GetByID(ctx context.Context, id string) (*models.User, error)
+-	Update(ctx context.Context, user *models.User) error
+-	Delete(ctx context.Context, id string) error
+-}
+-
+-type userRepository struct {
+-	db *pgxpool.Pool
+-}
+-
+-func NewUserRepository(db *pgxpool.Pool) UserRepository {
+-	return &userRepository{db: db}
+-}
+-
+-func (r *userRepository) Create(ctx context.Context, user *models.User) error {
+-	query := `
+-		INSERT INTO users (email, password_hash, phone, first_name, last_name, role, push_consent, activated)
+-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+-		RETURNING id, registered_at;
+-	`
+-	err := r.db.QueryRow(ctx, query,
+-		user.Email,
+-		user.PasswordHash,
+-		user.Phone,
+-		user.FirstName,
+-		user.LastName,
+-		user.Role,
+-		user.PushConsent,
+-		user.Activated,
+-	).Scan(&user.ID, &user.RegisteredAt)
+-
+-	if err != nil {
+-		return err
+-	}
+-	return nil
+-}
+-
+-func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+-	query := `
+-		SELECT id, email, password_hash, phone, first_name, last_name, role, push_consent, activated, registered_at
+-		FROM users WHERE email = $1;
+-	`
+-
+-	var u models.User
+-	err := r.db.QueryRow(ctx, query, email).Scan(
+-		&u.ID, &u.Email, &u.PasswordHash, &u.Phone, &u.FirstName,
+-		&u.LastName, &u.Role, &u.PushConsent, &u.Activated, &u.RegisteredAt,
+-	)
+-	if err != nil {
+-		return nil, errors.New("user not found")
+-	}
+-	return &u, nil
+-}
+-
+-func (r *userRepository) GetByID(ctx context.Context, id string) (*models.User, error) {
+-	query := `
+-		SELECT id, email, password_hash, phone, first_name, last_name, role, push_consent, activated, registered_at
+-		FROM users WHERE id = $1;
+-	`
+-
+-	var u models.User
+-	err := r.db.QueryRow(ctx, query, id).Scan(
+-		&u.ID, &u.Email, &u.PasswordHash, &u.Phone, &u.FirstName,
+-		&u.LastName, &u.Role, &u.PushConsent, &u.Activated, &u.RegisteredAt,
+-	)
+-	if err != nil {
+-		return nil, errors.New("user not found")
+-	}
+-	return &u, nil
+-}
+-
+-func (r *userRepository) Update(ctx context.Context, user *models.User) error {
+-	query := `
+-		UPDATE users
+-		SET email = $1, phone = $2, first_name = $3, last_name = $4, push_consent = $5
+-		WHERE id = $6;
+-	`
+-	_, err := r.db.Exec(ctx, query,
+-		user.Email, user.Phone, user.FirstName, user.LastName, user.PushConsent, user.ID,
+-	)
+-	return err
+-}
+-
+-func (r *userRepository) Delete(ctx context.Context, id string) error {
+-	_, err := r.db.Exec(ctx, "DELETE FROM users WHERE id = $1", id)
+-	return err
+-}
+Index: cmd/main.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package main\r\n\r\nimport (\r\n\t\"context\"\r\n\t\"log\"\r\n\t\"net/http\"\r\n\t\"time\"\r\n\r\n\t\"github.com/joho/godotenv\"\r\n\r\n\t\"github.com/freboy1/dental-clinic/internal/config\"\r\n\t\"github.com/freboy1/dental-clinic/internal/database\"\r\n\t\"github.com/freboy1/dental-clinic/internal/handlers\"\r\n\t\"github.com/freboy1/dental-clinic/internal/repository\"\r\n\t\"github.com/freboy1/dental-clinic/internal/server\"\r\n)\r\n\r\nfunc main() {\r\n\t_ = godotenv.Load()\r\n\tcfg := config.Load()\r\n\tctx := context.Background()\r\n\r\n\tdbpool, err := database.NewPgPool(ctx, cfg.DatabaseURL)\r\n\tif err != nil {\r\n\t\tlog.Fatalf(\"failed to connect db: %v\", err)\r\n\t}\r\n\tdefer dbpool.Close(ctx)\r\n\r\n\tuserRepo := repository.NewUserRepository(dbpool)\r\n\tloginRepo := repository.NewLoginHistoryRepository(dbpool)\r\n\r\n\th := handlers.NewHandler(cfg, userRepo, loginRepo)\r\n\r\n\trouter := server.NewRouter(h, cfg.JWTSecret)\r\n\r\n\tsrv := &http.Server{\r\n\t\tAddr:         \":\" + cfg.Port,\r\n\t\tHandler:      loggingMiddleware(router),\r\n\t\tReadTimeout:  15 * time.Second,\r\n\t\tWriteTimeout: 15 * time.Second,\r\n\t\tIdleTimeout:  60 * time.Second,\r\n\t}\r\n\r\n\tlog.Println(\"Server started on port\", cfg.Port)\r\n\tif err := srv.ListenAndServe(); err != nil {\r\n\t\tlog.Fatalf(\"server error: %v\", err)\r\n\t}\r\n}\r\n\r\nfunc loggingMiddleware(next http.Handler) http.Handler {\r\n\treturn http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\r\n\t\tlog.Printf(\"%s %s %s\", r.RemoteAddr, r.Method, r.URL.Path)\r\n\t\tnext.ServeHTTP(w, r)\r\n\t})\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/cmd/main.go b/cmd/main.go
+--- a/cmd/main.go	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ b/cmd/main.go	(date 1770124271960)
+@@ -1,55 +1,26 @@
+ package main
+ 
+ import (
+-	"context"
+-	"log"
+ 	"net/http"
+-	"time"
++	"log"
+ 
+-	"github.com/joho/godotenv"
+-
+-	"github.com/freboy1/dental-clinic/internal/config"
+-	"github.com/freboy1/dental-clinic/internal/database"
+-	"github.com/freboy1/dental-clinic/internal/handlers"
+-	"github.com/freboy1/dental-clinic/internal/repository"
+-	"github.com/freboy1/dental-clinic/internal/server"
++	"dental_clinic/internal/config"
++	"dental_clinic/internal/database"
++	"dental_clinic/internal/router"
+ )
+ 
++// @title Dental Clinic API
++// @version 1.0
++// @description API for managing users, authentication, and clinic operations.
++// @host localhost:8080
++// @BasePath /api
+ func main() {
+-	_ = godotenv.Load()
+-	cfg := config.Load()
+-	ctx := context.Background()
+-
+-	dbpool, err := database.NewPgPool(ctx, cfg.DatabaseURL)
+-	if err != nil {
+-		log.Fatalf("failed to connect db: %v", err)
+-	}
+-	defer dbpool.Close(ctx)
++	cfg := config.LoadConfig()
++	db := database.ConnectDB(cfg.DB_DSN)
++	defer db.Close()
+ 
+-	userRepo := repository.NewUserRepository(dbpool)
+-	loginRepo := repository.NewLoginHistoryRepository(dbpool)
++	r := router.NewRouter(cfg, db)
+ 
+-	h := handlers.NewHandler(cfg, userRepo, loginRepo)
+-
+-	router := server.NewRouter(h, cfg.JWTSecret)
+-
+-	srv := &http.Server{
+-		Addr:         ":" + cfg.Port,
+-		Handler:      loggingMiddleware(router),
+-		ReadTimeout:  15 * time.Second,
+-		WriteTimeout: 15 * time.Second,
+-		IdleTimeout:  60 * time.Second,
+-	}
+-
+-	log.Println("Server started on port", cfg.Port)
+-	if err := srv.ListenAndServe(); err != nil {
+-		log.Fatalf("server error: %v", err)
+-	}
+-}
+-
+-func loggingMiddleware(next http.Handler) http.Handler {
+-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+-		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL.Path)
+-		next.ServeHTTP(w, r)
+-	})
++	log.Printf("Server running on port %s", cfg.Port)
++	log.Fatal(http.ListenAndServe(":"+cfg.Port, r))
+ }
+Index: Makefile
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Makefile b/Makefile
+new file mode 100644
+--- /dev/null	(date 1770123631492)
++++ b/Makefile	(date 1770123631492)
+@@ -0,0 +1,35 @@
++.PHONY: run migrate-up migrate-down migrate-reset create-migration tidy build
++
++DB_URL=postgres://postgres:1234@localhost:5432/dental_clinic?sslmode=disable
++
++# Run the application
++run:
++	go run ./cmd/main.go
++
++# Build the application binary
++build:
++	go build -o app ./cmd/main.go
++
++# Apply all pending database migrations
++migrate-up:
++	goose -dir ./migrations postgres "$(DB_URL)" up
++
++# Roll back the last applied migration
++migrate-down:
++	goose -dir ./migrations postgres "$(DB_URL)" down
++
++# Roll back all migrations
++migrate-reset:
++	goose -dir ./migrations postgres "$(DB_URL)" down-to 0
++
++# Create a new migration file
++create-migration:
++	@if [ -z "$(name)" ]; then \
++		echo "Usage: make create-migration name=add_field"; \
++	else \
++		goose -dir ./migrations create $(name) sql; \
++	fi
++
++# Cleaning
++tidy:
++	go mod tidy
+Index: docs/swagger.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/swagger.json b/docs/swagger.json
+new file mode 100644
+--- /dev/null	(date 1770123631497)
++++ b/docs/swagger.json	(date 1770123631497)
+@@ -0,0 +1,87 @@
++{
++    "swagger": "2.0",
++    "info": {
++        "description": "API for managing users, authentication, and clinic operations.",
++        "title": "Dental Clinic API",
++        "contact": {},
++        "version": "1.0"
++    },
++    "host": "localhost:8080",
++    "basePath": "/api",
++    "paths": {
++        "/api/register": {
++            "post": {
++                "description": "Creates a new user account",
++                "consumes": [
++                    "application/json"
++                ],
++                "produces": [
++                    "application/json"
++                ],
++                "tags": [
++                    "Users"
++                ],
++                "summary": "Register new user",
++                "parameters": [
++                    {
++                        "description": "User registration data",
++                        "name": "request",
++                        "in": "body",
++                        "required": true,
++                        "schema": {
++                            "$ref": "#/definitions/services.RegisterRequest"
++                        }
++                    }
++                ],
++                "responses": {
++                    "200": {
++                        "description": "OK",
++                        "schema": {
++                            "type": "object",
++                            "additionalProperties": {
++                                "type": "string"
++                            }
++                        }
++                    },
++                    "400": {
++                        "description": "Bad Request",
++                        "schema": {
++                            "type": "object",
++                            "additionalProperties": {
++                                "type": "string"
++                            }
++                        }
++                    }
++                }
++            }
++        }
++    },
++    "definitions": {
++        "services.RegisterRequest": {
++            "type": "object",
++            "properties": {
++                "age": {
++                    "type": "integer"
++                },
++                "email": {
++                    "type": "string"
++                },
++                "gender": {
++                    "type": "string"
++                },
++                "name": {
++                    "type": "string"
++                },
++                "password": {
++                    "type": "string"
++                },
++                "push_consent": {
++                    "type": "boolean"
++                },
++                "role": {
++                    "type": "string"
++                }
++            }
++        }
++    }
++}
+\ No newline at end of file
+Index: docs/swagger.yaml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/swagger.yaml b/docs/swagger.yaml
+new file mode 100644
+--- /dev/null	(date 1770123631498)
++++ b/docs/swagger.yaml	(date 1770123631498)
+@@ -0,0 +1,57 @@
++basePath: /api
++definitions:
++  services.RegisterRequest:
++    properties:
++      age:
++        type: integer
++      email:
++        type: string
++      gender:
++        type: string
++      name:
++        type: string
++      password:
++        type: string
++      push_consent:
++        type: boolean
++      role:
++        type: string
++    type: object
++host: localhost:8080
++info:
++  contact: {}
++  description: API for managing users, authentication, and clinic operations.
++  title: Dental Clinic API
++  version: "1.0"
++paths:
++  /api/register:
++    post:
++      consumes:
++      - application/json
++      description: Creates a new user account
++      parameters:
++      - description: User registration data
++        in: body
++        name: request
++        required: true
++        schema:
++          $ref: '#/definitions/services.RegisterRequest'
++      produces:
++      - application/json
++      responses:
++        "200":
++          description: OK
++          schema:
++            additionalProperties:
++              type: string
++            type: object
++        "400":
++          description: Bad Request
++          schema:
++            additionalProperties:
++              type: string
++            type: object
++      summary: Register new user
++      tags:
++      - Users
++swagger: "2.0"
+Index: docs/docs.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docs/docs.go b/docs/docs.go
+new file mode 100644
+--- /dev/null	(date 1770123631496)
++++ b/docs/docs.go	(date 1770123631496)
+@@ -0,0 +1,109 @@
++// Package docs Code generated by swaggo/swag. DO NOT EDIT
++package docs
++
++import "github.com/swaggo/swag"
++
++const docTemplate = `{
++    "schemes": {{ marshal .Schemes }},
++    "swagger": "2.0",
++    "info": {
++        "description": "{{escape .Description}}",
++        "title": "{{.Title}}",
++        "contact": {},
++        "version": "{{.Version}}"
++    },
++    "host": "{{.Host}}",
++    "basePath": "{{.BasePath}}",
++    "paths": {
++        "/api/register": {
++            "post": {
++                "description": "Creates a new user account",
++                "consumes": [
++                    "application/json"
++                ],
++                "produces": [
++                    "application/json"
++                ],
++                "tags": [
++                    "Users"
++                ],
++                "summary": "Register new user",
++                "parameters": [
++                    {
++                        "description": "User registration data",
++                        "name": "request",
++                        "in": "body",
++                        "required": true,
++                        "schema": {
++                            "$ref": "#/definitions/services.RegisterRequest"
++                        }
++                    }
++                ],
++                "responses": {
++                    "200": {
++                        "description": "OK",
++                        "schema": {
++                            "type": "object",
++                            "additionalProperties": {
++                                "type": "string"
++                            }
++                        }
++                    },
++                    "400": {
++                        "description": "Bad Request",
++                        "schema": {
++                            "type": "object",
++                            "additionalProperties": {
++                                "type": "string"
++                            }
++                        }
++                    }
++                }
++            }
++        }
++    },
++    "definitions": {
++        "services.RegisterRequest": {
++            "type": "object",
++            "properties": {
++                "age": {
++                    "type": "integer"
++                },
++                "email": {
++                    "type": "string"
++                },
++                "gender": {
++                    "type": "string"
++                },
++                "name": {
++                    "type": "string"
++                },
++                "password": {
++                    "type": "string"
++                },
++                "push_consent": {
++                    "type": "boolean"
++                },
++                "role": {
++                    "type": "string"
++                }
++            }
++        }
++    }
++}`
++
++// SwaggerInfo holds exported Swagger Info so clients can modify it
++var SwaggerInfo = &swag.Spec{
++	Version:          "1.0",
++	Host:             "localhost:8080",
++	BasePath:         "/api",
++	Schemes:          []string{},
++	Title:            "Dental Clinic API",
++	Description:      "API for managing users, authentication, and clinic operations.",
++	InfoInstanceName: "swagger",
++	SwaggerTemplate:  docTemplate,
++}
++
++func init() {
++	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
++}
+Index: docker/Dockerfile.migrate
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docker/Dockerfile.migrate b/docker/Dockerfile.migrate
+new file mode 100644
+--- /dev/null	(date 1770123631494)
++++ b/docker/Dockerfile.migrate	(date 1770123631494)
+@@ -0,0 +1,10 @@
++# Dockerfile.migrate
++FROM golang:1.24.9
++
++WORKDIR /app
++COPY .. /app
++
++RUN go install github.com/pressly/goose/v3/cmd/goose@v3.26.0
++
++ENTRYPOINT ["sh", "-c"]
++CMD ["goose -dir ./migrations postgres \"postgres://postgres:1234@db:5432/dental_clinic?sslmode=disable\" up"]
+Index: internal/database/database.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package database\r\n\r\nimport (\r\n\t\"context\"\r\n\t\"log\"\r\n\r\n\t\"github.com/jackc/pgx/v5/pgxpool\"\r\n)\r\n\r\nfunc NewPgPool(ctx context.Context, connStr string) (*pgxpool.Pool, error) {\r\n\tpool, err := pgxpool.New(ctx, connStr)\r\n\tif err != nil {\r\n\t\treturn nil, err\r\n\t}\r\n\tif err = pool.Ping(ctx); err != nil {\r\n\t\treturn nil, err\r\n\t}\r\n\tlog.Println(\"Connected to db\")\r\n\treturn pool, nil\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/database/database.go b/internal/database/database.go
+--- a/internal/database/database.go	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ b/internal/database/database.go	(date 1770124269785)
+@@ -2,19 +2,30 @@
+ 
+ import (
+ 	"context"
+-	"log"
++	"fmt"
+ 
+ 	"github.com/jackc/pgx/v5/pgxpool"
+ )
+ 
+-func NewPgPool(ctx context.Context, connStr string) (*pgxpool.Pool, error) {
+-	pool, err := pgxpool.New(ctx, connStr)
++func ConnectDB(dsn string) *pgxpool.Pool {
++	if dsn == "" {
++		return nil
++	}
++
++	cfg, err := pgxpool.ParseConfig(dsn)
+ 	if err != nil {
+-		return nil, err
++		panic(err)
+ 	}
+-	if err = pool.Ping(ctx); err != nil {
+-		return nil, err
++
++	db, err := pgxpool.NewWithConfig(context.Background(), cfg)
++	if err != nil {
++		panic(err)
+ 	}
+-	log.Println("Connected to db")
+-	return pool, nil
++
++	if err := db.Ping(context.Background()); err != nil {
++		panic(err)
++	}
++
++	fmt.Println("Database connected")
++	return db
+ }
+Index: docker/docker-compose.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docker/docker-compose.yml b/docker/docker-compose.yml
+new file mode 100644
+--- /dev/null	(date 1770123631495)
++++ b/docker/docker-compose.yml	(date 1770123631495)
+@@ -0,0 +1,42 @@
++version: "3.9"
++
++services:
++  app:
++    build:
++      context: ..
++      dockerfile: docker/Dockerfile
++    ports:
++      - "8080:8080"
++    env_file:
++      - ../.env
++    depends_on:
++      - db
++
++  db:
++    image: postgres:16
++    environment:
++      POSTGRES_USER: postgres
++      POSTGRES_PASSWORD: 1234
++      POSTGRES_DB: dental_clinic
++    volumes:
++      - postgres_data:/var/lib/postgresql/data
++    ports:
++      - "5432:5432"
++
++  migrate:
++    build:
++      context: .
++      dockerfile: Dockerfile.migrate
++    working_dir: /app
++    volumes:
++      - ..:/app
++    depends_on:
++      - db
++
++
++
++
++
++
++volumes:
++  postgres_data:
+Index: docker/Dockerfile
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/docker/Dockerfile b/docker/Dockerfile
+new file mode 100644
+--- /dev/null	(date 1770123631493)
++++ b/docker/Dockerfile	(date 1770123631493)
+@@ -0,0 +1,19 @@
++FROM golang:1.24.9-alpine AS builder
++
++WORKDIR /app
++
++RUN apk add --no-cache git
++
++COPY go.mod go.sum ./
++RUN go mod download
++
++COPY . .
++RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app ./cmd/main.go
++
++FROM alpine:latest
++
++WORKDIR /app
++COPY --from=builder /app/app .
++
++EXPOSE 8080
++CMD ["./app"]
+Index: internal/router/router.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/router/router.go b/internal/router/router.go
+new file mode 100644
+--- /dev/null	(date 1770123631514)
++++ b/internal/router/router.go	(date 1770123631514)
+@@ -0,0 +1,39 @@
++package router
++
++import (
++	"net/http"
++	"github.com/jackc/pgx/v5/pgxpool"
++
++	"dental_clinic/internal/config"
++	"dental_clinic/internal/middleware"
++	"dental_clinic/internal/modules/user"
++
++	"github.com/gorilla/mux"
++	gorilla_handler "github.com/gorilla/handlers"
++	httpSwagger "github.com/swaggo/http-swagger"
++	_ "dental_clinic/docs"
++
++)
++
++func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
++	router := mux.NewRouter()
++
++	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
++
++	api := router.PathPrefix("/api").Subrouter()
++
++	// Public routes
++	public := api.NewRoute().Subrouter()
++	user.RegisterPublicRoutes(public, db, cfg)
++
++	// Private routes
++	private := api.NewRoute().Subrouter()
++	private.Use(middleware.JWTAuth(cfg.JWTSecret))
++	user.RegisterPrivateRoutes(private, db, cfg)
++
++	headersOk := gorilla_handler.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
++	originsOk := gorilla_handler.AllowedOrigins([]string{"http://localhost:3000"})
++	methodsOk := gorilla_handler.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
++
++	return gorilla_handler.CORS(originsOk, headersOk, methodsOk)(router)
++}
+Index: internal/modules/user/routes.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/modules/user/routes.go b/internal/modules/user/routes.go
+new file mode 100644
+--- /dev/null	(date 1770123631512)
++++ b/internal/modules/user/routes.go	(date 1770123631512)
+@@ -0,0 +1,35 @@
++package user
++
++import (
++	"github.com/jackc/pgx/v5/pgxpool"
++
++	"dental_clinic/internal/config"
++	"dental_clinic/internal/modules/user/repository"
++	"dental_clinic/internal/modules/user/services"
++	"dental_clinic/internal/modules/user/handlers"
++	"github.com/gorilla/mux"
++)
++
++func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
++	repo := repository.NewUserRepository(db)
++	service := services.NewUserService(repo, *cfg)
++	handler := handlers.NewUserHandler(service, *cfg)
++
++	r.HandleFunc("/register", handler.Register).Methods("POST")
++	r.HandleFunc("/login", handler.Login).Methods("POST")
++	r.HandleFunc("/verify", handler.VerifyAccountByLink).Methods("GET")
++}
++
++func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
++	repo := repository.NewUserRepository(db)
++	service := services.NewUserService(repo, *cfg)
++	handler := handlers.NewUserHandler(service, *cfg)
++
++	r.HandleFunc("/users/{id}", handler.GetUserByID).Methods("GET")
++	r.HandleFunc("/users/{id}", handler.UpdateUser).Methods("PUT")
++	r.HandleFunc("/users/{id}", handler.DeleteUser).Methods("DELETE")
++	r.HandleFunc("/users/update-password", handler.UpdatePassword).Methods("POST")
++	r.HandleFunc("/users/update-email", handler.UpdateEmail).Methods("POST")
++	r.HandleFunc("/users/verify-email", handler.VerifyNewEmail).Methods("GET")
++	r.HandleFunc("/users", handler.GetAllUsers).Methods("GET")
++}
+Index: internal/modules/user/models/user.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/modules/user/models/user.go b/internal/modules/user/models/user.go
+new file mode 100644
+--- /dev/null	(date 1770123631511)
++++ b/internal/modules/user/models/user.go	(date 1770123631511)
+@@ -0,0 +1,15 @@
++package models
++
++import "github.com/google/uuid"
++
++type User struct {
++	Id uuid.UUID
++	Role string
++	Email string
++	Password string
++	Name string
++	Gender string
++	Age int
++	Push_consent bool
++	IsVerified   bool
++}
+\ No newline at end of file
+Index: go.sum
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=\r\ngithub.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=\r\ngithub.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=\r\ngithub.com/golang-jwt/jwt/v5 v5.3.0 h1:pv4AsKCKKZuqlgs5sUmn4x8UlGa0kEVt/puTpKx9vvo=\r\ngithub.com/golang-jwt/jwt/v5 v5.3.0/go.mod h1:fxCRLWMO43lRc8nhHWY6LGqRcf+1gQWArsqaEUEa5bE=\r\ngithub.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=\r\ngithub.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=\r\ngithub.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=\r\ngithub.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761/go.mod h1:5TJZWKEWniPve33vlWYSoGYefn3gLQRzjfDlhSJ9ZKM=\r\ngithub.com/jackc/pgx/v5 v5.7.6 h1:rWQc5FwZSPX58r1OQmkuaNicxdmExaEz5A2DO2hUuTk=\r\ngithub.com/jackc/pgx/v5 v5.7.6/go.mod h1:aruU7o91Tc2q2cFp5h4uP3f6ztExVpyVv88Xl/8Vl8M=\r\ngithub.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=\r\ngithub.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=\r\ngithub.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=\r\ngithub.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=\r\ngithub.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=\r\ngithub.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=\r\ngithub.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=\r\ngithub.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=\r\ngithub.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=\r\ngithub.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=\r\ngithub.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=\r\ngolang.org/x/crypto v0.37.0 h1:kJNSjF/Xp7kU0iB2Z+9viTPMW4EqqsrywMXLJOOsXSE=\r\ngolang.org/x/crypto v0.37.0/go.mod h1:vg+k43peMZ0pUMhYmVAWysMK35e6ioLh3wB8ZCAfbVc=\r\ngolang.org/x/sync v0.13.0 h1:AauUjRAJ9OSnvULf/ARrrVywoJDy0YS2AwQ98I37610=\r\ngolang.org/x/sync v0.13.0/go.mod h1:1dzgHSNfp02xaA81J2MS99Qcpr2w7fw1gpm99rleRqA=\r\ngolang.org/x/text v0.24.0 h1:dd5Bzh4yt5KYA8f9CJHCP4FB4D51c2c6JvN37xJJkJ0=\r\ngolang.org/x/text v0.24.0/go.mod h1:L8rBsPeo2pSS+xqN0d5u2ikmjtmoJbDBT1b7nHvFCdU=\r\ngopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=\r\ngopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=\r\ngopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=\r\ngopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/go.sum b/go.sum
+--- a/go.sum	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ b/go.sum	(date 1770124271347)
+@@ -1,8 +1,31 @@
++github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
++github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
++github.com/agiledragon/gomonkey/v2 v2.3.1 h1:k+UnUY0EMNYUFUAQVETGY9uUTxjMdnUkP0ARyJS1zzs=
++github.com/agiledragon/gomonkey/v2 v2.3.1/go.mod h1:ap1AmDzcVOAz1YpeJ3TCzIgstoaWLA6jbbgxfB4w2iY=
++github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
+ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
++github.com/felixge/httpsnoop v1.0.3 h1:s/nj+GCswXYzN5v2DpNMuMQYe+0DDwt5WVCU6CWBdXk=
++github.com/felixge/httpsnoop v1.0.3/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
++github.com/go-openapi/jsonpointer v0.19.3/go.mod h1:Pl9vOtqEWErmShwVjC8pYs9cog34VGT37dQOVbmoatg=
++github.com/go-openapi/jsonpointer v0.19.5 h1:gZr+CIYByUqjcgeLXnQu2gHYQC9o73G2XUeOFYEICuY=
++github.com/go-openapi/jsonpointer v0.19.5/go.mod h1:Pl9vOtqEWErmShwVjC8pYs9cog34VGT37dQOVbmoatg=
++github.com/go-openapi/jsonreference v0.20.0 h1:MYlu0sBgChmCfJxxUKZ8g1cPWFOB37YSZqewK7OKeyA=
++github.com/go-openapi/jsonreference v0.20.0/go.mod h1:Ag74Ico3lPc+zR+qjn4XBUmXymS4zJbYVCZmcgkasdo=
++github.com/go-openapi/spec v0.20.6 h1:ich1RQ3WDbfoeTqTAb+5EIxNmpKVJZWBNah9RAT0jIQ=
++github.com/go-openapi/spec v0.20.6/go.mod h1:2OpW+JddWPrpXSCIX8eOx7lZ5iyuWj3RYR6VaaBKcWA=
++github.com/go-openapi/swag v0.19.5/go.mod h1:POnQmlKehdgb5mhVOsnJFsivZCEZ/vjK9gh66Z9tfKk=
++github.com/go-openapi/swag v0.19.15 h1:D2NRCBzS9/pEY3gP9Nl8aDqGUcPFrwG2p+CNFrLyrCM=
++github.com/go-openapi/swag v0.19.15/go.mod h1:QYRuS/SOXUCsnplDa677K7+DxSOj6IPNl/eQntq43wQ=
+ github.com/golang-jwt/jwt/v5 v5.3.0 h1:pv4AsKCKKZuqlgs5sUmn4x8UlGa0kEVt/puTpKx9vvo=
+ github.com/golang-jwt/jwt/v5 v5.3.0/go.mod h1:fxCRLWMO43lRc8nhHWY6LGqRcf+1gQWArsqaEUEa5bE=
++github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
++github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
++github.com/gorilla/handlers v1.5.2 h1:cLTUSsNkgcwhgRqvCNmdbRWG0A3N4F+M2nWKdScwyEE=
++github.com/gorilla/handlers v1.5.2/go.mod h1:dX+xVpaxdSw+q0Qek8SSsl3dfMk3jNddUkMzo0GtH0w=
++github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=
++github.com/gorilla/mux v1.8.1/go.mod h1:AKf9I4AEqPTmMytcMc0KkNouC66V3BtZ4qD5fmWSiMQ=
+ github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
+ github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
+ github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=
+@@ -13,20 +36,65 @@
+ github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
+ github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
+ github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
++github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
++github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
++github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
++github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
++github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
++github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
++github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
++github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
++github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
++github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
++github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
++github.com/mailru/easyjson v0.7.6 h1:8yTIVnZgCoiM1TgqoeTl+LfU5Jg6/xL3QhGQnimLYnA=
++github.com/mailru/easyjson v0.7.6/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
++github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
++github.com/otiai10/copy v1.7.0 h1:hVoPiN+t+7d2nzzwMiDHPSOogsWAStewq3TwU05+clE=
++github.com/otiai10/copy v1.7.0/go.mod h1:rmRl6QPdJj6EiUqXQ/4Nn2lLXoNQjFCQbbNrxgc/t3U=
+ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
++github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
++github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
+ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+ github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
++github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+ github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+ github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=
+ github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
+-golang.org/x/crypto v0.37.0 h1:kJNSjF/Xp7kU0iB2Z+9viTPMW4EqqsrywMXLJOOsXSE=
+-golang.org/x/crypto v0.37.0/go.mod h1:vg+k43peMZ0pUMhYmVAWysMK35e6ioLh3wB8ZCAfbVc=
+-golang.org/x/sync v0.13.0 h1:AauUjRAJ9OSnvULf/ARrrVywoJDy0YS2AwQ98I37610=
+-golang.org/x/sync v0.13.0/go.mod h1:1dzgHSNfp02xaA81J2MS99Qcpr2w7fw1gpm99rleRqA=
+-golang.org/x/text v0.24.0 h1:dd5Bzh4yt5KYA8f9CJHCP4FB4D51c2c6JvN37xJJkJ0=
+-golang.org/x/text v0.24.0/go.mod h1:L8rBsPeo2pSS+xqN0d5u2ikmjtmoJbDBT1b7nHvFCdU=
++github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe h1:K8pHPVoTgxFJt1lXuIzzOX7zZhZFldJQK/CgKx9BFIc=
++github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe/go.mod h1:lKJPbtWzJ9JhsTN1k1gZgleJWY/cqq0psdoMmaThG3w=
++github.com/swaggo/http-swagger v1.3.4 h1:q7t/XLx0n15H1Q9/tk3Y9L4n210XzJF5WtnDX64a5ww=
++github.com/swaggo/http-swagger v1.3.4/go.mod h1:9dAh0unqMBAlbp1uE2Uc2mQTxNMU/ha4UbucIg1MFkQ=
++github.com/swaggo/swag v1.8.1 h1:JuARzFX1Z1njbCGz+ZytBR15TFJwF2Q7fu8puJHhQYI=
++github.com/swaggo/swag v1.8.1/go.mod h1:ugemnJsPZm/kRwFUnzBlbHRd0JY9zE1M4F+uy2pAaPQ=
++golang.org/x/crypto v0.43.0 h1:dduJYIi3A3KOfdGOHX8AVZ/jGiyPa3IbBozJ5kNuE04=
++golang.org/x/crypto v0.43.0/go.mod h1:BFbav4mRNlXJL4wNeejLpWxB7wMbc79PdRGhWKncxR0=
++golang.org/x/mod v0.28.0 h1:gQBtGhjxykdjY9YhZpSlZIsbnaE2+PgjfLWUQTnoZ1U=
++golang.org/x/mod v0.28.0/go.mod h1:yfB/L0NOf/kmEbXjzCPOx1iK1fRutOydrCMsqRhEBxI=
++golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
++golang.org/x/net v0.45.0 h1:RLBg5JKixCy82FtLJpeNlVM0nrSqpCRYzVU1n8kj0tM=
++golang.org/x/net v0.45.0/go.mod h1:ECOoLqd5U3Lhyeyo/QDCEVQ4sNgYsqvCZ722XogGieY=
++golang.org/x/sync v0.17.0 h1:l60nONMj9l5drqw6jlhIELNv9I0A4OFgRsG9k2oT9Ug=
++golang.org/x/sync v0.17.0/go.mod h1:9KTHXmSnoGruLpwFjVSX0lNNA75CykiMECbovNTZqGI=
++golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
++golang.org/x/sys v0.0.0-20210423082822-04245dca01da/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
++golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
++golang.org/x/text v0.3.6/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
++golang.org/x/text v0.30.0 h1:yznKA/E9zq54KzlzBEAWn1NXSQ8DIp/NYMy88xJjl4k=
++golang.org/x/text v0.30.0/go.mod h1:yDdHFIX9t+tORqspjENWgzaCVXgk0yYnYuSZ8UzzBVM=
++golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
++golang.org/x/tools v0.37.0 h1:DVSRzp7FwePZW356yEAChSdNcQo6Nsp+fex1SUW09lE=
++golang.org/x/tools v0.37.0/go.mod h1:MBN5QPQtLMHVdvsbtarmTNukZDdgwdwlO5qGacAzF0w=
+ gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
++gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
++gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
++gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
++gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
++gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
++gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
++gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
+ gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
++gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+ gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
+ gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+Index: internal/modules/user/handlers/user_handler.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/modules/user/handlers/user_handler.go b/internal/modules/user/handlers/user_handler.go
+new file mode 100644
+--- /dev/null	(date 1770123631510)
++++ b/internal/modules/user/handlers/user_handler.go	(date 1770123631510)
+@@ -0,0 +1,234 @@
++package handlers
++
++import (
++	"database/sql"
++	"dental_clinic/internal/config"
++	"dental_clinic/internal/modules/user/services"
++	"dental_clinic/internal/utils"
++	"encoding/json"
++	"errors"
++	"fmt"
++	"net/http"
++	"strings"
++	"github.com/gorilla/mux"
++)
++
++type UserHandler struct {
++	service *services.UserService
++	cfg config.Config
++}
++
++func NewUserHandler(s *services.UserService, cfg config.Config) *UserHandler {
++	return &UserHandler{
++		service: s,
++		cfg: cfg,
++	}
++}
++// Register godoc
++// @Summary Register new user
++// @Description Creates a new user account
++// @Tags Users
++// @Accept  json
++// @Produce  json
++// @Param request body services.RegisterRequest true "User registration data"
++// @Success 200 {object} map[string]string
++// @Failure 400 {object} map[string]string
++// @Router /api/register [post]
++func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
++	response := map[string]string{
++		"success": "0",
++		"message":   "",
++		"user_id": "",
++	}
++	var req services.RegisterRequest
++	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
++		response["message"] = "Invalid request body"
++		json.NewEncoder(w).Encode(response)
++		// http.Error(w, "Invalid request body", http.StatusBadRequest)
++		return
++	}
++
++	user, err := h.service.Register(req)
++	if err != nil {
++		response["message"] = err.Error()
++		json.NewEncoder(w).Encode(response)
++		// http.Error(w, err.Error(), http.StatusBadRequest)
++		return
++	}
++	response["success"] = "1"
++	response["message"] = "successfully created"
++	response["user_id"] = user.Id.String()
++	json.NewEncoder(w).Encode(response)
++}
++
++func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
++	_ = r
++	tokenStr := getToken(r)
++	users, err := h.service.GetAllUsers(tokenStr)
++	if err != nil {
++		http.Error(w, err.Error(), http.StatusInternalServerError)
++		return
++	}
++
++	w.Header().Set("Content-Type", "application/json")
++	json.NewEncoder(w).Encode(users)
++}
++
++func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
++	vars := mux.Vars(r)
++	id := vars["id"]
++
++	user, err := h.service.GetUserByID(id)
++	if err != nil {
++		http.Error(w, err.Error(), http.StatusNotFound)
++		return
++	}
++
++	w.Header().Set("Content-Type", "application/json")
++	json.NewEncoder(w).Encode(user)
++}
++
++func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
++	vars := mux.Vars(r)
++	id := vars["id"]
++
++	var req services.RegisterRequest
++	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
++		http.Error(w, "Invalid request body", http.StatusBadRequest)
++		return
++	}
++
++	user, err := h.service.UpdateUser(id, req)
++	if err != nil {
++		http.Error(w, err.Error(), http.StatusNotFound)
++		return
++	}
++
++	w.Header().Set("Content-Type", "application/json")
++	json.NewEncoder(w).Encode(user)
++}
++
++func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
++	vars := mux.Vars(r)
++	id := vars["id"]
++	tokenStr := getToken(r)
++	err := h.service.DeleteUser(id, tokenStr)
++	if err != nil {
++		if errors.Is(err, sql.ErrNoRows) || err.Error() == "user not found" {
++			http.Error(w, "User not found", http.StatusNotFound)
++			return
++		}
++		http.Error(w, "Internal server error", http.StatusInternalServerError)
++		return
++	}
++
++	w.Header().Set("Content-Type", "application/json")
++	json.NewEncoder(w).Encode(map[string]string{"message": "User deleted successfully"})
++}
++
++func (h *UserHandler) VerifyAccountByLink(w http.ResponseWriter, r *http.Request) {
++	token := r.URL.Query().Get("token")
++	if token == "" {
++		http.Error(w, "Missing token", http.StatusBadRequest)
++		return
++	}
++
++	err := h.service.VerifyUserEmail(token)
++	if err != nil {
++		fmt.Println(err)
++		http.Error(w, "Invalid or expired token", http.StatusBadRequest)
++		return
++	}
++
++}
++
++func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
++	var req services.LoginRequest
++	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
++		json.NewEncoder(w).Encode(map[string]string{"success": "0", "token": ""})
++		// http.Error(w, "Invalid request body", http.StatusBadRequest)
++		return
++	}
++	ip := r.RemoteAddr
++	user, err := h.service.Login(req, ip)
++	if err != nil {
++		json.NewEncoder(w).Encode(map[string]string{"success": "0", "token": ""})
++		// http.Error(w, err.Error(), http.StatusBadRequest)
++		return
++	}
++	
++	token, _ := utils.GenerateJWT(user.Id.String(), user.Email, user.Role, h.cfg.JWTSecret)
++	w.Header().Set("Content-Type", "application/json")
++	json.NewEncoder(w).Encode(map[string]string{"success": "1", "token": token})
++}
++
++func (h *UserHandler) UpdatePassword (w http.ResponseWriter, r *http.Request) {
++	var req services.UpdatePasswordRequest
++	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
++		http.Error(w, "Invalid request body", http.StatusBadRequest)
++		return
++	}
++
++	tokenStr := getToken(r)
++	err := h.service.UpdatePassword(tokenStr, req)
++	if err != nil {
++		http.Error(w, err.Error(), http.StatusBadRequest)
++		return 
++	}
++	
++	w.Header().Set("Content-Type", "application/json")
++	json.NewEncoder(w).Encode(map[string]string{"updated": "successfully"})
++
++}
++
++func getToken(r *http.Request) string {
++	authHeader := r.Header.Get("Authorization")
++	parts := strings.Split(authHeader, " ")
++	tokenStr := parts[1]
++	return tokenStr
++}
++
++func (h *UserHandler) UpdateEmail (w http.ResponseWriter, r *http.Request) {
++	var req services.UpdateEmailRequest
++	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
++		http.Error(w, "Invalid request body", http.StatusBadRequest)
++		return
++	}
++	tokenStr := getToken(r)
++	err := h.service.UpdateEmail(tokenStr, req)
++	if err != nil {
++		http.Error(w, err.Error(), http.StatusBadRequest)
++		return 
++	}
++}
++
++func (h *UserHandler) VerifyNewEmail(w http.ResponseWriter, r *http.Request) {
++    token := r.URL.Query().Get("token")
++    if token == "" {
++        http.Error(w, "Token missing", http.StatusBadRequest)
++        return
++    }
++
++    err := h.service.VerifyEmailToken(token)
++    if err != nil {
++        http.Error(w, err.Error(), http.StatusBadRequest)
++        return
++    }
++	w.Header().Set("Content-Type", "application/json")
++	json.NewEncoder(w).Encode(map[string]string{"updated": "successfully"})
++}
++
++
++func (h *UserHandler) GetUserByIDAdmin(w http.ResponseWriter, r *http.Request) {
++	vars := mux.Vars(r)
++	id := vars["id"]
++
++	user, err := h.service.GetUserByID(id)
++	if err != nil {
++		http.Error(w, err.Error(), http.StatusNotFound)
++		return
++	}
++
++	w.Header().Set("Content-Type", "application/json")
++	json.NewEncoder(w).Encode(user)
++}
+\ No newline at end of file
+Index: internal/modules/clinic/routes.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/modules/clinic/routes.go b/internal/modules/clinic/routes.go
+new file mode 100644
+--- /dev/null	(date 1770123631508)
++++ b/internal/modules/clinic/routes.go	(date 1770123631508)
+@@ -0,0 +1,32 @@
++package clinic
++
++import (
++	"github.com/jackc/pgx/v5/pgxpool"
++
++	"dental_clinic/internal/config"
++	"dental_clinic/internal/modules/clinic/repository"
++	"dental_clinic/internal/modules/clinic/services"
++	"dental_clinic/internal/modules/clinic/handlers"
++	"github.com/gorilla/mux"
++)
++
++func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
++	repo := repository.NewClinicRepository(db)
++	service := services.NewClinicService(repo, *cfg)
++	handler := handlers.NewClinicHandler(service, *cfg)
++
++	r.HandleFunc("/clinics", handler.GetClinics).Methods("GET")
++	r.HandleFunc("/clinics/{id}", handler.GetClinic).Methods("GET")
++
++}
++
++func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
++	repo := repository.NewClinicRepository(db)
++	service := services.NewClinicService(repo, *cfg)
++	handler := handlers.NewClinicHandler(service, *cfg)
++
++	r.HandleFunc("/clinics", handler.CreateClinic).Methods("POST")
++	r.HandleFunc("/clinics/{id}", handler.UpdateClinic).Methods("PUT")
++	r.HandleFunc("/clinics/{id}", handler.DeleteClinic).Methods("DELETE")
++
++}
+Index: internal/modules/clinic/models/clinic.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/modules/clinic/models/clinic.go b/internal/modules/clinic/models/clinic.go
+new file mode 100644
+--- /dev/null	(date 1770123631506)
++++ b/internal/modules/clinic/models/clinic.go	(date 1770123631506)
+@@ -0,0 +1,18 @@
++package models
++
++import (
++	"time"
++
++	"github.com/google/uuid"
++)
++
++type Clinic struct {
++	Id          uuid.UUID 
++	Name        string    
++	Description string    
++	Phone       string    
++	Email       string    
++	Website     string    
++	IsActive    bool      
++	CreatedAt   time.Time 
++}
+Index: internal/modules/clinic/models/clinic_address.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/modules/clinic/models/clinic_address.go b/internal/modules/clinic/models/clinic_address.go
+new file mode 100644
+--- /dev/null	(date 1770123631507)
++++ b/internal/modules/clinic/models/clinic_address.go	(date 1770123631507)
+@@ -0,0 +1,15 @@
++package models
++
++import (
++	"time"
++
++	"github.com/google/uuid"
++)
++
++type ClinicAddress struct {
++	Id        uuid.UUID 
++	ClinicId uuid.UUID 
++	AddressId uuid.UUID 
++	IsMain    bool      
++	CreatedAt time.Time 
++}
+Index: internal/modules/user/services/user_service.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/modules/user/services/user_service.go b/internal/modules/user/services/user_service.go
+new file mode 100644
+--- /dev/null	(date 1770123631512)
++++ b/internal/modules/user/services/user_service.go	(date 1770123631512)
+@@ -0,0 +1,287 @@
++package services
++
++import (
++	"dental_clinic/internal/config"
++	"dental_clinic/internal/modules/user/models"
++	"dental_clinic/internal/modules/user/repository"
++	"dental_clinic/internal/utils"
++	"fmt"
++	"regexp"
++
++	"errors"
++
++	"github.com/google/uuid"
++	"golang.org/x/crypto/bcrypt"
++)
++
++type UserService struct {
++	repo repository.UserRepository
++	cfx  config.Config
++}
++
++func NewUserService(r repository.UserRepository, cfx config.Config) *UserService {
++	return &UserService{
++		repo: r,
++		cfx:  cfx,
++	}
++}
++
++type RegisterRequest struct {
++	Role        string `json:"role"`
++	Email       string `json:"email"`
++	Password    string `json:"password"`
++	Name        string `json:"name"`
++	Gender      string `json:"gender"`
++	Age         int    `json:"age"`
++	PushConsent bool   `json:"push_consent"`
++}
++
++type LoginRequest struct {
++	Email    string `json:"email"`
++	Password string `json:"password"`
++}
++
++type UpdatePasswordRequest struct {
++	OldPassword string `json:"old_password"`
++	NewPassword string `json:"new_password"`
++}
++
++type UpdateEmailRequest struct {
++	NewEmail string `json:"new_email"`
++}
++
++func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
++	if !isValidEmail(req.Email) {
++		return nil, errors.New("invalid email format")
++	}
++	if !isValidPassword(req.Password) {
++		return nil, errors.New("weak password")
++	}
++	if !isValidName(req.Name) {
++		return nil, errors.New("invalid name")
++	}
++
++	// add check for existing user
++
++	hash, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
++	user := &models.User{
++		Role:         req.Role,
++		Email:        req.Email,
++		Password:     string(hash),
++		Name:         req.Name,
++		Gender:       req.Gender,
++		Age:          req.Age,
++		Push_consent: req.PushConsent,
++	}
++	created_user, err := s.repo.Create(user)
++	if err != nil {
++		return created_user, err
++	}
++
++	token := uuid.NewString()
++	err = s.repo.SaveVerificationToken(created_user.Id.String(), token)
++	if err != nil {
++		return created_user, err
++	}
++	utils.SendVerificationEmail(&s.cfx, user.Email, token)
++
++	return created_user, err
++}
++
++func (s *UserService) GetAllUsers(tokenStr string) ([]models.User, error) {
++	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
++	if claims["role"] == "admin" {
++		users, err := s.repo.GetAll()
++		if err != nil {
++			return nil, err
++		}
++		return users, nil
++	}
++	return nil, errors.New("does not have access")
++}
++
++func (s *UserService) GetUserByID(id string) (*models.User, error) {
++	user, err := s.repo.GetByID(id)
++	if err != nil {
++		return nil, err
++	}
++	if user == nil {
++		return nil, errors.New("user not found")
++	}
++	return user, nil
++}
++
++func (s *UserService) UpdateUser(id string, req RegisterRequest) (*models.User, error) {
++	user, err := s.repo.GetByID(id)
++	if err != nil {
++		return nil, err
++	}
++	if user == nil {
++		return nil, errors.New("user not found")
++	}
++
++	user.Name = req.Name
++	user.Email = req.Email
++	user.Role = req.Role
++	user.Gender = req.Gender
++	user.Age = req.Age
++	user.Push_consent = req.PushConsent
++
++	return s.repo.Update(id, user)
++}
++
++func (s *UserService) DeleteUser(id, tokenStr string) error {
++	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
++	if claims["role"] == "admin" || claims["user_id"].(string) == id {
++		user, err := s.repo.GetByID(id)
++		if err != nil {
++			return err
++		}
++		if user == nil {
++			return errors.New("user not found")
++		}
++
++		return s.repo.Delete(id)
++	}
++	return errors.New("do not have rights")
++}
++
++func isValidEmail(email string) bool {
++	re := regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
++	return re.MatchString(email)
++}
++
++func isValidPassword(password string) bool {
++	re := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
++	if !re.MatchString(password) || len(password) < 8 {
++		return false
++	}
++	return true
++}
++
++func isValidName(name string) bool {
++	if name == "" {
++		return false
++	}
++	re := regexp.MustCompile(`^[A-Za-zА-Яа-яЁё]+$`)
++	return re.MatchString(name)
++}
++
++func (s *UserService) VerifyUserEmail(token string) error {
++	userID, err := s.repo.FindUserIdByToken(token)
++	if err != nil {
++		return err
++	}
++	return s.repo.MarkUserAsVerified(userID)
++
++}
++
++func (s *UserService) Login(req LoginRequest, ip string) (*models.User, error) {
++
++	// add check for existing user
++	if req.Email == "" {
++		s.repo.LogLogin("", ip, false)
++		return nil, errors.New("email is empty")
++	}
++	user, err := s.repo.GetUserByEmail(req.Email)
++	if err != nil {
++		_ = s.repo.LogLogin("", ip, false)
++		return nil, err
++	}
++
++	if user == nil {
++		_ = s.repo.LogLogin("", ip, false)
++		return nil, errors.New("user not found")
++	}
++
++	fmt.Println(user.Password)
++	fmt.Println(req.Password)
++
++	if !CheckPassword(user.Password, req.Password) {
++		s.repo.LogLogin(user.Id.String(), ip, false)
++		return nil, errors.New("Invalid credentials")
++	}
++	s.repo.LogLogin(user.Id.String(), ip, true)
++	return user, err
++}
++
++func CheckPassword(hashedPassword, plainPassword string) bool {
++	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
++	return err == nil
++}
++
++func (s *UserService) UpdatePassword(tokenStr string, req UpdatePasswordRequest) error {
++	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
++	userIDAny := claims["user_id"]
++	userID, _ := userIDAny.(string)
++	fmt.Println("User id")
++	fmt.Println(userID)
++	fmt.Println(req.OldPassword)
++	user, err := s.repo.GetUserByID(userID)
++	fmt.Println(user.Password)
++	if err != nil {
++		return err
++	}
++	if user == nil {
++		return errors.New("user not found")
++	}
++
++	if !CheckPassword(user.Password, req.OldPassword) {
++		return errors.New("Invalid credentials")
++	}
++
++	if !isValidPassword(req.NewPassword) {
++		return errors.New("weak password")
++	}
++
++	hash, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
++
++	err = s.repo.UpdatePassword(userID, string(hash))
++	if err != nil {
++		return err
++	}
++	err = utils.SendEmail(&s.cfx, user.Email, "You have updated your Password", "You have updated your Password")
++	if err != nil {
++		return err
++	}
++	return nil
++}
++
++
++func (s *UserService) UpdateEmail(tokenStr string, req UpdateEmailRequest) error {
++	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
++	userIDAny := claims["user_id"]
++	userID, _ := userIDAny.(string)
++	existingUser, _ := s.repo.GetUserByEmail(req.NewEmail)
++    if existingUser != nil {
++        return errors.New("email already in use")
++    }
++	if !isValidEmail(req.NewEmail) {
++        return errors.New("invalid email format")
++    }
++	verifyToken := uuid.NewString()
++	err := s.repo.SaveEmailVerificationToken(userID, req.NewEmail, verifyToken)
++    if err != nil {
++        return err
++    }
++
++	link := fmt.Sprintf("http://localhost:8080/api/users/verify-email?token=%s", verifyToken)
++    body := fmt.Sprintf("You need to do to the link: %s", link)
++
++    return utils.SendEmail(&s.cfx, req.NewEmail, "Confirm email", body)
++}
++
++func (s *UserService) VerifyEmailToken(token string) error {
++	userID, newEmail, err := s.repo.VerifyEmailToken(token)
++	if err != nil {
++		return err
++	}
++	if userID == "" || newEmail == "" {
++		return errors.New("invalid verification data")
++	}
++	err = s.repo.UpdateEmailInDatabase(userID, newEmail)
++	if err != nil {
++		return errors.New("Could not update email")
++	}
++	return nil
++}
+Index: internal/modules/user/repository/user_repository.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/modules/user/repository/user_repository.go b/internal/modules/user/repository/user_repository.go
+new file mode 100644
+--- /dev/null	(date 1770123631511)
++++ b/internal/modules/user/repository/user_repository.go	(date 1770123631511)
+@@ -0,0 +1,238 @@
++package repository
++
++import (
++	"context"
++	
++	// "dental_clinic/internal"
++
++
++	"dental_clinic/internal/modules/user/models"
++	"github.com/jackc/pgx/v5"
++	"github.com/jackc/pgx/v5/pgxpool"
++)
++
++type UserRepository interface {
++	Create(user *models.User) (*models.User, error)
++	GetByID(id string) (*models.User, error)
++	Update(id string, user *models.User) (*models.User, error)
++	Delete(id string) error
++	GetAll() ([]models.User, error)
++	FindUserIdByToken(token string) (string, error)
++	MarkUserAsVerified(user_id string) error
++	SaveVerificationToken(user_id, token string) error
++	GetUserByEmail(email string) (*models.User, error)
++	UpdatePassword(user_id, new_password string) error
++	GetUserByID(id string) (*models.User, error)
++	LogLogin(userID, ip string, success bool) error
++	SaveEmailVerificationToken(userID, NewEmail, verifyToken string) error
++	VerifyEmailToken(token string) (string, string, error)
++	UpdateEmailInDatabase(userId, newEmail string) error
++}
++
++type userRepo struct {
++	db *pgxpool.Pool
++}
++
++func NewUserRepository(db *pgxpool.Pool) UserRepository {
++	return &userRepo{db: db}
++}
++
++func (r *userRepo) Create(user *models.User) (*models.User, error) {
++	query := `INSERT INTO users (role, email, password, name, gender, age, push_consent)
++			  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
++	err := r.db.QueryRow(context.Background(), query, user.Role, user.Email, user.Password, user.Name, user.Gender, user.Age, user.Push_consent).
++		Scan(&user.Id)
++	return user, err
++}
++
++func (r *userRepo) GetAll() ([]models.User, error) {
++	query := `SELECT id, role, email, name, gender, age, push_consent FROM users`
++
++	rows, err := r.db.Query(context.Background(), query)
++	if err != nil {
++		return nil, err
++	}
++	defer rows.Close()
++
++	var users []models.User
++	for rows.Next() {
++		var u models.User
++		if err := rows.Scan(&u.Id, &u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent); err != nil {
++			return nil, err
++		}
++		users = append(users, u)
++	}
++
++	if err = rows.Err(); err != nil {
++		return nil, err
++	}
++
++	return users, nil
++}
++
++func (r *userRepo) GetByID(id string) (*models.User, error) {
++	query := `SELECT role, email, name, gender, age, push_consent FROM users WHERE id = $1`
++	var u models.User
++	err := r.db.QueryRow(context.Background(), query, id).Scan(&u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent)
++	if err != nil {
++		if err == pgx.ErrNoRows {
++			return nil, nil
++		}
++		return nil, err
++	}
++	return &u, nil
++}
++
++func (r *userRepo) Update(id string, user *models.User) (*models.User, error) {
++	query := `
++		UPDATE users
++		SET name=$1, email=$2, role=$3, gender=$4, age=$5, push_consent=$6
++		WHERE id=$7
++		RETURNING id, role, email, name, gender, age, push_consent
++	`
++
++	err := r.db.QueryRow(
++		context.Background(),
++		query,
++		user.Name,
++		user.Email,
++		user.Role,
++		user.Gender,
++		user.Age,
++		user.Push_consent,
++		id,
++	).Scan(
++		&user.Id,
++		&user.Role,
++		&user.Email,
++		&user.Name,
++		&user.Gender,
++		&user.Age,
++		&user.Push_consent,
++	)
++
++	if err != nil {
++		if err == pgx.ErrNoRows {
++			return nil, nil
++		}
++		return nil, err
++	}
++
++	return user, nil
++}
++
++func (r *userRepo) Delete(id string) error {
++	query := `DELETE FROM users WHERE id=$1`
++	result, err := r.db.Exec(context.Background(), query, id)
++	if err != nil {
++		return err
++	}
++
++	rowsAffected := result.RowsAffected()
++
++	if rowsAffected == 0 {
++		return pgx.ErrNoRows
++	}
++
++	return nil
++}
++
++func (r *userRepo) FindUserIdByToken(token string) (string, error) {
++	query := "SELECT user_id FROM verification_tokens WHERE token = $1 AND expires_at > NOW()"
++	var user_id string
++	err := r.db.QueryRow(context.Background(), query, token).Scan(&user_id)
++	if err != nil {
++		if err == pgx.ErrNoRows {
++			return "", nil
++		}
++		return "", err
++	}
++	return user_id, nil
++}
++
++func (r *userRepo) MarkUserAsVerified(user_id string) error {
++	query := "UPDATE users SET is_verified=TRUE WHERE id=$1"
++	_, err := r.db.Exec(context.Background(), query, user_id)
++
++	return err
++}
++
++func (r *userRepo) SaveVerificationToken(user_id, token string) error {
++	query := `
++		INSERT INTO verification_tokens (user_id, token)
++		VALUES ($1, $2)
++	`
++	_, err := r.db.Exec(context.Background(), query, user_id, token)
++	return err
++}
++
++func (r *userRepo) GetUserByEmail(email string) (*models.User, error) {
++	query := `SELECT id, password, role, email, name, gender, age, push_consent FROM users WHERE email = $1 AND is_verified = true`
++	var u models.User
++	err := r.db.QueryRow(context.Background(), query, email).Scan(&u.Id, &u.Password, &u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent)
++	if err != nil {
++		if err == pgx.ErrNoRows {
++			return nil, nil
++		}
++		return nil, err
++	}
++	return &u, nil
++}
++
++func (r *userRepo) UpdatePassword(user_id, new_password string) error {
++	query := "UPDATE users SET password=$1 WHERE id=$2"
++	_, err := r.db.Exec(context.Background(), query, new_password, user_id)
++	return err
++}
++
++func (r *userRepo) GetUserByID(id string) (*models.User, error) {
++	query := `SELECT id, password, role, email, name, gender, age, push_consent FROM users WHERE id = $1`
++	var u models.User
++	err := r.db.QueryRow(context.Background(), query, id).Scan(&u.Id, &u.Password, &u.Role, &u.Email, &u.Name, &u.Gender, &u.Age, &u.Push_consent)
++	if err != nil {
++		if err == pgx.ErrNoRows {
++			return nil, nil
++		}
++		return nil, err
++	}
++	return &u, nil
++}
++
++func (r *userRepo) LogLogin(userID, ip string, success bool) error {
++	if userID == "" {
++		query := `INSERT INTO login_logs (user_id, ip_address, success)
++                  VALUES (NULL, $1, $2)`
++		_, err := r.db.Exec(context.Background(), query, ip, success)
++		return err
++	}
++	query := `INSERT INTO login_logs (user_id, ip_address, success) VALUES ($1, $2, $3)`
++	_, err := r.db.Exec(context.Background(), query, userID, ip, success)
++	return err
++}
++func (r *userRepo) SaveEmailVerificationToken(userID, NewEmail, verifyToken string) error {
++	query := `
++		INSERT INTO email_change_tokens (user_id, new_email, token)
++		VALUES ($1, $2, $3)
++	`
++	_, err := r.db.Exec(context.Background(), query, userID, NewEmail, verifyToken)
++	return err
++}
++
++func (r *userRepo) VerifyEmailToken(token string) (string, string, error) {
++	var userID, newEmail string
++	query := `SELECT user_id, new_email FROM email_change_tokens WHERE token = $1`
++	err := r.db.QueryRow(context.Background(), query, token).Scan(&userID, &newEmail)
++	if err != nil {
++		if err == pgx.ErrNoRows {
++			return "", "", nil
++		}
++		return "", "", err
++	}
++	return userID, newEmail, nil
++}
++
++func (r *userRepo) UpdateEmailInDatabase(userId, newEmail string) error {
++	query := "UPDATE users SET email=$1 WHERE id=$2"
++	_, err := r.db.Exec(context.Background(), query, newEmail, userId)
++	return err
++}
+Index: internal/modules/clinic/repository/clinic_repository.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/modules/clinic/repository/clinic_repository.go b/internal/modules/clinic/repository/clinic_repository.go
+new file mode 100644
+--- /dev/null	(date 1770123631507)
++++ b/internal/modules/clinic/repository/clinic_repository.go	(date 1770123631507)
+@@ -0,0 +1,32 @@
++package repository
++
++import (
++	"context"
++	
++	// "dental_clinic/internal"
++
++
++	"dental_clinic/internal/modules/clinic/models"
++	// "github.com/jackc/pgx/v5"
++	"github.com/jackc/pgx/v5/pgxpool"
++)
++
++type ClinicRepository interface {
++	Create(clinic *models.Clinic) (*models.Clinic, error)
++}
++
++type clinicRepo struct {
++	db *pgxpool.Pool
++}
++
++func NewClinicRepository(db *pgxpool.Pool) ClinicRepository {
++	return &clinicRepo{db: db}
++}
++
++func (r *clinicRepo) Create(clinic *models.Clinic) (*models.Clinic, error) {
++	query := `INSERT INTO clinics (id, name, description, phone, email, website, is_active, created_at)
++			  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
++	err := r.db.QueryRow(context.Background(), query, clinic.Id, clinic.Name, clinic.Description, clinic.Phone, clinic.Email, clinic.Website, clinic.IsActive).
++		Scan(&clinic.Id)
++	return clinic, err
++}
+Index: migrations/0002_create_verification_tokens.sql
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/migrations/0002_create_verification_tokens.sql b/migrations/0002_create_verification_tokens.sql
+new file mode 100644
+--- /dev/null	(date 1770123631516)
++++ b/migrations/0002_create_verification_tokens.sql	(date 1770123631516)
+@@ -0,0 +1,9 @@
++-- +goose Up
++CREATE TABLE verification_tokens (
++    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
++    token VARCHAR(255) UNIQUE NOT NULL,
++    expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '24 hours'
++);
++
++-- +goose Down
++DROP TABLE IF EXISTS verification_tokens;
+\ No newline at end of file
+Index: internal/modules/clinic/handlers/clinic_handler.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/modules/clinic/handlers/clinic_handler.go b/internal/modules/clinic/handlers/clinic_handler.go
+new file mode 100644
+--- /dev/null	(date 1770123631504)
++++ b/internal/modules/clinic/handlers/clinic_handler.go	(date 1770123631504)
+@@ -0,0 +1,34 @@
++package handlers
++
++import (
++	"dental_clinic/internal/config"
++	"dental_clinic/internal/modules/clinic/services"
++	"net/http"
++)
++
++type ClinicHandler struct {
++	service *services.ClinicService
++	cfg config.Config
++}
++
++func NewClinicHandler(s *services.ClinicService, cfg config.Config) *ClinicHandler {
++	return &ClinicHandler{
++		service: s,
++		cfg: cfg,
++	}
++}
++func (h *ClinicHandler) GetClinics(w http.ResponseWriter, r *http.Request) {
++
++}
++func (h *ClinicHandler) GetClinic(w http.ResponseWriter, r *http.Request) {
++
++}
++func (h *ClinicHandler) CreateClinic(w http.ResponseWriter, r *http.Request) {
++
++}
++func (h *ClinicHandler) UpdateClinic(w http.ResponseWriter, r *http.Request) {
++
++}
++func (h *ClinicHandler) DeleteClinic(w http.ResponseWriter, r *http.Request) {
++
++}
+\ No newline at end of file
+Index: internal/modules/clinic/services/clinic_service.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/modules/clinic/services/clinic_service.go b/internal/modules/clinic/services/clinic_service.go
+new file mode 100644
+--- /dev/null	(date 1770123631509)
++++ b/internal/modules/clinic/services/clinic_service.go	(date 1770123631509)
+@@ -0,0 +1,18 @@
++package services
++
++import (
++	"dental_clinic/internal/config"
++	"dental_clinic/internal/modules/clinic/repository"
++)
++
++type ClinicService struct {
++	repo repository.ClinicRepository
++	cfx  config.Config
++}
++
++func NewClinicService(r repository.ClinicRepository, cfx config.Config) *ClinicService {
++	return &ClinicService{
++		repo: r,
++		cfx:  cfx,
++	}
++}
+\ No newline at end of file
+Index: migrations/0004_create_email_change_tokens.sql
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/migrations/0004_create_email_change_tokens.sql b/migrations/0004_create_email_change_tokens.sql
+new file mode 100644
+--- /dev/null	(date 1770123631517)
++++ b/migrations/0004_create_email_change_tokens.sql	(date 1770123631517)
+@@ -0,0 +1,11 @@
++-- +goose Up
++CREATE TABLE email_change_tokens (
++    id SERIAL PRIMARY KEY,
++    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
++    new_email VARCHAR(255) NOT NULL,
++    token VARCHAR(255) UNIQUE NOT NULL,
++    expires_at TIMESTAMP NOT NULL DEFAULT (NOW() + INTERVAL '24 hours')
++);
++
++-- +goose Down
++DROP TABLE IF EXISTS email_change_tokens;
+\ No newline at end of file
+Index: migrations/0003_create_login_logs.sql
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/migrations/0003_create_login_logs.sql b/migrations/0003_create_login_logs.sql
+new file mode 100644
+--- /dev/null	(date 1770123631517)
++++ b/migrations/0003_create_login_logs.sql	(date 1770123631517)
+@@ -0,0 +1,12 @@
++-- +goose Up
++
++CREATE TABLE login_logs (
++    id SERIAL PRIMARY KEY,
++    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
++    ip_address VARCHAR(45) NOT NULL,
++    login_time TIMESTAMP DEFAULT NOW(),
++    success BOOLEAN DEFAULT TRUE
++);
++
++-- +goose Down
++DROP TABLE IF EXISTS login_logs;
+\ No newline at end of file
+Index: migrations/0005_create_clinic.sql
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/migrations/0005_create_clinic.sql b/migrations/0005_create_clinic.sql
+new file mode 100644
+--- /dev/null	(date 1770123631518)
++++ b/migrations/0005_create_clinic.sql	(date 1770123631518)
+@@ -0,0 +1,12 @@
++CREATE TABLE clinics (
++    id UUID PRIMARY KEY,
++    name VARCHAR,
++    description TEXT,
++    phone VARCHAR,
++    email VARCHAR,
++    website VARCHAR,
++    rating FLOAT DEFAULT 0,
++    reviews_count INT DEFAULT 0,
++    is_active BOOLEAN DEFAULT TRUE,
++    created_at TIMESTAMP
++);
+Index: migrations/0001_create_users_table.sql
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/migrations/0001_create_users_table.sql b/migrations/0001_create_users_table.sql
+new file mode 100644
+--- /dev/null	(date 1770123631516)
++++ b/migrations/0001_create_users_table.sql	(date 1770123631516)
+@@ -0,0 +1,17 @@
++-- +goose Up
++CREATE TABLE users (
++                       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
++                       email VARCHAR(255) UNIQUE NOT NULL,
++                       password TEXT NOT NULL,
++                       name VARCHAR(100) NOT NULL,
++                       surname VARCHAR(100),
++                       role VARCHAR(50) DEFAULT 'user',
++                       gender VARCHAR(20),
++                       age INT CHECK (age >= 0),
++                       push_consent BOOLEAN DEFAULT FALSE,
++                       is_verified BOOLEAN DEFAULT FALSE,
++                       created_at TIMESTAMP DEFAULT NOW()
++);
++
++-- +goose Down
++DROP TABLE IF EXISTS users;
+\ No newline at end of file
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+new file mode 100644
+--- /dev/null	(date 1770123631489)
++++ b/.idea/vcs.xml	(date 1770123631489)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="VcsDirectoryMappings">
++    <mapping directory="" vcs="Git" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/modules.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/modules.xml b/.idea/modules.xml
+new file mode 100644
+--- /dev/null	(date 1770123631486)
++++ b/.idea/modules.xml	(date 1770123631486)
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectModuleManager">
++    <modules>
++      <module fileurl="file://$PROJECT_DIR$/.idea/dental-clinic.iml" filepath="$PROJECT_DIR$/.idea/dental-clinic.iml" />
++    </modules>
++  </component>
++</project>
+\ No newline at end of file
+Index: internal/utils/email.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package utils\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/utils/email.go b/internal/utils/email.go
+--- a/internal/utils/email.go	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ b/internal/utils/email.go	(date 1770124270184)
+@@ -1,1 +1,46 @@
+ package utils
++
++import (
++	"dental_clinic/internal/config"
++	"fmt"
++	"net/smtp"
++)
++
++func SendVerificationEmail(cfx *config.Config, to, token string) error {
++
++	from := cfx.SMTPUser
++	password := cfx.SMTPPass
++	smtpHost := cfx.SMTPHost
++	smtpPort := cfx.SMTPPort
++
++
++	verifyLink := fmt.Sprintf("http://localhost:8080/api/verify?token=%s", token)
++
++	subject := "Confirm your account\n"
++	body := fmt.Sprintf("click to activate account:\n%s", verifyLink)
++	msg := []byte(subject + "\n" + body)
++
++	auth := smtp.PlainAuth("", from, password, smtpHost)
++	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
++	if err != nil {
++		return err
++	}
++	return nil
++
++}
++
++func SendEmail(cfx *config.Config, to, subject, message string) error {
++	from := cfx.SMTPUser
++	password := cfx.SMTPPass
++	smtpHost := cfx.SMTPHost
++	smtpPort := cfx.SMTPPort
++
++	msg := []byte(subject + "\n" + message)
++
++	auth := smtp.PlainAuth("", from, password, smtpHost)
++	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
++	if err != nil {
++		return err
++	}
++	return nil
++}
+\ No newline at end of file
+Index: internal/middleware/jwt.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/middleware/jwt.go b/internal/middleware/jwt.go
+new file mode 100644
+--- /dev/null	(date 1770123631502)
++++ b/internal/middleware/jwt.go	(date 1770123631502)
+@@ -0,0 +1,54 @@
++package middleware
++
++import (
++	"context"
++	"net/http"
++	"strings"
++
++	"github.com/golang-jwt/jwt/v5"
++)
++
++type contextKey string
++
++const UserContextKey = contextKey("user")
++
++func JWTAuth(secret string) func(http.Handler) http.Handler {
++	return func(next http.Handler) http.Handler {
++		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++			authHeader := r.Header.Get("Authorization")
++			if authHeader == "" {
++				http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
++				return
++			}
++
++			parts := strings.Split(authHeader, " ")
++			if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
++				http.Error(w, "Invalid Authorization header", http.StatusUnauthorized)
++				// return
++			}
++
++			tokenStr := parts[1]
++
++			token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
++				if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
++					return nil, http.ErrAbortHandler
++				}
++				return []byte(secret), nil
++			})
++
++			if err != nil || !token.Valid {
++				http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
++				return
++			}
++
++			claims, ok := token.Claims.(jwt.MapClaims)
++			if !ok {
++				http.Error(w, "Invalid claims", http.StatusUnauthorized)
++				return
++			}
++
++			ctx := context.WithValue(r.Context(), UserContextKey, claims)
++			next.ServeHTTP(w, r.WithContext(ctx))
++		})
++	}
++}
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+new file mode 100644
+--- /dev/null	(date 1770123682900)
++++ b/.idea/workspace.xml	(date 1770123682900)
+@@ -0,0 +1,33 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="AutoImportSettings">
++    <option name="autoReloadType" value="SELECTIVE" />
++  </component>
++  <component name="ChangeListManager">
++    <list default="true" id="0f9ae052-a189-41d8-a6dd-2d356ea50c68" name="Changes" comment="" />
++    <option name="SHOW_DIALOG" value="false" />
++    <option name="HIGHLIGHT_CONFLICTS" value="true" />
++    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
++    <option name="LAST_RESOLUTION" value="IGNORE" />
++  </component>
++  <component name="Git.Settings">
++    <option name="RECENT_BRANCH_BY_REPOSITORY">
++      <map>
++        <entry key="$PROJECT_DIR$" value="main-new" />
++      </map>
++    </option>
++    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
++  </component>
++  <component name="ProjectLevelVcsManager">
++    <ConfirmationsSetting value="2" id="Add" />
++  </component>
++  <component name="PropertiesComponent"><![CDATA[{
++  "keyToString": {
++    "node.js.detected.package.eslint": "true",
++    "node.js.selected.package.eslint": "(autodetect)"
++  }
++}]]></component>
++  <component name="TaskManager">
++    <servers />
++  </component>
++</project>
+\ No newline at end of file
+Index: internal/utils/jwt.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package utils\r\n\r\nimport (\r\n\t\"time\"\r\n\r\n\t\"github.com/golang-jwt/jwt/v5\"\r\n)\r\n\r\ntype JWTManager struct {\r\n\tSecretKey string\r\n\tTTL       time.Duration\r\n}\r\n\r\ntype Claims struct {\r\n\tUserID string `json:\"user_id\"`\r\n\tRole   string `json:\"role\"`\r\n\tjwt.RegisteredClaims\r\n}\r\n\r\nfunc NewJWTManager(secret string, ttl time.Duration) *JWTManager {\r\n\treturn &JWTManager{SecretKey: secret, TTL: ttl}\r\n}\r\n\r\nfunc (j *JWTManager) Generate(userID, role string) (string, error) {\r\n\tclaims := &Claims{\r\n\t\tUserID: userID,\r\n\t\tRole:   role,\r\n\t\tRegisteredClaims: jwt.RegisteredClaims{\r\n\t\t\tExpiresAt: jwt.NewNumericDate(time.Now().Add(j.TTL)),\r\n\t\t\tIssuedAt:  jwt.NewNumericDate(time.Now()),\r\n\t\t},\r\n\t}\r\n\r\n\ttoken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)\r\n\treturn token.SignedString([]byte(j.SecretKey))\r\n}\r\n\r\nfunc (j *JWTManager) Verify(tokenStr string) (*Claims, error) {\r\n\ttoken, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {\r\n\t\treturn []byte(j.SecretKey), nil\r\n\t})\r\n\tif err != nil {\r\n\t\treturn nil, err\r\n\t}\r\n\r\n\tclaims, ok := token.Claims.(*Claims)\r\n\tif !ok || !token.Valid {\r\n\t\treturn nil, err\r\n\t}\r\n\r\n\treturn claims, nil\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/utils/jwt.go b/internal/utils/jwt.go
+--- a/internal/utils/jwt.go	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ b/internal/utils/jwt.go	(date 1770124271707)
+@@ -2,51 +2,47 @@
+ 
+ import (
+ 	"time"
+-
++	"fmt"
+ 	"github.com/golang-jwt/jwt/v5"
+ )
+ 
+-type JWTManager struct {
+-	SecretKey string
+-	TTL       time.Duration
+-}
+-
+-type Claims struct {
++type JWTClaims struct {
+ 	UserID string `json:"user_id"`
++	Email  string `json:"email"`
+ 	Role   string `json:"role"`
+ 	jwt.RegisteredClaims
+ }
+ 
+-func NewJWTManager(secret string, ttl time.Duration) *JWTManager {
+-	return &JWTManager{SecretKey: secret, TTL: ttl}
+-}
+-
+-func (j *JWTManager) Generate(userID, role string) (string, error) {
+-	claims := &Claims{
++func GenerateJWT(userID, email, role, secret string) (string, error) {
++	claims := JWTClaims{
+ 		UserID: userID,
++		Email:  email,
+ 		Role:   role,
+ 		RegisteredClaims: jwt.RegisteredClaims{
+-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.TTL)),
++			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), 
+ 			IssuedAt:  jwt.NewNumericDate(time.Now()),
++			Issuer:    "dental-clinic",
+ 		},
+ 	}
+ 
+ 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+-	return token.SignedString([]byte(j.SecretKey))
++	return token.SignedString([]byte(secret))
+ }
+ 
+-func (j *JWTManager) Verify(tokenStr string) (*Claims, error) {
+-	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+-		return []byte(j.SecretKey), nil
++func GetClaims(tokenStr, secret string) (jwt.MapClaims, error) {
++	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
++		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
++			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
++		}
++		return []byte(secret), nil
+ 	})
+ 	if err != nil {
+-		return nil, err
+-	}
+-
+-	claims, ok := token.Claims.(*Claims)
+-	if !ok || !token.Valid {
+-		return nil, err
++		return nil, fmt.Errorf("failed to parse token: %w", err)
+ 	}
+ 
+-	return claims, nil
++	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
++		return claims, nil
++	}
++
++	return nil, fmt.Errorf("invalid token or claims")
+ }
+Index: .idea/dental-clinic.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/dental-clinic.iml b/.idea/dental-clinic.iml
+new file mode 100644
+--- /dev/null	(date 1770123631485)
++++ b/.idea/dental-clinic.iml	(date 1770123631485)
+@@ -0,0 +1,9 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<module type="WEB_MODULE" version="4">
++  <component name="Go" enabled="true" />
++  <component name="NewModuleRootManager">
++    <content url="file://$MODULE_DIR$" />
++    <orderEntry type="inheritedJdk" />
++    <orderEntry type="sourceFolder" forTests="false" />
++  </component>
++</module>
+\ No newline at end of file
+Index: .idea/shelf/Uncommitted_changes_before_Checkout_at_21_10_2025_10_32__Changes_.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Checkout_at_21_10_2025_10_32__Changes_.xml b/.idea/shelf/Uncommitted_changes_before_Checkout_at_21_10_2025_10_32__Changes_.xml
+new file mode 100644
+--- /dev/null	(date 1770123631488)
++++ b/.idea/shelf/Uncommitted_changes_before_Checkout_at_21_10_2025_10_32__Changes_.xml	(date 1770123631488)
+@@ -0,0 +1,4 @@
++<changelist name="Uncommitted_changes_before_Checkout_at_21_10_2025_10_32_[Changes]" date="1761013960824" recycled="false" toDelete="true">
++  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_21_10_2025_10_32_[Changes]/shelved.patch" />
++  <option name="DESCRIPTION" value="Uncommitted changes before Checkout at 21.10.2025 10:32 [Changes]" />
++</changelist>
+\ No newline at end of file
+Index: .idea/shelf/Uncommitted_changes_before_Checkout_at_21_10_2025_10_32_[Changes]/shelved.patch
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/shelf/Uncommitted_changes_before_Checkout_at_21_10_2025_10_32_[Changes]/shelved.patch b/.idea/shelf/Uncommitted_changes_before_Checkout_at_21_10_2025_10_32_[Changes]/shelved.patch
+new file mode 100644
+--- /dev/null	(date 1770123631487)
++++ b/.idea/shelf/Uncommitted_changes_before_Checkout_at_21_10_2025_10_32_[Changes]/shelved.patch	(date 1770123631487)
+@@ -0,0 +1,21 @@
++Index: cmd/main.go
++IDEA additional info:
++Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
++<+>package main\r\n\r\nimport (\r\n\t\"context\"\r\n\t\"log\"\r\n\t\"net/http\"\r\n\t\"time\"\r\n\r\n\t\"github.com/joho/godotenv\"\r\n\r\n\t\"github.com/freboy1/dental-clinic/internal/config\"\r\n\t\"github.com/freboy1/dental-clinic/internal/database\"\r\n\t\"github.com/freboy1/dental-clinic/internal/handlers\"\r\n\t\"github.com/freboy1/dental-clinic/internal/repository\"\r\n\t\"github.com/freboy1/dental-clinic/internal/server\"\r\n)\r\n\r\nfunc main() {\r\n\t_ = godotenv.Load()\r\n\tcfg := config.Load()\r\n\tctx := context.Background()\r\n\r\n\tdbpool, err := database.NewPgPool(ctx, cfg.DatabaseURL)\r\n\tif err != nil {\r\n\t\tlog.Fatalf(\"failed to connect db: %v\", err)\r\n\t}\r\n\tdefer dbpool.Close(ctx)\r\n\r\n\tuserRepo := repository.NewUserRepository(dbpool)\r\n\tloginRepo := repository.NewLoginHistoryRepository(dbpool)\r\n\r\n\th := handlers.NewHandler(cfg, userRepo, loginRepo)\r\n\r\n\trouter := server.NewRouter(h, cfg.JWTSecret)\r\n\r\n\tsrv := &http.Server{\r\n\t\tAddr:         \":\" + cfg.Port,\r\n\t\tHandler:      loggingMiddleware(router),\r\n\t\tReadTimeout:  15 * time.Second,\r\n\t\tWriteTimeout: 15 * time.Second,\r\n\t\tIdleTimeout:  60 * time.Second,\r\n\t}\r\n\r\n\tlog.Println(\"Server started on port\", cfg.Port)\r\n\tif err := srv.ListenAndServe(); err != nil {\r\n\t\tlog.Fatalf(\"server error: %v\", err)\r\n\t}\r\n}\r\n\r\nfunc loggingMiddleware(next http.Handler) http.Handler {\r\n\treturn http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\r\n\t\tlog.Printf(\"%s %s %s\", r.RemoteAddr, r.Method, r.URL.Path)\r\n\t\tnext.ServeHTTP(w, r)\r\n\t})\r\n}\r\n
++Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
++<+>UTF-8
++===================================================================
++diff --git a/cmd/main.go b/cmd/main.go
++--- a/cmd/main.go	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
+++++ b/cmd/main.go	(date 1760976949293)
++@@ -46,10 +46,3 @@
++ 		log.Fatalf("server error: %v", err)
++ 	}
++ }
++-
++-func loggingMiddleware(next http.Handler) http.Handler {
++-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++-		log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL.Path)
++-		next.ServeHTTP(w, r)
++-	})
++-}
+Index: internal/config/config.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package config\r\n\r\nimport (\r\n\t\"log\"\r\n\t\"os\"\r\n)\r\n\r\ntype Config struct {\r\n\tPort        string\r\n\tDatabaseURL string\r\n\tJWTSecret   string\r\n}\r\n\r\nfunc Load() *Config {\r\n\tport := os.Getenv(\"PORT\")\r\n\tif port == \"\" {\r\n\t\tport = \"8080\"\r\n\t}\r\n\r\n\tdbURL := os.Getenv(\"DATABASE_URL\")\r\n\tif dbURL == \"\" {\r\n\t\tlog.Fatal(\"DATABASE_URL is required\")\r\n\t}\r\n\r\n\tjwtSecret := os.Getenv(\"JWT_SECRET\")\r\n\tif jwtSecret == \"\" {\r\n\t\tjwtSecret = \"supersecret\"\r\n\t}\r\n\r\n\treturn &Config{\r\n\t\tPort:        port,\r\n\t\tDatabaseURL: dbURL,\r\n\t\tJWTSecret:   jwtSecret,\r\n\t}\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/internal/config/config.go b/internal/config/config.go
+--- a/internal/config/config.go	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ b/internal/config/config.go	(date 1770124269019)
+@@ -1,35 +1,43 @@
+ package config
+ 
+ import (
+-	"log"
+ 	"os"
++
++	"github.com/joho/godotenv"
+ )
+ 
+ type Config struct {
+-	Port        string
+-	DatabaseURL string
+-	JWTSecret   string
++	Port       string
++	DB_DSN     string
++	JWTSecret  string
++	SMTPUser   string
++	SMTPPass   string
++	SMTPHost string
++	SMTPPort string
+ }
+ 
+-func Load() *Config {
+-	port := os.Getenv("PORT")
+-	if port == "" {
+-		port = "8080"
+-	}
++func LoadConfig() *Config {
++	// if err := godotenv.Load(); err != nil {
++	// 	log.Println("Error with .env")
++	// }
++	_ = godotenv.Load() 
+ 
+-	dbURL := os.Getenv("DATABASE_URL")
+-	if dbURL == "" {
+-		log.Fatal("DATABASE_URL is required")
++	cfg := &Config{
++		Port:      getEnv("APP_PORT", "8080"),
++		DB_DSN:    getEnv("DB_DSN", ""),
++		JWTSecret: getEnv("JWT_SECRET", "secret_key"),
++		SMTPUser:  getEnv("SMTP_USER", ""),
++		SMTPPass:  getEnv("SMTP_PASS", ""),
++		SMTPHost:  getEnv("SMTP_HOST", ""),
++		SMTPPort:  getEnv("SMTP_PORT", ""),
+ 	}
+ 
+-	jwtSecret := os.Getenv("JWT_SECRET")
+-	if jwtSecret == "" {
+-		jwtSecret = "supersecret"
+-	}
++	return cfg
++}
+ 
+-	return &Config{
+-		Port:        port,
+-		DatabaseURL: dbURL,
+-		JWTSecret:   jwtSecret,
++func getEnv(key, fallback string) string {
++	if value, exists := os.LookupEnv(key); exists {
++		return value
+ 	}
++	return fallback
+ }
+Index: go.mod
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>module github.com/freboy1/dental-clinic\r\n\r\ngo 1.23.4\r\n\r\nrequire (\r\n\tgithub.com/jackc/pgx/v5 v5.7.6\r\n\tgithub.com/joho/godotenv v1.5.1\r\n)\r\n\r\nrequire (\r\n\tgithub.com/golang-jwt/jwt/v5 v5.3.0 // indirect\r\n\tgithub.com/jackc/pgpassfile v1.0.0 // indirect\r\n\tgithub.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect\r\n\tgithub.com/jackc/puddle/v2 v2.2.2 // indirect\r\n\tgolang.org/x/crypto v0.37.0 // indirect\r\n\tgolang.org/x/sync v0.13.0 // indirect\r\n\tgolang.org/x/text v0.24.0 // indirect\r\n)\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/go.mod b/go.mod
+--- a/go.mod	(revision 7b12b6b4cc1982d492c8acf273c28947d8b3f243)
++++ b/go.mod	(date 1770124270814)
+@@ -1,18 +1,38 @@
+-module github.com/freboy1/dental-clinic
++module dental_clinic
+ 
+-go 1.23.4
++go 1.24.0
++
++toolchain go1.24.9
+ 
+ require (
++	github.com/golang-jwt/jwt/v5 v5.3.0
++	github.com/google/uuid v1.6.0
++	github.com/gorilla/mux v1.8.1
+ 	github.com/jackc/pgx/v5 v5.7.6
+ 	github.com/joho/godotenv v1.5.1
++	github.com/swaggo/http-swagger v1.3.4
++	github.com/swaggo/swag v1.8.1
++	golang.org/x/crypto v0.43.0
+ )
+ 
+ require (
+-	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
++	github.com/KyleBanks/depth v1.2.1 // indirect
++	github.com/felixge/httpsnoop v1.0.3 // indirect
++	github.com/go-openapi/jsonpointer v0.19.5 // indirect
++	github.com/go-openapi/jsonreference v0.20.0 // indirect
++	github.com/go-openapi/spec v0.20.6 // indirect
++	github.com/go-openapi/swag v0.19.15 // indirect
++	github.com/gorilla/handlers v1.5.2 // indirect
+ 	github.com/jackc/pgpassfile v1.0.0 // indirect
+ 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+ 	github.com/jackc/puddle/v2 v2.2.2 // indirect
+-	golang.org/x/crypto v0.37.0 // indirect
+-	golang.org/x/sync v0.13.0 // indirect
+-	golang.org/x/text v0.24.0 // indirect
++	github.com/josharian/intern v1.0.0 // indirect
++	github.com/mailru/easyjson v0.7.6 // indirect
++	github.com/rogpeppe/go-internal v1.14.1 // indirect
++	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe // indirect
++	golang.org/x/net v0.45.0 // indirect
++	golang.org/x/sync v0.17.0 // indirect
++	golang.org/x/text v0.30.0 // indirect
++	golang.org/x/tools v0.37.0 // indirect
++	gopkg.in/yaml.v2 v2.4.0 // indirect
+ )
+diff --git a/.idea/shelf/Uncommitted_changes_before_Checkout_at_21_10_2025_10_32_[Changes]1/shelved.patch b/.idea/shelf/Uncommitted_changes_before_Checkout_at_21_10_2025_10_32_[Changes]1/shelved.patch
+new file mode 100644
