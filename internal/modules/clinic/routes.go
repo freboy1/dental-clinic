@@ -4,9 +4,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"dental_clinic/internal/config"
+	"dental_clinic/internal/modules/clinic/handlers"
 	"dental_clinic/internal/modules/clinic/repository"
 	"dental_clinic/internal/modules/clinic/services"
-	"dental_clinic/internal/modules/clinic/handlers"
 	"github.com/gorilla/mux"
 )
 
