@@ -1,3 +1,4 @@
+-- +goose Up
 CREATE TABLE clinics (
     id UUID PRIMARY KEY,
     name VARCHAR,
@@ -10,3 +11,7 @@ CREATE TABLE clinics (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP
 );
+
+
+-- +goose Down
+DROP TABLE IF EXISTS clinics;
