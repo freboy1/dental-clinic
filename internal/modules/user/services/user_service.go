@@ -4,6 +4,7 @@ import (
 	"dental_clinic/internal/config"
 	"dental_clinic/internal/modules/user/models"
 	"dental_clinic/internal/modules/user/repository"
+	"dental_clinic/internal/modules/user/dto"
 	"dental_clinic/internal/utils"
 	"fmt"
 	"regexp"
@@ -26,31 +27,9 @@ func NewUserService(r repository.UserRepository, cfx config.Config) *UserService
 	}
 }
 
-type RegisterRequest struct {
-	Role        string `json:"role"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	Name        string `json:"name"`
-	Gender      string `json:"gender"`
-	Age         int    `json:"age"`
-	PushConsent bool   `json:"push_consent"`
-}
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
 
-type UpdatePasswordRequest struct {
-	OldPassword string `json:"old_password"`
-	NewPassword string `json:"new_password"`
-}
-
-type UpdateEmailRequest struct {
-	NewEmail string `json:"new_email"`
-}
-
-func (s *UserService) Register(req RegisterRequest) (*models.User, error) {
+func (s *UserService) Register(req dto.RegisterRequest) (*models.User, error) {
 	if !isValidEmail(req.Email) {
 		return nil, errors.New("invalid email format")
 	}
@@ -111,7 +90,7 @@ func (s *UserService) GetUserByID(id string) (*models.User, error) {
 	return user, nil
 }
 
-func (s *UserService) UpdateUser(id string, req RegisterRequest) (*models.User, error) {
+func (s *UserService) UpdateUser(id string, req dto.RegisterRequest) (*models.User, error) {
 	user, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, err
@@ -176,7 +155,7 @@ func (s *UserService) VerifyUserEmail(token string) error {
 
 }
 
-func (s *UserService) Login(req LoginRequest, ip string) (*models.User, error) {
+func (s *UserService) Login(req dto.LoginRequest, ip string) (*models.User, error) {
 
 	// add check for existing user
 	if req.Email == "" {
@@ -210,7 +189,7 @@ func CheckPassword(hashedPassword, plainPassword string) bool {
 	return err == nil
 }
 
-func (s *UserService) UpdatePassword(tokenStr string, req UpdatePasswordRequest) error {
+func (s *UserService) UpdatePassword(tokenStr string, req dto.UpdatePasswordRequest) error {
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
 	userIDAny := claims["user_id"]
 	userID, _ := userIDAny.(string)
@@ -248,7 +227,7 @@ func (s *UserService) UpdatePassword(tokenStr string, req UpdatePasswordRequest)
 }
 
 
-func (s *UserService) UpdateEmail(tokenStr string, req UpdateEmailRequest) error {
+func (s *UserService) UpdateEmail(tokenStr string, req dto.UpdateEmailRequest) error {
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
 	userIDAny := claims["user_id"]
 	userID, _ := userIDAny.(string)

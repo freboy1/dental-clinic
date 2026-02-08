@@ -1,6 +1,5 @@
-basePath: /api
 definitions:
-  services.RegisterRequest:
+  dto.RegisterRequest:
     properties:
       age:
         type: integer
@@ -17,7 +16,15 @@ definitions:
       role:
         type: string
     type: object
-host: localhost:8080
+  dto.RegisterResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: string
+      user_id:
+        type: string
+    type: object
 info:
   contact: {}
   description: API for managing users, authentication, and clinic operations.
@@ -35,23 +42,24 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/services.RegisterRequest'
+          $ref: '#/definitions/dto.RegisterRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.RegisterResponse'
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.RegisterResponse'
       summary: Register new user
       tags:
       - Users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

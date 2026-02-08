@@ -12,6 +12,9 @@ import (
 // @title Dental Clinic API
 // @version 1.0
 // @description API for managing users, authentication, and clinic operations.
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 // @host localhost:8080
 // @BasePath /api
 func main() {

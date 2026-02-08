@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"dental_clinic/internal/config"
 	"dental_clinic/internal/modules/user/services"
+	"dental_clinic/internal/modules/user/dto"
 	"dental_clinic/internal/utils"
 	"encoding/json"
 	"errors"
@@ -30,35 +31,39 @@ func NewUserHandler(s *services.UserService, cfg config.Config) *UserHandler {
 // @Tags Users
 // @Accept  json
 // @Produce  json
-// @Param request body services.RegisterRequest true "User registration data"
-// @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string
+// @Param request body dto.RegisterRequest true "User registration data"
+// @Success 200 {object} dto.RegisterResponse
+// @Failure 400 {object} dto.RegisterResponse
 // @Router /api/register [post]
 func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
-	response := map[string]string{
-		"success": "0",
-		"message":   "",
-		"user_id": "",
+	response := dto.RegisterResponse{
+		Success: "0",
+		Message: "",
+		User_id:  "",
 	}
-	var req services.RegisterRequest
+
+	var req dto.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response["message"] = "Invalid request body"
+		response.Message = "Invalid request body"
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(response)
-		// http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.service.Register(req)
 	if err != nil {
-		response["message"] = err.Error()
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(response)
-		// http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	response["success"] = "1"
-	response["message"] = "successfully created"
-	response["user_id"] = user.Id.String()
+	response.Success = "1"
+	response.Message = "successfully created"
+	response.User_id = user.Id.String()
+
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+
 }
 
 func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +97,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	var req services.RegisterRequest
+	var req dto.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -143,7 +148,7 @@ func (h *UserHandler) VerifyAccountByLink(w http.ResponseWriter, r *http.Request
 }
 
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var req services.LoginRequest
+	var req dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		json.NewEncoder(w).Encode(map[string]string{"success": "0", "token": ""})
 		// http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -163,7 +168,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) UpdatePassword (w http.ResponseWriter, r *http.Request) {
-	var req services.UpdatePasswordRequest
+	var req dto.UpdatePasswordRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -189,7 +194,7 @@ func getToken(r *http.Request) string {
 }
 
 func (h *UserHandler) UpdateEmail (w http.ResponseWriter, r *http.Request) {
-	var req services.UpdateEmailRequest
+	var req dto.UpdateEmailRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
