@@ -33,3 +33,7 @@ create-migration:
 # Cleaning
 tidy:
 	go mod tidy
+
+#Update/Create swagger
+swagger:
+	swag init -g cmd/main.go
