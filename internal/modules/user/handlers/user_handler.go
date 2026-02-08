@@ -147,24 +147,42 @@ func (h *UserHandler) VerifyAccountByLink(w http.ResponseWriter, r *http.Request
 
 }
 
+// Login godoc
+// @Summary Login
+// @Description to login
+// @Tags Users
+// @Accept  json
+// @Produce  json
+// @Param request body dto.LoginRequest true "User login data"
+// @Success 200 {object} dto.LoginResponse
+// @Failure 400 {object} dto.LoginResponse
+// @Router /api/login [post]
 func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req dto.LoginRequest
+	response := dto.LoginResponse{
+		Success: "0",
+		Token: "",
+	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		json.NewEncoder(w).Encode(map[string]string{"success": "0", "token": ""})
-		// http.Error(w, "Invalid request body", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 	ip := r.RemoteAddr
 	user, err := h.service.Login(req, ip)
 	if err != nil {
-		json.NewEncoder(w).Encode(map[string]string{"success": "0", "token": ""})
-		// http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 	
 	token, _ := utils.GenerateJWT(user.Id.String(), user.Email, user.Role, h.cfg.JWTSecret)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"success": "1", "token": token})
+	response.Token = token
+	response.Success = "1"
+	// w.Header().Set("Content-Type", "application/json")
+	// json.NewEncoder(w).Encode(map[string]string{"success": "1", "token": token})
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *UserHandler) UpdatePassword (w http.ResponseWriter, r *http.Request) {

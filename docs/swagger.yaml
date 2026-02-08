@@ -1,4 +1,18 @@
 definitions:
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  dto.LoginResponse:
+    properties:
+      success:
+        type: string
+      token:
+        type: string
+    type: object
   dto.RegisterRequest:
     properties:
       age:
@@ -31,6 +45,32 @@ info:
   title: Dental Clinic API
   version: "1.0"
 paths:
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: to login
+      parameters:
+      - description: User login data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.LoginResponse'
+      summary: Login
+      tags:
+      - Users
   /api/register:
     post:
       consumes:

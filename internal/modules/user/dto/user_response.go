@@ -30,3 +30,8 @@ type RegisterResponse struct {
 	Message string `json:"message"`
 	User_id  string `json:"user_id"`
 }
+
+type LoginResponse struct {
+	Success string `json:"success"`
+	Token string `json:"token"`
+}
