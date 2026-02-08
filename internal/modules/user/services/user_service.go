@@ -2,9 +2,9 @@ package services
 
 import (
 	"dental_clinic/internal/config"
+	"dental_clinic/internal/modules/user/dto"
 	"dental_clinic/internal/modules/user/models"
 	"dental_clinic/internal/modules/user/repository"
-	"dental_clinic/internal/modules/user/dto"
 	"dental_clinic/internal/utils"
 	"fmt"
 	"regexp"
@@ -26,8 +26,6 @@ func NewUserService(r repository.UserRepository, cfx config.Config) *UserService
 		cfx:  cfx,
 	}
 }
-
-
 
 func (s *UserService) Register(req dto.RegisterRequest) (*models.User, error) {
 	if !isValidEmail(req.Email) {
@@ -226,28 +224,27 @@ func (s *UserService) UpdatePassword(tokenStr string, req dto.UpdatePasswordRequ
 	return nil
 }
 
-
 func (s *UserService) UpdateEmail(tokenStr string, req dto.UpdateEmailRequest) error {
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
 	userIDAny := claims["user_id"]
 	userID, _ := userIDAny.(string)
 	existingUser, _ := s.repo.GetUserByEmail(req.NewEmail)
-    if existingUser != nil {
-        return errors.New("email already in use")
-    }
+	if existingUser != nil {
+		return errors.New("email already in use")
+	}
 	if !isValidEmail(req.NewEmail) {
-        return errors.New("invalid email format")
-    }
+		return errors.New("invalid email format")
+	}
 	verifyToken := uuid.NewString()
 	err := s.repo.SaveEmailVerificationToken(userID, req.NewEmail, verifyToken)
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
 	link := fmt.Sprintf("http://localhost:8080/api/users/verify-email?token=%s", verifyToken)
-    body := fmt.Sprintf("You need to do to the link: %s", link)
+	body := fmt.Sprintf("You need to do to the link: %s", link)
 
-    return utils.SendEmail(&s.cfx, req.NewEmail, "Confirm email", body)
+	return utils.SendEmail(&s.cfx, req.NewEmail, "Confirm email", body)
 }
 
 func (s *UserService) VerifyEmailToken(token string) error {
@@ -263,4 +260,23 @@ func (s *UserService) VerifyEmailToken(token string) error {
 		return errors.New("Could not update email")
 	}
 	return nil
+}
+
+func ToUserResponse(user models.User) dto.UserResponse {
+	return dto.UserResponse{
+		Id:     user.Id.String(),
+		Email:  user.Email,
+		Name:   user.Name,
+		Age:    user.Age,
+		Gender: user.Gender,
+		Role:   user.Role,
+	}
+}
+
+func ToUserResponseList(users []models.User) []dto.UserResponse {
+	result := make([]dto.UserResponse, 0, len(users))
+	for _, u := range users {
+		result = append(result, ToUserResponse(u))
+	}
+	return result
 }

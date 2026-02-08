@@ -35,3 +35,13 @@ type LoginResponse struct {
 	Success string `json:"success"`
 	Token string `json:"token"`
 }
+
+type UserResponse struct {
+    Id    string `json:"id"`
+    Email string `json:"email"`
+    Name  string `json:"name"`
+    Age   int    `json:"age"`
+    Gender string `json:"gender"`
+    Role  string `json:"role"`
+}
+

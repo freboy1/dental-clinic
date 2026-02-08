@@ -66,6 +66,17 @@ func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 }
 
+
+// GetAllUsers godoc
+// @Summary Get all users
+// @Description Returns a list of all users
+// @Tags Users
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} dto.UserResponse
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/users [get]
 func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	_ = r
 	tokenStr := getToken(r)
@@ -76,7 +87,7 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(users)
+    json.NewEncoder(w).Encode(services.ToUserResponseList(users))
 }
 
 func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {

@@ -39,6 +39,21 @@ definitions:
       user_id:
         type: string
     type: object
+  dto.UserResponse:
+    properties:
+      age:
+        type: integer
+      email:
+        type: string
+      gender:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      role:
+        type: string
+    type: object
 info:
   contact: {}
   description: API for managing users, authentication, and clinic operations.
@@ -95,6 +110,35 @@ paths:
           schema:
             $ref: '#/definitions/dto.RegisterResponse'
       summary: Register new user
+      tags:
+      - Users
+  /api/users:
+    get:
+      description: Returns a list of all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.UserResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all users
       tags:
       - Users
 securityDefinitions:
