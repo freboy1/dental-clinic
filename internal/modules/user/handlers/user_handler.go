@@ -188,7 +188,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	
 	token, _ := utils.GenerateJWT(user.Id.String(), user.Email, user.Role, h.cfg.JWTSecret)
-	response.Token = token
+	response.Token = "Bearer " + token
 	response.Success = "1"
 	// w.Header().Set("Content-Type", "application/json")
 	// json.NewEncoder(w).Encode(map[string]string{"success": "1", "token": token})
