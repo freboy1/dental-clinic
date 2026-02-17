@@ -1,15 +1,18 @@
 package router
 
 import (
-	"github.com/jackc/pgx/v5/pgxpool"
 	"net/http"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"dental_clinic/internal/config"
 	"dental_clinic/internal/middleware"
+	"dental_clinic/internal/modules/address"
 	"dental_clinic/internal/modules/clinic"
 	"dental_clinic/internal/modules/user"
 
 	_ "dental_clinic/docs"
+
 	gorilla_handler "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -34,6 +37,7 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	private.Use(middleware.JWTAuth(cfg.JWTSecret))
 	user.RegisterPrivateRoutes(private, db, cfg)
 	clinic.RegisterPrivateRoutes(private, db, cfg)
+	address.RegisterPrivateRoutes(private, db, cfg)
 
 	// CORS configuration
 	headersOk := gorilla_handler.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
