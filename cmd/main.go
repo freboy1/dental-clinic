@@ -3,7 +3,6 @@ package main
 import (
 	"net/http"
 	"log"
-
 	"dental_clinic/internal/config"
 	"dental_clinic/internal/database"
 	"dental_clinic/internal/router"
