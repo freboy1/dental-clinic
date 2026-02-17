@@ -27,6 +27,7 @@ func NewAddressHandler(s *services.AddressService, cfg config.Config) *AddressHa
 // @Summary Create new address
 // @Description Creates a new address
 // @Tags Addresss
+// @Security BearerAuth
 // @Accept  json
 // @Produce  json
 // @Param request body dto.CreateResponse true "Address registration data"
@@ -74,7 +75,7 @@ func (h *AddressHandler) CreateAddress(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {array} dto.AddressResponse
 // @Failure 401 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/addresss [get]
+// @Router /api/address [get]
 func (h *AddressHandler) GetAllAddresss(w http.ResponseWriter, r *http.Request) {
 	_ = r
 	tokenStr := getToken(r)
