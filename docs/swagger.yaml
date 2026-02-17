@@ -80,6 +80,36 @@ definitions:
       role:
         type: string
     type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.SuccessResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
+  models.Clinic:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+      website:
+        type: string
+    type: object
 info:
   contact: {}
   description: API for managing users, authentication, and clinic operations.
@@ -137,9 +167,162 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/dto.CreateResponse'
+      security:
+      - BearerAuth: []
       summary: Create new address
       tags:
       - Addresss
+  /api/clinics:
+    get:
+      description: Returns a list of all clinics
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all clinics
+      tags:
+      - Clinics
+    post:
+      consumes:
+      - application/json
+      description: Creates a new clinic
+      parameters:
+      - description: Clinic data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Clinic'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new clinic
+      tags:
+      - Clinics
+  /api/clinics/{id}:
+    delete:
+      description: Deletes a clinic by UUID
+      parameters:
+      - description: Clinic ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Invalid clinic ID format
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Clinic not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete clinic
+      tags:
+      - Clinics
+    get:
+      description: Returns a single clinic by its UUID
+      parameters:
+      - description: Clinic ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Invalid clinic ID format
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Clinic not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get clinic by ID
+      tags:
+      - Clinics
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing clinic by UUID
+      parameters:
+      - description: Clinic ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated clinic data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Clinic'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Clinic not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update clinic
+      tags:
+      - Clinics
   /api/login:
     post:
       consumes:

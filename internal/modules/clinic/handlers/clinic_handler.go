@@ -42,7 +42,15 @@ func respondJSON(w http.ResponseWriter, statusCode int, data interface{}) {
 func respondError(w http.ResponseWriter, statusCode int, message string) {
 	respondJSON(w, statusCode, ErrorResponse{Error: message})
 }
-
+// GetClinics godoc
+// @Summary Get all clinics
+// @Description Returns a list of all clinics
+// @Tags Clinics
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} SuccessResponse "OK"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
+// @Router /api/clinics [get]
 func (h *ClinicHandler) GetClinics(w http.ResponseWriter, r *http.Request) {
 	clinics, err := h.service.GetAllClinics()
 	if err != nil {
@@ -56,6 +64,17 @@ func (h *ClinicHandler) GetClinics(w http.ResponseWriter, r *http.Request) {
 		Data: clinics,
 	})
 }
+// GetClinic godoc
+// @Summary Get clinic by ID
+// @Description Returns a single clinic by its UUID
+// @Tags Clinics
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Clinic ID (UUID)"
+// @Success 200 {object} SuccessResponse "OK"
+// @Failure 400 {object} ErrorResponse "Invalid clinic ID format"
+// @Failure 404 {object} ErrorResponse "Clinic not found"
+// @Router /api/clinics/{id} [get]
 func (h *ClinicHandler) GetClinic(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
@@ -76,7 +95,18 @@ func (h *ClinicHandler) GetClinic(w http.ResponseWriter, r *http.Request) {
 		Data: clinic,
 	})
 }
-
+// CreateClinic godoc
+// @Summary Create a new clinic
+// @Description Creates a new clinic
+// @Tags Clinics
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body models.Clinic true "Clinic data"
+// @Success 201 {object} SuccessResponse "Created"
+// @Failure 400 {object} ErrorResponse "Bad Request"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
+// @Router /api/clinics [post]
 func (h *ClinicHandler) CreateClinic(w http.ResponseWriter, r *http.Request) {
 	var clinic models.Clinic
 
@@ -98,6 +128,20 @@ func (h *ClinicHandler) CreateClinic(w http.ResponseWriter, r *http.Request) {
 	})
 
 }
+// UpdateClinic godoc
+// @Summary Update clinic
+// @Description Updates an existing clinic by UUID
+// @Tags Clinics
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "Clinic ID (UUID)"
+// @Param request body models.Clinic true "Updated clinic data"
+// @Success 200 {object} SuccessResponse "OK"
+// @Failure 400 {object} ErrorResponse "Bad Request"
+// @Failure 404 {object} ErrorResponse "Clinic not found"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
+// @Router /api/clinics/{id} [put]
 func (h *ClinicHandler) UpdateClinic(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
@@ -128,6 +172,18 @@ func (h *ClinicHandler) UpdateClinic(w http.ResponseWriter, r *http.Request) {
 	})
 
 }
+// DeleteClinic godoc
+// @Summary Delete clinic
+// @Description Deletes a clinic by UUID
+// @Tags Clinics
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Clinic ID (UUID)"
+// @Success 200 {object} SuccessResponse "OK"
+// @Failure 400 {object} ErrorResponse "Invalid clinic ID format"
+// @Failure 404 {object} ErrorResponse "Clinic not found"
+// @Failure 500 {object} ErrorResponse "Internal Server Error"
+// @Router /api/clinics/{id} [delete]
 func (h *ClinicHandler) DeleteClinic(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
