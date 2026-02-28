@@ -80,6 +80,13 @@ definitions:
       user_id:
         type: string
     type: object
+  dto.Response:
+    properties:
+      message:
+        type: string
+      success:
+        type: string
+    type: object
   dto.UserResponse:
     properties:
       age:
@@ -185,6 +192,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Create new address
+      tags:
+      - Addresss
+  /api/address/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update & return status
+      parameters:
+      - description: Address ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Address update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Response'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: Update addresss
       tags:
       - Addresss
   /api/clinics:
