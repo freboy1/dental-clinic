@@ -30,7 +30,7 @@ func NewAddressHandler(s *services.AddressService, cfg config.Config) *AddressHa
 // @Security BearerAuth
 // @Accept  json
 // @Produce  json
-// @Param request body dto.CreateResponse true "Address registration data"
+// @Param request body dto.CreateRequest true "Address registration data"
 // @Success 200 {object} dto.CreateResponse
 // @Failure 400 {object} dto.CreateResponse
 // @Router /api/address [post]
@@ -103,25 +103,36 @@ func (h *AddressHandler) GetAddressByID(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(address)
 }
 
-// func (h *AddressHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
-// 	vars := mux.Vars(r)
-// 	id := vars["id"]
+func (h *AddressHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
+	response := dto.Response{
+		Success: "0",
+		Message: "",
+	}
+	vars := mux.Vars(r)
+	id := vars["id"]
 
-// 	var req dto.RegisterRequest
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		http.Error(w, "Invalid request body", http.StatusBadRequest)
-// 		return
-// 	}
+	var req dto.CreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Message = "Invalid request body"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
-// 	address, err := h.service.UpdateAddress(id, req)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusNotFound)
-// 		return
-// 	}
+	_, err := h.service.UpdateAddress(id, req)
+	if err != nil {
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
-// 	w.Header().Set("Content-Type", "application/json")
-// 	json.NewEncoder(w).Encode(address)
-// }
+	response.Success = "1"
+	response.Message = "successfully updated"
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
 
 func (h *AddressHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

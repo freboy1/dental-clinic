@@ -14,7 +14,7 @@ import (
 type AddressRepository interface {
 	Create(address *models.Address) (*models.Address, error)
 	GetByID(id string) (*models.Address, error)
-	// Update(id string, address *models.Address) (*models.Address, error)
+	Update(id string, address *models.Address) (*models.Address, error)
 	Delete(id string) error
 	GetAll() ([]models.Address, error)
 }
@@ -87,4 +87,44 @@ func (r *addressRepo) Delete(id string) error {
 	}
 
 	return nil
+}
+
+
+func (r *addressRepo) Update(id string, address *models.Address) (*models.Address, error) {
+	//country, city, street, building, latitude, longitude
+	query := `
+		UPDATE addresses
+		SET country=$1, city=$2, street=$3, building=$4, latitude=$5, longitude=$6
+		WHERE id=$7
+		RETURNING id, country, city, street, building, latitude, longitude
+	`
+
+	err := r.db.QueryRow(
+		context.Background(),
+		query,
+		address.Country,
+		address.City,
+		address.Street,
+		address.Building,
+		address.Latitude,
+		address.Longitude,
+		id,
+	).Scan(
+		&address.ID,
+		&address.Country,
+		&address.City,
+		&address.Street,
+		&address.Building,
+		&address.Latitude,
+		&address.Longitude,
+	)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return address, nil
 }

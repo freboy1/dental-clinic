@@ -61,24 +61,24 @@ func (s *AddressService) GetAddressByID(id string) (*models.Address, error) {
 	return address, nil
 }
 
-// func (s *AddressService) UpdateAddress(id string, req dto.RegisterRequest) (*models.Address, error) {
-// 	address, err := s.repo.GetByID(id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if address == nil {
-// 		return nil, errors.New("address not found")
-// 	}
+func (s *AddressService) UpdateAddress(id string, req dto.CreateRequest) (*models.Address, error) {
+	address, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if address == nil {
+		return nil, errors.New("address not found")
+	}
 
-// 	address.Name = req.Name
-// 	address.Email = req.Email
-// 	address.Role = req.Role
-// 	address.Gender = req.Gender
-// 	address.Age = req.Age
-// 	address.Push_consent = req.PushConsent
+	address.Country = req.Country
+	address.City = req.City
+	address.Street = req.Street
+	address.Building = req.Building
+	address.Latitude = req.Latitude
+	address.Longitude = req.Longitude
 
-// 	return s.repo.Update(id, address)
-// }
+	return s.repo.Update(id, address)
+}
 
 func (s *AddressService) DeleteAddress(id, tokenStr string) error {
 	_, err := s.repo.GetByID(id)
