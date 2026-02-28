@@ -1,5 +1,5 @@
 -- +goose Up
-addresses (
+CREATE TABLE addresses (
   id UUID PRIMARY KEY,
   country VARCHAR,
   city VARCHAR,
@@ -7,7 +7,7 @@ addresses (
   building VARCHAR,
   latitude DECIMAL,
   longitude DECIMAL
-)
+);
 
 -- +goose Down
 DROP TABLE IF EXISTS addresses;
