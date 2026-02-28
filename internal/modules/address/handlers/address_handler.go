@@ -103,6 +103,18 @@ func (h *AddressHandler) GetAddressByID(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(address)
 }
 
+// UpdateAddresss godoc
+// @Summary Update addresss
+// @Description Update & return status
+// @Tags Addresss
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "Address ID (UUID)"
+// @Param request body dto.CreateRequest true "Address update data"
+// @Success 200 {array} dto.Response
+// @Failure 400 {object} dto.Response
+// @Router /api/address/{id} [put]
 func (h *AddressHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
 	response := dto.Response{
 		Success: "0",
