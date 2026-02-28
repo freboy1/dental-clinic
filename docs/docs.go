@@ -616,9 +616,75 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/clinics/{id}/address": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add an address by UUID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinics"
+                ],
+                "summary": "Add Address",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Address add data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddAddressRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClinicResponse"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClinicResponse"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "dto.AddAddressRequest": {
+            "type": "object",
+            "properties": {
+                "address_id": {
+                    "type": "string"
+                },
+                "is_main": {
+                    "type": "boolean"
+                }
+            }
+        },
         "dto.AddressResponse": {
             "type": "object",
             "properties": {
@@ -641,6 +707,17 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "street": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClinicResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
                     "type": "string"
                 }
             }

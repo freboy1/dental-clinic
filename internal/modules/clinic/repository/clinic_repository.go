@@ -18,6 +18,7 @@ type ClinicRepository interface {
 	GetByID(id uuid.UUID) (*models.Clinic, error)
 	Update(clinic *models.Clinic) (*models.Clinic, error)
 	Delete(id uuid.UUID) error
+	AddAddress(id, clinic_id uuid.UUID, address_id string, is_main bool) error
 }
 
 type clinicRepo struct {
@@ -156,6 +157,50 @@ func (r *clinicRepo) Delete(id uuid.UUID) error {
 	if result.RowsAffected() == 0 {
 		return fmt.Errorf("clinic not found")
 	}
+
+	return nil
+}
+
+
+func (r *clinicRepo) AddAddress(id, clinic_id uuid.UUID, address_id string, is_main bool) error {
+	query := `INSERT INTO clinic_addresses (id, clinic_id, address_id, is_main)
+            VALUES ($1, $2, $3, $4) 
+            `
+
+	if is_main {
+		err := r.UnsetMainAddress(clinic_id)
+		if err != nil {
+			return err
+		}
+	}
+	
+	err := r.db.QueryRow(
+		context.Background(),
+		query,
+		id,
+		clinic_id,
+		address_id,
+		is_main,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to create clinic address: %w", err)
+	}
+
+	return nil
+}
+
+func (r *clinicRepo) UnsetMainAddress(clinic_id uuid.UUID) error {
+	query := `UPDATE clinic_addresses SET is_main = false WHERE clinic_id = $1`
+
+	_, err := r.db.Exec(context.Background(), query, clinic_id)
+	if err != nil {
+		return fmt.Errorf("failed to update clinic address: %w", err)
+	}
+
+	// if result.RowsAffected() == 0 {
+	// 	return fmt.Errorf("clinic address not found")
+	// }
 
 	return nil
 }
