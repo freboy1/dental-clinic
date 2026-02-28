@@ -195,6 +195,34 @@ paths:
       tags:
       - Addresss
   /api/address/{id}:
+    delete:
+      description: Deletes an address by UUID
+      parameters:
+      - description: Address ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Response'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            items:
+              $ref: '#/definitions/dto.Response'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Delete Address
+      tags:
+      - Addresss
     put:
       consumes:
       - application/json
