@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"net/http"
+	"dental_clinic/internal/modules/clinic/dto"
 )
 
 type ClinicHandler struct {
@@ -203,4 +204,57 @@ func (h *ClinicHandler) DeleteClinic(w http.ResponseWriter, r *http.Request) {
 		Message: "Clinic deleted successfully",
 	})
 
+}
+
+// AddClinicAddress godoc
+// @Summary Add Address
+// @Description Add an address by UUID
+// @Tags Clinics
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Clinic ID (UUID)"
+// @Param request body dto.AddAddressRequest true "Address add data"
+// @Success 200 {array} dto.ClinicResponse
+// @Failure 404 {array} dto.ClinicResponse
+// @Router /clinics/{id}/address [post]
+func (h *ClinicHandler) AddAddress(w http.ResponseWriter, r *http.Request) {
+	response := dto.ClinicResponse{
+		Success: "0",
+		Message: "",
+	}
+
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		response.Message = "Invalid clinic ID format"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	var req dto.AddAddressRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Message = "Invalid request body"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	clinic, err := h.service.GetClinicByID(id)
+	if err != nil {
+		response.Message = "Clinic not found"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	err = h.service.AddAddress(clinic.Id, req)
+
+	response.Success = "1"
+	response.Message = "successfully added " + clinic.Name
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }

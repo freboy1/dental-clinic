@@ -2,22 +2,27 @@ package services
 
 import (
 	"dental_clinic/internal/config"
+	"dental_clinic/internal/modules/address/services"
+	"dental_clinic/internal/modules/clinic/dto"
 	"dental_clinic/internal/modules/clinic/models"
 	"dental_clinic/internal/modules/clinic/repository"
 	"fmt"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type ClinicService struct {
 	repo repository.ClinicRepository
 	cfx  config.Config
+	addressSrv services.AddressService
 }
 
-func NewClinicService(r repository.ClinicRepository, cfx config.Config) *ClinicService {
+func NewClinicService(r repository.ClinicRepository, cfx config.Config, addressSrv services.AddressService) *ClinicService {
 	return &ClinicService{
 		repo: r,
 		cfx:  cfx,
+		addressSrv: addressSrv,
 	}
 }
 
@@ -70,4 +75,14 @@ func (s *ClinicService) DeleteClinic(id uuid.UUID) error {
 	}
 
 	return s.repo.Delete(id)
+}
+
+
+func (s *ClinicService) AddAddress(id uuid.UUID, req dto.AddAddressRequest) (error) {
+	_, err := s.addressSrv.GetAddressByID(req.Address_id)
+	if err != nil {
+		return fmt.Errorf("address not found: %w", err)
+	}
+
+	return s.repo.AddAddress(uuid.New(), id, req.Address_id, req.Is_main)
 }
