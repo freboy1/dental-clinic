@@ -25,3 +25,8 @@ type AddressResponse struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"` 
 }
+
+type Response struct {
+	Success string `json:"success"`
+	Message string `json:"message"`
+}

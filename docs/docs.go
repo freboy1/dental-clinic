@@ -84,7 +84,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateResponse"
+                            "$ref": "#/definitions/dto.CreateRequest"
                         }
                     }
                 ],
@@ -483,6 +483,29 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "street": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateRequest": {
+            "type": "object",
+            "properties": {
+                "building": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "country": {
                     "type": "string"
                 },
                 "latitude": {

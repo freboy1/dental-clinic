@@ -16,6 +16,21 @@ definitions:
       street:
         type: string
     type: object
+  dto.CreateRequest:
+    properties:
+      building:
+        type: string
+      city:
+        type: string
+      country:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      street:
+        type: string
+    type: object
   dto.CreateResponse:
     properties:
       address_id:
@@ -155,7 +170,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateResponse'
+          $ref: '#/definitions/dto.CreateRequest'
       produces:
       - application/json
       responses:
