@@ -146,22 +146,43 @@ func (h *AddressHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// DeleteAddress godoc
+// @Summary Delete Address
+// @Description Deletes an address by UUID
+// @Tags Addresss
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Address ID (UUID)"
+// @Success 200 {array} dto.Response
+// @Failure 404 {array} dto.Response
+// @Router /api/address/{id} [delete]
 func (h *AddressHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
+	response := dto.Response{
+		Success: "0",
+		Message: "",
+	}
 	vars := mux.Vars(r)
 	id := vars["id"]
 	tokenStr := getToken(r)
 	err := h.service.DeleteAddress(id, tokenStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) || err.Error() == "address not found" {
-			http.Error(w, "Address not found", http.StatusNotFound)
+			response.Message = "Address not found"
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(response)
 			return
 		}
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		response.Message = "Internal server error"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"message": "Address deleted successfully"})
+	response.Success = "1"
+	response.Message = "successfully deleted"
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 func getToken(r *http.Request) string {
