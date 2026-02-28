@@ -89,6 +89,17 @@ func (h *AddressHandler) GetAllAddresss(w http.ResponseWriter, r *http.Request) 
     json.NewEncoder(w).Encode(services.ToAddressResponseList(addresss))
 }
 
+// GetAddress godoc
+// @Summary Get address by ID
+// @Description Returns a single address by its UUID
+// @Tags Addresss
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Address ID (UUID)"
+// @Success 200 {object} dto.AddressResponse
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/address/{id} [get]
 func (h *AddressHandler) GetAddressByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -100,7 +111,7 @@ func (h *AddressHandler) GetAddressByID(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(address)
+	json.NewEncoder(w).Encode(services.ToAddressResponse(*address))
 }
 
 // UpdateAddresss godoc
