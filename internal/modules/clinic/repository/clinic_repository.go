@@ -244,7 +244,7 @@ func (r *clinicRepo) GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, err
 
 
 func (r *clinicRepo) DeleteAddress(id, address_id uuid.UUID) error {
-	query := `DELETE clinic_addresses WHERE address_id = $1 AND clinic_id = $2`
+	query := `DELETE FROM clinic_addresses WHERE address_id = $1 AND clinic_id = $2`
 
 	result, err := r.db.Exec(context.Background(), query, address_id, id)
 	if err != nil {
