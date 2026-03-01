@@ -216,7 +216,7 @@ func (h *ClinicHandler) DeleteClinic(w http.ResponseWriter, r *http.Request) {
 // @Param request body dto.AddAddressRequest true "Address add data"
 // @Success 200 {array} dto.ClinicResponse
 // @Failure 404 {array} dto.ClinicResponse
-// @Router /clinics/{id}/address [post]
+// @Router /api/clinics/{id}/address [post]
 func (h *ClinicHandler) AddAddress(w http.ResponseWriter, r *http.Request) {
 	response := dto.ClinicResponse{
 		Success: "0",
@@ -257,4 +257,34 @@ func (h *ClinicHandler) AddAddress(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+}
+
+// GetClinicAddress godoc
+// @Summary Get all clinic address
+// @Description Returns a list of all clinic address
+// @Tags Clinics
+// @Produce json
+// @Param id path string true "Clinic ID (UUID)"
+// @Success 200 {array} dto.GetClinicAddressResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/clinics/{id}/address [get]
+func (h *ClinicHandler) GetClinicAddress(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, "Invalid clinic ID format", http.StatusNotFound)
+		return
+	}
+
+	clinic, err := h.service.GetClinicByID(id)
+	if err != nil {
+		http.Error(w, "Clinic not found", http.StatusNotFound)
+		return
+	}
+
+	clinicAddress, err := h.service.GetClinicAddress(clinic.Id)
+	w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(services.ToClinicAddressResponseList(clinicAddress))
 }
