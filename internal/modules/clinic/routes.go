@@ -27,6 +27,8 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	r.HandleFunc("/clinics", handler.GetClinics).Methods("GET")
 	r.HandleFunc("/clinics/{id}", handler.GetClinic).Methods("GET")
 
+	r.HandleFunc("/clinics/{id}/address", handler.GetClinicAddress).Methods("GET")
+
 }
 
 func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {

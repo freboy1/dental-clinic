@@ -19,6 +19,7 @@ type ClinicRepository interface {
 	Update(clinic *models.Clinic) (*models.Clinic, error)
 	Delete(id uuid.UUID) error
 	AddAddress(id, clinic_id uuid.UUID, address_id string, is_main bool) error
+	GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, error)
 }
 
 type clinicRepo struct {
@@ -203,4 +204,39 @@ func (r *clinicRepo) UnsetMainAddress(clinic_id uuid.UUID) error {
 	// }
 
 	return nil
+}
+
+
+func (r *clinicRepo) GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, error) {
+	query := `SELECT id, clinic_id, address_id, is_main
+            FROM clinic_addresses
+            WHERE clinic_id = $1
+            `
+
+	rows, err := r.db.Query(context.Background(), query, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get clinic address: %w", err)
+	}
+	defer rows.Close()
+
+	var clinics []models.ClinicAddress
+	for rows.Next() {
+		clinic := models.ClinicAddress{}
+		err := rows.Scan(
+			&clinic.Id,
+			&clinic.ClinicId,
+			&clinic.AddressId,
+			&clinic.IsMain,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan clinic: %w", err)
+		}
+		clinics = append(clinics, clinic)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating clinics: %w", err)
+	}
+
+	return clinics, nil
 }

@@ -86,3 +86,22 @@ func (s *ClinicService) AddAddress(id uuid.UUID, req dto.AddAddressRequest) (err
 
 	return s.repo.AddAddress(uuid.New(), id, req.Address_id, req.Is_main)
 }
+
+func (s *ClinicService) GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, error) {
+	return s.repo.GetClinicAddress(id)
+}
+
+func ToClinicAddressResponse(clinicAddress models.ClinicAddress) dto.GetClinicAddressResponse {
+	return dto.GetClinicAddressResponse{
+		Address_id:     clinicAddress.AddressId.String(),
+		Is_main:  clinicAddress.IsMain,
+	}
+}
+
+func ToClinicAddressResponseList(clinicAddress []models.ClinicAddress) []dto.GetClinicAddressResponse {
+	result := make([]dto.GetClinicAddressResponse, 0, len(clinicAddress))
+	for _, u := range clinicAddress {
+		result = append(result, ToClinicAddressResponse(u))
+	}
+	return result
+}
