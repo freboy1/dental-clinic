@@ -1,8 +1,6 @@
 package models
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 )
 
@@ -11,5 +9,4 @@ type ClinicAddress struct {
 	ClinicId uuid.UUID 
 	AddressId uuid.UUID 
 	IsMain    bool      
-	CreatedAt time.Time 
 }

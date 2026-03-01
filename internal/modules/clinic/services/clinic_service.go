@@ -2,22 +2,27 @@ package services
 
 import (
 	"dental_clinic/internal/config"
+	"dental_clinic/internal/modules/address/services"
+	"dental_clinic/internal/modules/clinic/dto"
 	"dental_clinic/internal/modules/clinic/models"
 	"dental_clinic/internal/modules/clinic/repository"
 	"fmt"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type ClinicService struct {
 	repo repository.ClinicRepository
 	cfx  config.Config
+	addressSrv services.AddressService
 }
 
-func NewClinicService(r repository.ClinicRepository, cfx config.Config) *ClinicService {
+func NewClinicService(r repository.ClinicRepository, cfx config.Config, addressSrv services.AddressService) *ClinicService {
 	return &ClinicService{
 		repo: r,
 		cfx:  cfx,
+		addressSrv: addressSrv,
 	}
 }
 
@@ -70,4 +75,42 @@ func (s *ClinicService) DeleteClinic(id uuid.UUID) error {
 	}
 
 	return s.repo.Delete(id)
+}
+
+
+func (s *ClinicService) AddAddress(id uuid.UUID, req dto.AddAddressRequest) (error) {
+	_, err := s.addressSrv.GetAddressByID(req.Address_id)
+	if err != nil {
+		return fmt.Errorf("address not found: %w", err)
+	}
+
+	return s.repo.AddAddress(uuid.New(), id, req.Address_id, req.Is_main)
+}
+
+func (s *ClinicService) GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, error) {
+	return s.repo.GetClinicAddress(id)
+}
+
+func ToClinicAddressResponse(clinicAddress models.ClinicAddress) dto.GetClinicAddressResponse {
+	return dto.GetClinicAddressResponse{
+		Address_id:     clinicAddress.AddressId.String(),
+		Is_main:  clinicAddress.IsMain,
+	}
+}
+
+func ToClinicAddressResponseList(clinicAddress []models.ClinicAddress) []dto.GetClinicAddressResponse {
+	result := make([]dto.GetClinicAddressResponse, 0, len(clinicAddress))
+	for _, u := range clinicAddress {
+		result = append(result, ToClinicAddressResponse(u))
+	}
+	return result
+}
+
+func (s *ClinicService) DeleteAddress(id, address_id uuid.UUID) (error) {
+	_, err := s.addressSrv.GetAddressByID(address_id.String())
+	if err != nil {
+		return fmt.Errorf("address not found: %w", err)
+	}
+
+	return s.repo.DeleteAddress(id, address_id)
 }

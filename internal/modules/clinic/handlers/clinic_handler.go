@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"net/http"
+	"dental_clinic/internal/modules/clinic/dto"
 )
 
 type ClinicHandler struct {
@@ -203,4 +204,143 @@ func (h *ClinicHandler) DeleteClinic(w http.ResponseWriter, r *http.Request) {
 		Message: "Clinic deleted successfully",
 	})
 
+}
+
+// AddClinicAddress godoc
+// @Summary Add Address
+// @Description Add an address by UUID
+// @Tags Clinics
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Clinic ID (UUID)"
+// @Param request body dto.AddAddressRequest true "Address add data"
+// @Success 200 {array} dto.ClinicResponse
+// @Failure 404 {array} dto.ClinicResponse
+// @Router /api/clinics/{id}/address [post]
+func (h *ClinicHandler) AddAddress(w http.ResponseWriter, r *http.Request) {
+	response := dto.ClinicResponse{
+		Success: "0",
+		Message: "",
+	}
+
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		response.Message = "Invalid clinic ID format"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	var req dto.AddAddressRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Message = "Invalid request body"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	clinic, err := h.service.GetClinicByID(id)
+	if err != nil {
+		response.Message = "Clinic not found"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	err = h.service.AddAddress(clinic.Id, req)
+
+	response.Success = "1"
+	response.Message = "successfully added"
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetClinicAddress godoc
+// @Summary Get all clinic address
+// @Description Returns a list of all clinic address
+// @Tags Clinics
+// @Produce json
+// @Param id path string true "Clinic ID (UUID)"
+// @Success 200 {array} dto.GetClinicAddressResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/clinics/{id}/address [get]
+func (h *ClinicHandler) GetClinicAddress(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, "Invalid clinic ID format", http.StatusNotFound)
+		return
+	}
+
+	clinic, err := h.service.GetClinicByID(id)
+	if err != nil {
+		http.Error(w, "Clinic not found", http.StatusNotFound)
+		return
+	}
+
+	clinicAddress, err := h.service.GetClinicAddress(clinic.Id)
+	w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(services.ToClinicAddressResponseList(clinicAddress))
+}
+
+// DeleteClinicAddress godoc
+// @Summary Delete Address
+// @Description Delete an address by UUID
+// @Tags Clinics
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Clinic ID (UUID)"
+// @Param addressId path string true "Address ID (UUID)"
+// @Success 200 {array} dto.ClinicResponse
+// @Failure 404 {array} dto.ClinicResponse
+// @Router /api/clinics/{id}/address/{addressId} [delete]
+func (h *ClinicHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
+	response := dto.ClinicResponse{
+		Success: "0",
+		Message: "",
+	}
+
+	vars := mux.Vars(r)
+	idStr, addressIdStr := vars["id"], vars["addressId"]
+	
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		response.Message = "Invalid clinic ID format"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	addressId, err := uuid.Parse(addressIdStr)
+	if err != nil {
+		response.Message = "Invalid address ID format"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+
+
+	clinic, err := h.service.GetClinicByID(id)
+	if err != nil {
+		response.Message = "Clinic not found"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	err = h.service.DeleteAddress(clinic.Id, addressId)
+	
+	response.Success = "1"
+	response.Message = "successfully deleted"
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }

@@ -1,4 +1,11 @@
 definitions:
+  dto.AddAddressRequest:
+    properties:
+      address_id:
+        type: string
+      is_main:
+        type: boolean
+    type: object
   dto.AddressResponse:
     properties:
       building:
@@ -14,6 +21,13 @@ definitions:
       longitude:
         type: number
       street:
+        type: string
+    type: object
+  dto.ClinicResponse:
+    properties:
+      message:
+        type: string
+      success:
         type: string
     type: object
   dto.CreateRequest:
@@ -39,6 +53,13 @@ definitions:
         type: string
       success:
         type: string
+    type: object
+  dto.GetClinicAddressResponse:
+    properties:
+      address_id:
+        type: string
+      is_main:
+        type: boolean
     type: object
   dto.LoginRequest:
     properties:
@@ -438,6 +459,101 @@ paths:
       security:
       - BearerAuth: []
       summary: Update clinic
+      tags:
+      - Clinics
+  /api/clinics/{id}/address:
+    get:
+      description: Returns a list of all clinic address
+      parameters:
+      - description: Clinic ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetClinicAddressResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all clinic address
+      tags:
+      - Clinics
+    post:
+      description: Add an address by UUID
+      parameters:
+      - description: Clinic ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Address add data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddAddressRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClinicResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClinicResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Add Address
+      tags:
+      - Clinics
+  /api/clinics/{id}/address/{addressId}:
+    delete:
+      description: Delete an address by UUID
+      parameters:
+      - description: Clinic ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Address ID (UUID)
+        in: path
+        name: addressId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClinicResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClinicResponse'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Delete Address
       tags:
       - Clinics
   /api/login:
