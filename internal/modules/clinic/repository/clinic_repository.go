@@ -20,6 +20,7 @@ type ClinicRepository interface {
 	Delete(id uuid.UUID) error
 	AddAddress(id, clinic_id uuid.UUID, address_id string, is_main bool) error
 	GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, error)
+	DeleteAddress(id, address_id uuid.UUID) error
 }
 
 type clinicRepo struct {
@@ -239,4 +240,20 @@ func (r *clinicRepo) GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, err
 	}
 
 	return clinics, nil
+}
+
+
+func (r *clinicRepo) DeleteAddress(id, address_id uuid.UUID) error {
+	query := `DELETE clinic_addresses WHERE address_id = $1 AND clinic_id = $2`
+
+	result, err := r.db.Exec(context.Background(), query, address_id, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete clinic address: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("clinic address not found")
+	}
+
+	return nil
 }

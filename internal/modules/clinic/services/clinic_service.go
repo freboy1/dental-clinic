@@ -105,3 +105,12 @@ func ToClinicAddressResponseList(clinicAddress []models.ClinicAddress) []dto.Get
 	}
 	return result
 }
+
+func (s *ClinicService) DeleteAddress(id, address_id uuid.UUID) (error) {
+	_, err := s.addressSrv.GetAddressByID(address_id.String())
+	if err != nil {
+		return fmt.Errorf("address not found: %w", err)
+	}
+
+	return s.repo.DeleteAddress(id, address_id)
+}
