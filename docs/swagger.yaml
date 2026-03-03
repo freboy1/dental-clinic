@@ -30,6 +30,19 @@ definitions:
       success:
         type: string
     type: object
+  dto.CreateDoctorRequest:
+    properties:
+      bio:
+        type: string
+      clinic_id:
+        type: string
+      experience:
+        type: integer
+      is_available:
+        type: boolean
+      specialization:
+        type: string
+    type: object
   dto.CreateRequest:
     properties:
       building:
@@ -52,6 +65,30 @@ definitions:
       message:
         type: string
       success:
+        type: string
+    type: object
+  dto.DoctorActionResponse:
+    properties:
+      doctor_id:
+        type: string
+      message:
+        type: string
+      success:
+        type: string
+    type: object
+  dto.DoctorResponse:
+    properties:
+      bio:
+        type: string
+      clinic_id:
+        type: string
+      experience:
+        type: integer
+      id:
+        type: string
+      is_available:
+        type: boolean
+      specialization:
         type: string
     type: object
   dto.GetClinicAddressResponse:
@@ -106,6 +143,19 @@ definitions:
       message:
         type: string
       success:
+        type: string
+    type: object
+  dto.UpdateDoctorRequest:
+    properties:
+      bio:
+        type: string
+      clinic_id:
+        type: string
+      experience:
+        type: integer
+      is_available:
+        type: boolean
+      specialization:
         type: string
     type: object
   dto.UserResponse:
@@ -556,6 +606,147 @@ paths:
       summary: Delete Address
       tags:
       - Clinics
+  /api/doctors:
+    get:
+      description: Returns a list of all doctors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.DoctorResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all doctors
+      tags:
+      - Doctors
+    post:
+      consumes:
+      - application/json
+      description: Creates a new doctor profile linked to a user
+      parameters:
+      - description: Doctor creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateDoctorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DoctorActionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.DoctorActionResponse'
+      summary: Create a new doctor
+      tags:
+      - Doctors
+  /api/doctors/{id}:
+    delete:
+      description: Deletes a doctor by ID
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete doctor
+      tags:
+      - Doctors
+    get:
+      description: Returns a single doctor by ID
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DoctorResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get doctor by ID
+      tags:
+      - Doctors
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing doctor's information
+      parameters:
+      - description: Doctor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Doctor update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateDoctorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DoctorResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update doctor
+      tags:
+      - Doctors
   /api/login:
     post:
       consumes:
