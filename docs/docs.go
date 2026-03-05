@@ -675,6 +675,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a new doctor profile linked to a user",
                 "consumes": [
                     "application/json"
