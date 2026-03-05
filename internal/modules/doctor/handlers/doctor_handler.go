@@ -23,6 +23,7 @@ func NewDoctorHandler(s *services.DoctorService) *DoctorHandler {
 // @Summary Create a new doctor
 // @Description Creates a new doctor profile linked to a user
 // @Tags Doctors
+// @Security BearerAuth
 // @Accept  json
 // @Produce  json
 // @Param request body dto.CreateDoctorRequest true "Doctor creation data"

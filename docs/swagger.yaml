@@ -651,6 +651,8 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/dto.DoctorActionResponse'
+      security:
+      - BearerAuth: []
       summary: Create a new doctor
       tags:
       - Doctors
