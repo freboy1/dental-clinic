@@ -66,6 +66,7 @@ func (h *ServiceHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 // @Summary Get all services
 // @Description Returns a list of all dental services
 // @Tags Services
+// @Security BearerAuth
 // @Produce json
 // @Success 200 {array} dto.ServiceResponse
 // @Failure 500 {object} map[string]string
@@ -85,6 +86,7 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 // @Summary Get services by clinic
 // @Description Returns all services for a specific clinic
 // @Tags Services
+// @Security BearerAuth
 // @Produce json
 // @Param clinic_id path string true "Clinic ID"
 // @Success 200 {array} dto.ServiceResponse
@@ -108,6 +110,7 @@ func (h *ServiceHandler) GetServicesByClinic(w http.ResponseWriter, r *http.Requ
 // @Summary Get service by ID
 // @Description Returns a single service by ID
 // @Tags Services
+// @Security BearerAuth
 // @Produce json
 // @Param id path string true "Service ID"
 // @Success 200 {object} dto.ServiceResponse
