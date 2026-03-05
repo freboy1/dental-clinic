@@ -10,6 +10,7 @@ import (
 	"dental_clinic/internal/modules/address"
 	"dental_clinic/internal/modules/clinic"
 	"dental_clinic/internal/modules/doctor"
+	dentalservices "dental_clinic/internal/modules/services"
 	"dental_clinic/internal/modules/user"
 
 	_ "dental_clinic/docs"

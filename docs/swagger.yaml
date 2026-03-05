@@ -67,6 +67,21 @@ definitions:
       success:
         type: string
     type: object
+  dto.CreateServiceRequest:
+    properties:
+      clinic_id:
+        type: string
+      description:
+        type: string
+      duration:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   dto.DoctorActionResponse:
     properties:
       doctor_id:
@@ -145,6 +160,32 @@ definitions:
       success:
         type: string
     type: object
+  dto.ServiceActionResponse:
+    properties:
+      message:
+        type: string
+      service_id:
+        type: string
+      success:
+        type: string
+    type: object
+  dto.ServiceResponse:
+    properties:
+      clinic_id:
+        type: string
+      description:
+        type: string
+      duration:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   dto.UpdateDoctorRequest:
     properties:
       bio:
@@ -157,6 +198,21 @@ definitions:
         type: boolean
       specialization:
         type: string
+    type: object
+  dto.UpdateServiceRequest:
+    properties:
+      clinic_id:
+        type: string
+      description:
+        type: string
+      duration:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
     type: object
   dto.UserResponse:
     properties:
@@ -410,6 +466,33 @@ paths:
       summary: Create a new clinic
       tags:
       - Clinics
+  /api/clinics/{clinic_id}/services:
+    get:
+      description: Returns all services for a specific clinic
+      parameters:
+      - description: Clinic ID
+        in: path
+        name: clinic_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ServiceResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get services by clinic
+      tags:
+      - Services
   /api/clinics/{id}:
     delete:
       description: Deletes a clinic by UUID
@@ -801,6 +884,145 @@ paths:
       summary: Register new user
       tags:
       - Users
+  /api/services:
+    get:
+      description: Returns a list of all dental services
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ServiceResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all services
+      tags:
+      - Services
+    post:
+      consumes:
+      - application/json
+      description: Creates a new dental service (e.g. teeth cleaning, tooth extraction)
+      parameters:
+      - description: Service creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateServiceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ServiceActionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ServiceActionResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new service
+      tags:
+      - Services
+  /api/services/{id}:
+    delete:
+      description: Deletes a service by ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete service
+      tags:
+      - Services
+    get:
+      description: Returns a single service by ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ServiceResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get service by ID
+      tags:
+      - Services
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing service
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Service update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateServiceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ServiceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update service
+      tags:
+      - Services
   /api/users:
     get:
       description: Returns a list of all users
