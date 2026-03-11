@@ -67,6 +67,15 @@ definitions:
       success:
         type: string
     type: object
+  dto.CreateScheduleResponse:
+    properties:
+      message:
+        type: string
+      schedule_id:
+        type: string
+      success:
+        type: string
+    type: object
   dto.CreateServiceRequest:
     properties:
       clinic_id:
@@ -490,6 +499,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get services by clinic
       tags:
       - Services
@@ -618,6 +629,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get all clinic address
       tags:
       - Clinics
@@ -884,6 +897,39 @@ paths:
       summary: Register new user
       tags:
       - Users
+  /api/schedule/doctors/{doctorId}/working-hours:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new schedule
+      parameters:
+      - description: Doctor ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Schedule registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CreateScheduleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.CreateScheduleResponse'
+      security:
+      - BearerAuth: []
+      summary: Create new schedule
+      tags:
+      - Schedule
   /api/services:
     get:
       description: Returns a list of all dental services
@@ -902,6 +948,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get all services
       tags:
       - Services
@@ -980,6 +1028,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get service by ID
       tags:
       - Services

@@ -10,6 +10,7 @@ import (
 	"dental_clinic/internal/modules/address"
 	"dental_clinic/internal/modules/clinic"
 	"dental_clinic/internal/modules/doctor"
+	"dental_clinic/internal/modules/schedule"
 	dentalservices "dental_clinic/internal/modules/services"
 	"dental_clinic/internal/modules/user"
 
@@ -35,6 +36,7 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	clinic.RegisterPublicRoutes(public, db, cfg)
 	doctor.RegisterPublicRoutes(public, db)
 	dentalservices.RegisterPublicRoutes(public,db)
+	schedule.RegisterPublicRoutes(public, db, cfg)
 
 	// Private routes
 	private := api.NewRoute().Subrouter()
@@ -44,6 +46,7 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	address.RegisterPrivateRoutes(private, db, cfg)
 	doctor.RegisterPrivateRoutes(private, db)
 	dentalservices.RegisterPrivateRoutes(private, db)
+	schedule.RegisterPrivateRoutes(private, db, cfg)
 
 	// CORS configuration
 	headersOk := gorilla_handler.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
