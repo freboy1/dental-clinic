@@ -9,10 +9,15 @@ import (
 	"dental_clinic/internal/modules/schedule/models"
 	// "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"fmt"
+	"time"
+	"github.com/google/uuid"
 )
 
 type ScheduleRepository interface {
 	Create(schedule *models.Schedule) (*models.Schedule, error)
+	GetSchedules() ([]models.Schedule, error)
+	CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUID, slot_start, slot_end time.Time) (error)
 }
 
 type scheduleRepo struct {
@@ -29,4 +34,55 @@ func (r *scheduleRepo) Create(schedule *models.Schedule) (*models.Schedule, erro
 	err := r.db.QueryRow(context.Background(), query, schedule.Id, schedule.Doctor_id, schedule.Clinic_address_id, schedule.Day_of_week, schedule.Start_time, schedule.End_time).
 		Scan(&schedule.Id)
 	return schedule, err
+}
+
+
+func (r *scheduleRepo) GetSchedules() ([]models.Schedule, error) {
+	query := `SELECT id, doctor_id, clinic_address_id, day_of_week, start_time, end_time FROM doctor_working_hours`
+
+	rows, err := r.db.Query(context.Background(), query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var schedules []models.Schedule
+	for rows.Next() {
+		var schedule models.Schedule
+		if err := rows.Scan(&schedule.Id, &schedule.Doctor_id, &schedule.Clinic_address_id, &schedule.Day_of_week, &schedule.Start_time, &schedule.End_time); err != nil {
+			return nil, err
+		}
+		schedules = append(schedules, schedule)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return schedules, nil
+}
+
+
+func (r *scheduleRepo) CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUID, slot_start, slot_end time.Time) (error) {
+	slot_id := uuid.New()
+	query := `INSERT INTO doctor_time_slots (id, doctor_id, clinic_address_id, slot_start, slot_end, status, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7) 
+            `
+	_, err := r.db.Exec(
+		context.Background(),
+		query,
+		slot_id,
+		doctor_id,
+		clinic_address_id,
+		slot_start,
+		slot_end,
+		"available",
+		time.Now(),
+	)
+	
+	if err != nil {
+		return fmt.Errorf("failed to create slot: %w", err)
+	}
+	
+	return nil
 }
