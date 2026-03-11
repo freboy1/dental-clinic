@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"dental_clinic/internal/config"
-	"fmt"
+	// "fmt"
 
 	// "dental_clinic/internal/modules/schedule/models"
 	"dental_clinic/internal/modules/schedule/dto"
