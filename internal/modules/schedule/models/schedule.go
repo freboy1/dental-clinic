@@ -1,7 +1,7 @@
 package models
 
 import (
-	"time"
+	// "time"
 
 	"github.com/google/uuid"
 )
@@ -11,6 +11,6 @@ type Schedule struct {
 	Doctor_id       	uuid.UUID    
 	Clinic_address_id 	uuid.UUID 
 	Day_of_week       	int     
-	Start_time   		time.Time 
-	End_time   			time.Time 
+	Start_time   		string 
+	End_time   			string 
 }
