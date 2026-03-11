@@ -18,3 +18,13 @@ type CreateScheduleResponse struct {
 	Message string `json:"message"`
 	Schedule_id  string `json:"schedule_id"`
 }
+
+type GenerateSlotsRequest struct {
+	From_date      	string    `json:"from_date"`
+	To_date    		string    `json:"to_date"`
+}
+
+type ScheduleResponse struct {
+	Success string `json:"success"`
+	Message string `json:"message"`
+}

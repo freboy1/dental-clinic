@@ -127,6 +127,13 @@ definitions:
       specialization:
         type: string
     type: object
+  dto.GenerateSlotsRequest:
+    properties:
+      from_date:
+        type: string
+      to_date:
+        type: string
+    type: object
   dto.GetClinicAddressResponse:
     properties:
       address_id:
@@ -177,6 +184,13 @@ definitions:
         type: string
     type: object
   dto.Response:
+    properties:
+      message:
+        type: string
+      success:
+        type: string
+    type: object
+  dto.ScheduleResponse:
     properties:
       message:
         type: string
@@ -942,6 +956,34 @@ paths:
       security:
       - BearerAuth: []
       summary: Create new schedule
+      tags:
+      - Schedule
+  /api/schedule/generate:
+    post:
+      consumes:
+      - application/json
+      description: Generate a new slots
+      parameters:
+      - description: Generate slots data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GenerateSlotsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ScheduleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ScheduleResponse'
+      security:
+      - BearerAuth: []
+      summary: Generate new slots
       tags:
       - Schedule
   /api/services:

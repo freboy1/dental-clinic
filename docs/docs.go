@@ -1047,6 +1047,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/schedule/generate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate a new slots",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schedule"
+                ],
+                "summary": "Generate new slots",
+                "parameters": [
+                    {
+                        "description": "Generate slots data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GenerateSlotsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ScheduleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ScheduleResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/services": {
             "get": {
                 "security": [
@@ -1518,6 +1563,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GenerateSlotsRequest": {
+            "type": "object",
+            "properties": {
+                "from_date": {
+                    "type": "string"
+                },
+                "to_date": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.GetClinicAddressResponse": {
             "type": "object",
             "properties": {
@@ -1595,6 +1651,17 @@ const docTemplate = `{
             }
         },
         "dto.Response": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ScheduleResponse": {
             "type": "object",
             "properties": {
                 "message": {

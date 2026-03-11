@@ -80,3 +80,47 @@ func (h *ScheduleHandler) CreateDoctorSchedule(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(response)
 
 }
+
+
+
+
+// GenerateSlots godoc
+// @Summary Generate new slots
+// @Description Generate a new slots
+// @Tags Schedule
+// @Security BearerAuth
+// @Accept  json
+// @Produce  json
+// @Param request body dto.GenerateSlotsRequest true "Generate slots data"
+// @Success 200 {object} dto.ScheduleResponse
+// @Failure 400 {object} dto.ScheduleResponse
+// @Router /api/schedule/generate [post]
+func (h *ScheduleHandler) GenerateSlots(w http.ResponseWriter, r *http.Request) {
+	response := dto.ScheduleResponse{
+		Success: "0",
+		Message: "",
+	}
+	
+
+	var req dto.GenerateSlotsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Message = "Invalid request body"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	err := h.service.GenerateSlots(req)
+	if err != nil {
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	response.Success = "1"
+	response.Message = "successfully generated"
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+
+}
