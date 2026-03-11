@@ -6,7 +6,7 @@ CREATE TABLE doctor_working_hours (
 
   day_of_week INT, -- 1-7
   start_time TIME,
-  end_time TIME,
+  end_time TIME
 );
 
 
