@@ -335,6 +335,11 @@ const docTemplate = `{
         },
         "/api/clinics/{clinic_id}/services": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns all services for a specific clinic",
                 "produces": [
                     "application/json"
@@ -534,6 +539,11 @@ const docTemplate = `{
         },
         "/api/clinics/{id}/address": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns a list of all clinic address",
                 "produces": [
                     "application/json"
@@ -985,8 +995,65 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/schedule/doctors/{doctorId}/working-hours": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new schedule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schedule"
+                ],
+                "summary": "Create new schedule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Doctor ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Schedule registration data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateScheduleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateScheduleResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/services": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns a list of all dental services",
                 "produces": [
                     "application/json"
@@ -1062,6 +1129,11 @@ const docTemplate = `{
         },
         "/api/services/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns a single service by ID",
                 "produces": [
                     "application/json"
@@ -1347,6 +1419,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateScheduleResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "schedule_id": {
                     "type": "string"
                 },
                 "success": {
