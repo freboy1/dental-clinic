@@ -2,15 +2,17 @@ package handlers
 
 import (
 	"dental_clinic/internal/config"
+	"fmt"
 
 	// "dental_clinic/internal/modules/schedule/models"
 	"dental_clinic/internal/modules/schedule/dto"
 	"dental_clinic/internal/modules/schedule/services"
 	"encoding/json"
 
-	"github.com/gorilla/mux"
-	"github.com/google/uuid"
 	"net/http"
+
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type ScheduleHandler struct {
@@ -33,8 +35,8 @@ func NewScheduleHandler(s *services.ScheduleService, cfg config.Config) *Schedul
 // @Security BearerAuth
 // @Accept  json
 // @Produce  json
-// @Param id path string true "Doctor ID (UUID)"
-// @Param request body dto.CreateRequest true "Schedule registration data"
+// @Param doctorId path string true "Doctor ID (UUID)"
+// @Param request body dto.CreateScheduleRequest true "Schedule registration data"
 // @Success 200 {object} dto.CreateScheduleResponse
 // @Failure 400 {object} dto.CreateScheduleResponse
 // @Router /api/schedule/doctors/{doctorId}/working-hours [post]
@@ -46,7 +48,7 @@ func (h *ScheduleHandler) CreateDoctorSchedule(w http.ResponseWriter, r *http.Re
 	}
 	vars := mux.Vars(r)
 	doctorIDStr := vars["doctorId"]
-
+ 
 	doctor_id, err := uuid.Parse(doctorIDStr)
 	if err != nil {
 		response.Message = "Invalid doctorId"

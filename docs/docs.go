@@ -1017,7 +1017,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Doctor ID (UUID)",
-                        "name": "id",
+                        "name": "doctorId",
                         "in": "path",
                         "required": true
                     },
@@ -1027,7 +1027,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateRequest"
+                            "$ref": "#/definitions/dto.CreateScheduleRequest"
                         }
                     }
                 ],
@@ -1426,6 +1426,24 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateScheduleRequest": {
+            "type": "object",
+            "properties": {
+                "clinic_address_id": {
+                    "description": "Doctor_id   \t\t\tstring    ` + "`" + `json:\"doctor_id\"` + "`" + `",
+                    "type": "string"
+                },
+                "day_of_week": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateScheduleResponse": {
             "type": "object",
             "properties": {
@@ -1504,6 +1522,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address_id": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "is_main": {
