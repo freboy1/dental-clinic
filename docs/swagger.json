@@ -1053,6 +1053,50 @@
             }
         },
         "/api/schedule/doctors/{doctorId}/working-hours": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a doctor schedule",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schedule"
+                ],
+                "summary": "Get doctor schedule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Doctor ID (UUID)",
+                        "name": "doctorId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ScheduleDoctorResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1714,6 +1758,26 @@
                     "type": "string"
                 },
                 "success": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ScheduleDoctorResponse": {
+            "type": "object",
+            "properties": {
+                "clinic_address_id": {
+                    "type": "string"
+                },
+                "day_of_week": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "start_time": {
                     "type": "string"
                 }
             }

@@ -211,3 +211,28 @@ func ToSlotResponseList(slots []models.Slot) []dto.SlotResponse {
 	}
 	return result
 }
+
+
+
+func (s *ScheduleService) GetDoctorSchedule(doctor_id uuid.UUID) ([]models.Schedule, error) {
+	return s.repo.GetScheduleByDoctor(doctor_id)
+}
+
+
+func ToScheduleResponse(schedule models.Schedule) dto.ScheduleDoctorResponse {
+	return dto.ScheduleDoctorResponse{
+		Id: schedule.Id.String(),
+		Clinic_address_id: schedule.Clinic_address_id.String(),
+		Day_of_week: schedule.Day_of_week,
+		Start_time: schedule.Start_time,
+		End_time: schedule.End_time,
+	}
+}
+
+func ToScheduleResponseList(schedules []models.Schedule) []dto.ScheduleDoctorResponse {
+	result := make([]dto.ScheduleDoctorResponse, 0, len(schedules))
+	for _, u := range schedules {
+		result = append(result, ToScheduleResponse(u))
+	}
+	return result
+}

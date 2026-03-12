@@ -190,6 +190,19 @@ definitions:
       success:
         type: string
     type: object
+  dto.ScheduleDoctorResponse:
+    properties:
+      clinic_address_id:
+        type: string
+      day_of_week:
+        type: integer
+      end_time:
+        type: string
+      id:
+        type: string
+      start_time:
+        type: string
+    type: object
   dto.ScheduleResponse:
     properties:
       message:
@@ -981,6 +994,34 @@ paths:
       tags:
       - Schedule
   /api/schedule/doctors/{doctorId}/working-hours:
+    get:
+      description: Returns a doctor schedule
+      parameters:
+      - description: Doctor ID (UUID)
+        in: path
+        name: doctorId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ScheduleDoctorResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get doctor schedule
+      tags:
+      - Schedule
     post:
       consumes:
       - application/json

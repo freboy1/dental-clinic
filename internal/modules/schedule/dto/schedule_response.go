@@ -35,3 +35,11 @@ type SlotResponse struct {
 	Slot_end      time.Time `json:"slot_end"` 
 	Status    string `json:"status"` 
 }
+
+type ScheduleDoctorResponse struct {
+	Id        				string  
+	Clinic_address_id      	string    
+	Day_of_week    			int    
+	Start_time  			string    
+	End_time  				string   
+}
