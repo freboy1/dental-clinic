@@ -995,6 +995,71 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/schedule/available-slots": {
+            "get": {
+                "description": "Get available slots",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schedule"
+                ],
+                "summary": "Get available slots",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Doctor ID (UUID)",
+                        "name": "doctor_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Service ID (UUID)",
+                        "name": "service_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Clinic Address ID (UUID)",
+                        "name": "clinic_address_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date (YYYY-MM-DD)",
+                        "name": "date",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.SlotResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.SlotResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/schedule/doctors/{doctorId}/working-hours": {
             "post": {
                 "security": [
@@ -1709,6 +1774,23 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
+                }
+            }
+        },
+        "dto.SlotResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "slot_end": {
+                    "type": "string"
+                },
+                "slot_start": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },

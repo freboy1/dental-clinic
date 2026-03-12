@@ -223,6 +223,17 @@ definitions:
       price:
         type: number
     type: object
+  dto.SlotResponse:
+    properties:
+      id:
+        type: string
+      slot_end:
+        type: string
+      slot_start:
+        type: string
+      status:
+        type: string
+    type: object
   dto.UpdateDoctorRequest:
     properties:
       bio:
@@ -925,6 +936,50 @@ paths:
       summary: Register new user
       tags:
       - Users
+  /api/schedule/available-slots:
+    get:
+      consumes:
+      - application/json
+      description: Get available slots
+      parameters:
+      - description: Doctor ID (UUID)
+        in: query
+        name: doctor_id
+        required: true
+        type: string
+      - description: Service ID (UUID)
+        in: query
+        name: service_id
+        required: true
+        type: string
+      - description: Clinic Address ID (UUID)
+        in: query
+        name: clinic_address_id
+        required: true
+        type: string
+      - description: Date (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.SlotResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            items:
+              $ref: '#/definitions/dto.SlotResponse'
+            type: array
+      summary: Get available slots
+      tags:
+      - Schedule
   /api/schedule/doctors/{doctorId}/working-hours:
     post:
       consumes:

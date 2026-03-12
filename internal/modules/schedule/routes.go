@@ -9,22 +9,36 @@ import (
 
 	"dental_clinic/internal/config"
 
+	serviceRepository "dental_clinic/internal/modules/services/repository"
+	serviceServices "dental_clinic/internal/modules/services/services"
+
+
 	"github.com/gorilla/mux"
 )
 
 func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
-	// repo := repository.NewScheduleRepository(db)
-	// service := services.NewScheduleService(repo, *cfg)
-	// handler := handlers.NewScheduleHandler(service, *cfg)
+	repo := repository.NewScheduleRepository(db)
 
-	// scheduleRouter := r.PathPrefix("/schedule").Subrouter()
+	serviceRepo := serviceRepository.NewServiceRepository(db)
+	serviceService := serviceServices.NewServiceService(serviceRepo)
 
-	// scheduleRouter.HandleFunc("/available-slots/", handler.GetAvailableSlots).Methods("POST")
+
+	service := services.NewScheduleService(repo, *cfg, *serviceService)
+	handler := handlers.NewScheduleHandler(service, *cfg)
+
+	scheduleRouter := r.PathPrefix("/schedule").Subrouter()
+
+	scheduleRouter.HandleFunc("/available-slots", handler.GetAvailableSlots).Methods("GET")
 }
 
 func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	repo := repository.NewScheduleRepository(db)
-	service := services.NewScheduleService(repo, *cfg)
+
+	serviceRepo := serviceRepository.NewServiceRepository(db)
+	serviceService := serviceServices.NewServiceService(serviceRepo)
+
+
+	service := services.NewScheduleService(repo, *cfg, *serviceService)
 	handler := handlers.NewScheduleHandler(service, *cfg)
 
 	scheduleRouter := r.PathPrefix("/schedule").Subrouter()
