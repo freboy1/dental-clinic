@@ -93,6 +93,7 @@ func (s *ClinicService) GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, 
 
 func ToClinicAddressResponse(clinicAddress models.ClinicAddress) dto.GetClinicAddressResponse {
 	return dto.GetClinicAddressResponse{
+		Id: clinicAddress.Id.String(),
 		Address_id:     clinicAddress.AddressId.String(),
 		Is_main:  clinicAddress.IsMain,
 	}

@@ -335,6 +335,11 @@ const docTemplate = `{
         },
         "/api/clinics/{clinic_id}/services": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns all services for a specific clinic",
                 "produces": [
                     "application/json"
@@ -534,6 +539,11 @@ const docTemplate = `{
         },
         "/api/clinics/{id}/address": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns a list of all clinic address",
                 "produces": [
                     "application/json"
@@ -985,8 +995,219 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/schedule/available-slots": {
+            "get": {
+                "description": "Get available slots",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schedule"
+                ],
+                "summary": "Get available slots",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Doctor ID (UUID)",
+                        "name": "doctor_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Service ID (UUID)",
+                        "name": "service_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Clinic Address ID (UUID)",
+                        "name": "clinic_address_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date (YYYY-MM-DD)",
+                        "name": "date",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.SlotResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.SlotResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/schedule/doctors/{doctorId}/working-hours": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a doctor schedule",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schedule"
+                ],
+                "summary": "Get doctor schedule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Doctor ID (UUID)",
+                        "name": "doctorId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ScheduleDoctorResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new schedule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schedule"
+                ],
+                "summary": "Create new schedule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Doctor ID (UUID)",
+                        "name": "doctorId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Schedule registration data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateScheduleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateScheduleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateScheduleResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/schedule/generate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate a new slots",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schedule"
+                ],
+                "summary": "Generate new slots",
+                "parameters": [
+                    {
+                        "description": "Generate slots data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GenerateSlotsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ScheduleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ScheduleResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/services": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns a list of all dental services",
                 "produces": [
                     "application/json"
@@ -1062,6 +1283,11 @@ const docTemplate = `{
         },
         "/api/services/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Returns a single service by ID",
                 "produces": [
                     "application/json"
@@ -1354,6 +1580,38 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateScheduleRequest": {
+            "type": "object",
+            "properties": {
+                "clinic_address_id": {
+                    "description": "Doctor_id   \t\t\tstring    ` + "`" + `json:\"doctor_id\"` + "`" + `",
+                    "type": "string"
+                },
+                "day_of_week": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateScheduleResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "schedule_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateServiceRequest": {
             "type": "object",
             "properties": {
@@ -1414,10 +1672,24 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GenerateSlotsRequest": {
+            "type": "object",
+            "properties": {
+                "from_date": {
+                    "type": "string"
+                },
+                "to_date": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.GetClinicAddressResponse": {
             "type": "object",
             "properties": {
                 "address_id": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "is_main": {
@@ -1498,6 +1770,37 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ScheduleDoctorResponse": {
+            "type": "object",
+            "properties": {
+                "clinic_address_id": {
+                    "type": "string"
+                },
+                "day_of_week": {
+                    "type": "integer"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ScheduleResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ServiceActionResponse": {
             "type": "object",
             "properties": {
@@ -1535,6 +1838,23 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
+                }
+            }
+        },
+        "dto.SlotResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "slot_end": {
+                    "type": "string"
+                },
+                "slot_start": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },

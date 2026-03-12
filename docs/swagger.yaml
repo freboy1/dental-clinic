@@ -67,6 +67,27 @@ definitions:
       success:
         type: string
     type: object
+  dto.CreateScheduleRequest:
+    properties:
+      clinic_address_id:
+        description: "Doctor_id   \t\t\tstring    `json:\"doctor_id\"`"
+        type: string
+      day_of_week:
+        type: integer
+      end_time:
+        type: string
+      start_time:
+        type: string
+    type: object
+  dto.CreateScheduleResponse:
+    properties:
+      message:
+        type: string
+      schedule_id:
+        type: string
+      success:
+        type: string
+    type: object
   dto.CreateServiceRequest:
     properties:
       clinic_id:
@@ -106,9 +127,18 @@ definitions:
       specialization:
         type: string
     type: object
+  dto.GenerateSlotsRequest:
+    properties:
+      from_date:
+        type: string
+      to_date:
+        type: string
+    type: object
   dto.GetClinicAddressResponse:
     properties:
       address_id:
+        type: string
+      id:
         type: string
       is_main:
         type: boolean
@@ -160,6 +190,26 @@ definitions:
       success:
         type: string
     type: object
+  dto.ScheduleDoctorResponse:
+    properties:
+      clinic_address_id:
+        type: string
+      day_of_week:
+        type: integer
+      end_time:
+        type: string
+      id:
+        type: string
+      start_time:
+        type: string
+    type: object
+  dto.ScheduleResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: string
+    type: object
   dto.ServiceActionResponse:
     properties:
       message:
@@ -185,6 +235,17 @@ definitions:
         type: string
       price:
         type: number
+    type: object
+  dto.SlotResponse:
+    properties:
+      id:
+        type: string
+      slot_end:
+        type: string
+      slot_start:
+        type: string
+      status:
+        type: string
     type: object
   dto.UpdateDoctorRequest:
     properties:
@@ -490,6 +551,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get services by clinic
       tags:
       - Services
@@ -618,6 +681,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get all clinic address
       tags:
       - Clinics
@@ -884,6 +949,139 @@ paths:
       summary: Register new user
       tags:
       - Users
+  /api/schedule/available-slots:
+    get:
+      consumes:
+      - application/json
+      description: Get available slots
+      parameters:
+      - description: Doctor ID (UUID)
+        in: query
+        name: doctor_id
+        required: true
+        type: string
+      - description: Service ID (UUID)
+        in: query
+        name: service_id
+        required: true
+        type: string
+      - description: Clinic Address ID (UUID)
+        in: query
+        name: clinic_address_id
+        required: true
+        type: string
+      - description: Date (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.SlotResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            items:
+              $ref: '#/definitions/dto.SlotResponse'
+            type: array
+      summary: Get available slots
+      tags:
+      - Schedule
+  /api/schedule/doctors/{doctorId}/working-hours:
+    get:
+      description: Returns a doctor schedule
+      parameters:
+      - description: Doctor ID (UUID)
+        in: path
+        name: doctorId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ScheduleDoctorResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get doctor schedule
+      tags:
+      - Schedule
+    post:
+      consumes:
+      - application/json
+      description: Creates a new schedule
+      parameters:
+      - description: Doctor ID (UUID)
+        in: path
+        name: doctorId
+        required: true
+        type: string
+      - description: Schedule registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CreateScheduleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.CreateScheduleResponse'
+      security:
+      - BearerAuth: []
+      summary: Create new schedule
+      tags:
+      - Schedule
+  /api/schedule/generate:
+    post:
+      consumes:
+      - application/json
+      description: Generate a new slots
+      parameters:
+      - description: Generate slots data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GenerateSlotsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ScheduleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ScheduleResponse'
+      security:
+      - BearerAuth: []
+      summary: Generate new slots
+      tags:
+      - Schedule
   /api/services:
     get:
       description: Returns a list of all dental services
@@ -902,6 +1100,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get all services
       tags:
       - Services
@@ -980,6 +1180,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get service by ID
       tags:
       - Services
