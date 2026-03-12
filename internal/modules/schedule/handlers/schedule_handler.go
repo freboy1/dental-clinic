@@ -8,6 +8,7 @@ import (
 	"dental_clinic/internal/modules/schedule/dto"
 	"dental_clinic/internal/modules/schedule/services"
 	"encoding/json"
+	"time"
 
 	"net/http"
 
@@ -124,3 +125,76 @@ func (h *ScheduleHandler) GenerateSlots(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(response)
 
 }
+
+
+
+
+// Get Slots godoc
+// @Summary Get available slots
+// @Description Get available slots
+// @Tags Schedule
+// @Accept  json
+// @Produce  json
+// Query parameters
+// @Param doctor_id query string true "Doctor ID (UUID)"
+// @Param service_id query string true "Service ID (UUID)"
+// @Param clinic_address_id query string true "Clinic Address ID (UUID)"
+// @Param date query string true "Date (YYYY-MM-DD)"
+// @Success 200 {array} dto.SlotResponse
+// @Failure 400 {array} dto.SlotResponse
+// @Router /api/schedule/available-slots [get]
+func (h *ScheduleHandler) GetAvailableSlots(w http.ResponseWriter, r *http.Request) {
+	
+	query := r.URL.Query()
+
+	doctorIDStr := query.Get("doctor_id")
+	serviceIDStr := query.Get("service_id")
+	clinic_addressIDStr := query.Get("clinic_address_id")
+	dateStr := query.Get("date")
+
+	if doctorIDStr == "" || serviceIDStr == "" || dateStr == "" || clinic_addressIDStr == "" {
+		http.Error(w, "missing query parameters", http.StatusBadRequest)
+		return
+	}
+
+	doctorID, err := uuid.Parse(doctorIDStr)
+	if err != nil {
+		http.Error(w, "invalid doctor_id", http.StatusBadRequest)
+		return
+	}
+
+	serviceID, err := uuid.Parse(serviceIDStr)
+	if err != nil {
+		http.Error(w, "invalid service_id", http.StatusBadRequest)
+		return
+	}
+
+	clinic_addressID, err := uuid.Parse(clinic_addressIDStr)
+	if err != nil {
+		http.Error(w, "invalid service_id", http.StatusBadRequest)
+		return
+	}
+
+	date, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		http.Error(w, "invalid date format", http.StatusBadRequest)
+		return
+	}
+
+	slots, err := h.service.GetAvailableSlots(doctorID, serviceID, clinic_addressID, date)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(services.ToSlotResponseList(slots))
+}
+
+
+
+
+
+
+
+

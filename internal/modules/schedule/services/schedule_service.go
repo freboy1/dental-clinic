@@ -3,26 +3,30 @@ package services
 import (
 	"dental_clinic/internal/config"
 
-	"dental_clinic/internal/modules/schedule/models"
 	"dental_clinic/internal/modules/schedule/dto"
+	"dental_clinic/internal/modules/schedule/models"
 	"dental_clinic/internal/modules/schedule/repository"
+
+	"dental_clinic/internal/modules/services/services"
 
 	"errors"
 	"fmt"
 	"time"
-	
+
 	"github.com/google/uuid"
 )
 
 type ScheduleService struct {
 	repo repository.ScheduleRepository
 	cfx  config.Config
+	serviceSrv services.ServiceService
 }
 
-func NewScheduleService(r repository.ScheduleRepository, cfx config.Config) *ScheduleService {
+func NewScheduleService(r repository.ScheduleRepository, cfx config.Config, serviceSrv services.ServiceService) *ScheduleService {
 	return &ScheduleService{
 		repo: r,
 		cfx:  cfx,
+		serviceSrv: serviceSrv,
 	}
 }
 
@@ -127,4 +131,83 @@ func (s *ScheduleService) GenerateSlots(req dto.GenerateSlotsRequest) error {
 	
 	// return s.repo.Create(schedule)
 	return nil
+}
+
+
+
+
+
+func (s *ScheduleService) GetAvailableSlots(doctorID, serviceID, clinic_addressID uuid.UUID, date time.Time) ([]models.Slot, error) {
+
+	service, err := s.serviceSrv.GetServiceByID(serviceID.String())
+
+	if (err != nil) {
+		return nil, err
+	}
+
+	raw_slots, err := s.repo.GetAvailableSlotsByDateAndDoctorAndClinic(doctorID, clinic_addressID, date)
+	
+	required_slots := service.Duration / 30
+
+
+	slots := FindAvailableSlots(raw_slots, required_slots)
+
+
+	return slots, nil
+}
+
+
+func FindAvailableSlots(slots []models.Slot, requiredSlots int) []models.Slot {
+
+	var result []models.Slot
+
+	for i := 0; i <= len(slots)-requiredSlots; i++ {
+
+		valid := true
+
+		for j := 0; j < requiredSlots; j++ {
+
+			if slots[i+j].Status != "available" {
+				valid = false
+				break
+			}
+
+			if j > 0 {
+				prev := slots[i+j-1].Slot_end
+				curr := slots[i+j].Slot_start
+
+				if !prev.Equal(curr) {
+					valid = false
+					break
+				}
+			}
+		}
+
+		if valid {
+			result = append(result, slots[i])
+		}
+	}
+
+	return result
+}
+
+
+
+
+
+func ToSlotResponse(slot models.Slot) dto.SlotResponse {
+	return dto.SlotResponse{
+		Id: slot.Id.String(),
+		Slot_start: slot.Slot_start,
+		Slot_end: slot.Slot_end,
+		Status: slot.Status,
+	}
+}
+
+func ToSlotResponseList(slots []models.Slot) []dto.SlotResponse {
+	result := make([]dto.SlotResponse, 0, len(slots))
+	for _, u := range slots {
+		result = append(result, ToSlotResponse(u))
+	}
+	return result
 }

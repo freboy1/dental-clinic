@@ -1,7 +1,7 @@
 package dto
 
 import (
-	// "time"
+	"time"
 
 )
 
@@ -27,4 +27,11 @@ type GenerateSlotsRequest struct {
 type ScheduleResponse struct {
 	Success string `json:"success"`
 	Message string `json:"message"`
+}
+
+type SlotResponse struct {
+	Id        string `json:"id"` 
+	Slot_start   time.Time `json:"slot_start"` 
+	Slot_end      time.Time `json:"slot_end"` 
+	Status    string `json:"status"` 
 }

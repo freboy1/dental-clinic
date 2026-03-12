@@ -18,6 +18,7 @@ type ScheduleRepository interface {
 	Create(schedule *models.Schedule) (*models.Schedule, error)
 	GetSchedules() ([]models.Schedule, error)
 	CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUID, slot_start, slot_end time.Time) (error)
+	GetAvailableSlotsByDateAndDoctorAndClinic(doctor_id, clinic_address_id uuid.UUID, date time.Time) ([]models.Slot, error)
 }
 
 type scheduleRepo struct {
@@ -85,4 +86,32 @@ func (r *scheduleRepo) CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUI
 	}
 	
 	return nil
+}
+
+
+
+
+func (r *scheduleRepo) GetAvailableSlotsByDateAndDoctorAndClinic(doctor_id, clinic_address_id uuid.UUID, date time.Time) ([]models.Slot, error) {
+	query := `SELECT id, slot_start, slot_end, status FROM doctor_time_slots WHERE doctor_id = $1 AND DATE(slot_start) = $2 AND clinic_address_id = $3 ORDER BY slot_start;`
+
+	rows, err := r.db.Query(context.Background(), query, doctor_id, date, clinic_address_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var slots []models.Slot
+	for rows.Next() {
+		var slot models.Slot
+		if err := rows.Scan(&slot.Id, &slot.Slot_start, &slot.Slot_end, &slot.Status); err != nil {
+			return nil, err
+		}
+		slots = append(slots, slot)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return slots, nil
 }
