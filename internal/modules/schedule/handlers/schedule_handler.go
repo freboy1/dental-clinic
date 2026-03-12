@@ -194,6 +194,36 @@ func (h *ScheduleHandler) GetAvailableSlots(w http.ResponseWriter, r *http.Reque
 
 
 
+// GetDoctorSchedule godoc
+// @Summary Get doctor schedule
+// @Description Returns a doctor schedule
+// @Tags Schedule
+// @Security BearerAuth
+// @Produce json
+// @Param doctorId path string true "Doctor ID (UUID)"
+// @Success 200 {array} dto.ScheduleDoctorResponse
+// @Failure 401 {object} map[string]string
+// @Router /api/schedule/doctors/{doctorId}/working-hours [get]
+func (h *ScheduleHandler) GetDoctorSchedule(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	doctorIDStr := vars["doctorId"]
+
+	doctorID, err := uuid.Parse(doctorIDStr)
+	if err != nil {
+		http.Error(w, "invalid doctorId", http.StatusBadRequest)
+		return
+	}
+
+	schedules, err := h.service.GetDoctorSchedule(doctorID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(services.ToScheduleResponseList(schedules))
+}
 
 
 

@@ -19,6 +19,7 @@ type ScheduleRepository interface {
 	GetSchedules() ([]models.Schedule, error)
 	CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUID, slot_start, slot_end time.Time) (error)
 	GetAvailableSlotsByDateAndDoctorAndClinic(doctor_id, clinic_address_id uuid.UUID, date time.Time) ([]models.Slot, error)
+	GetScheduleByDoctor(doctor_id uuid.UUID) ([]models.Schedule, error)
 }
 
 type scheduleRepo struct {
@@ -114,4 +115,30 @@ func (r *scheduleRepo) GetAvailableSlotsByDateAndDoctorAndClinic(doctor_id, clin
 	}
 
 	return slots, nil
+}
+
+
+func (r *scheduleRepo) GetScheduleByDoctor(doctor_id uuid.UUID) ([]models.Schedule, error) {
+	query := `SELECT id, doctor_id, clinic_address_id, day_of_week, start_time, end_time FROM doctor_working_hours WHERE doctor_id = $1`
+
+	rows, err := r.db.Query(context.Background(), query, doctor_id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var schedules []models.Schedule
+	for rows.Next() {
+		var schedule models.Schedule
+		if err := rows.Scan(&schedule.Id, &schedule.Doctor_id, &schedule.Clinic_address_id, &schedule.Day_of_week, &schedule.Start_time, &schedule.End_time); err != nil {
+			return nil, err
+		}
+		schedules = append(schedules, schedule)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return schedules, nil
 }
