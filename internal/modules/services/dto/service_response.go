@@ -9,6 +9,7 @@ type CreateServiceRequest struct {
 	IsActive    bool    `json:"is_active"`
 }
 
+
 type UpdateServiceRequest struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
