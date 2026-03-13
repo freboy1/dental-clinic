@@ -173,6 +173,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	response := dto.LoginResponse{
 		Success: "0",
 		Token: "",
+		Role: "",
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -190,6 +191,7 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	token, _ := utils.GenerateJWT(user.Id.String(), user.Email, user.Role, h.cfg.JWTSecret)
 	response.Token = "Bearer " + token
 	response.Success = "1"
+	response.Role = user.Role
 	// w.Header().Set("Content-Type", "application/json")
 	// json.NewEncoder(w).Encode(map[string]string{"success": "1", "token": token})
 	w.WriteHeader(http.StatusOK)
