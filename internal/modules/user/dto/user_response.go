@@ -14,6 +14,7 @@ type RegisterRequest struct {
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Role     string `json:"role"`
 }
 
 type UpdatePasswordRequest struct {
@@ -34,6 +35,7 @@ type RegisterResponse struct {
 type LoginResponse struct {
 	Success string `json:"success"`
 	Token string `json:"token"`
+	Role string `json:"role"`
 }
 
 type UserResponse struct {
