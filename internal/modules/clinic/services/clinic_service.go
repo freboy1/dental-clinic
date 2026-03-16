@@ -35,10 +35,6 @@ func (s *ClinicService) CreateClinic(clinic *models.Clinic) (*models.Clinic, err
 		return nil, fmt.Errorf("clinic phone is required")
 	}
 
-	clinic.Id = uuid.New()
-
-	clinic.CreatedAt = time.Now()
-
 	clinic.IsActive = true
 
 	return s.repo.Create(clinic)
