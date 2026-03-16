@@ -39,7 +39,6 @@ func (r *clinicRepo) Create(clinic *models.Clinic) (*models.Clinic, error) {
 	err := r.db.QueryRow(
 		context.Background(),
 		query,
-		clinic.Id,
 		clinic.Name,
 		clinic.Description,
 		clinic.Phone,
