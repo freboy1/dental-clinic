@@ -7,7 +7,7 @@ import (
 
 
 	"dental_clinic/internal/modules/schedule/models"
-	// "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"fmt"
 	"time"
@@ -20,6 +20,7 @@ type ScheduleRepository interface {
 	CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUID, slot_start, slot_end time.Time) (error)
 	GetAvailableSlotsByDateAndDoctorAndClinic(doctor_id, clinic_address_id uuid.UUID, date time.Time) ([]models.Slot, error)
 	GetScheduleByDoctor(doctor_id uuid.UUID) ([]models.Schedule, error)
+	GetSlotById(slotId uuid.UUID) (*models.Slot, error)
 }
 
 type scheduleRepo struct {
@@ -141,4 +142,19 @@ func (r *scheduleRepo) GetScheduleByDoctor(doctor_id uuid.UUID) ([]models.Schedu
 	}
 
 	return schedules, nil
+}
+
+
+func (r *scheduleRepo) GetSlotById(slotId uuid.UUID) (*models.Slot, error) {
+	query := `SELECT id, slot_start, slot_end, status FROM doctor_time_slots WHERE id = $1 ;`
+
+	var slot models.Slot
+	err := r.db.QueryRow(context.Background(), query, slotId).Scan(&slot.Id, &slot.Slot_start, &slot.Slot_end, &slot.Status)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &slot, nil
 }

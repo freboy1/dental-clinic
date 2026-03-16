@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"math"
 )
 
 type ScheduleService struct {
@@ -145,9 +146,9 @@ func (s *ScheduleService) GetAvailableSlots(doctorID, serviceID, clinic_addressI
 		return nil, err
 	}
 
-	raw_slots, err := s.repo.GetAvailableSlotsByDateAndDoctorAndClinic(doctorID, clinic_addressID, date)
+	raw_slots, err := s.GetAvailableSlotsByDateAndDoctorAndClinic(doctorID, clinic_addressID, date)
 	
-	required_slots := service.Duration / 30
+	required_slots := s.HowManySlots(service.Duration)
 
 
 	slots := FindAvailableSlots(raw_slots, required_slots)
@@ -156,6 +157,65 @@ func (s *ScheduleService) GetAvailableSlots(doctorID, serviceID, clinic_addressI
 	return slots, nil
 }
 
+
+func (s *ScheduleService) GetAvailableSlotsByDateAndDoctorAndClinic(doctorID uuid.UUID, clinic_addressID uuid.UUID, date time.Time) ([]models.Slot, error) {
+	return s.repo.GetAvailableSlotsByDateAndDoctorAndClinic(doctorID, clinic_addressID, date)
+}
+
+func (s *ScheduleService) GetSlotById(slotId uuid.UUID) (*models.Slot, error) {
+	return s.repo.GetSlotById(slotId)
+}
+
+func (s *ScheduleService) HowManySlots(duration int) int {
+	slotDuration := 30 
+
+	slots := int(math.Ceil(float64(duration) / float64(slotDuration)))
+
+	if slots < 1 {
+		slots = 1
+	}
+
+	return slots
+
+}
+
+
+
+func (s *ScheduleService) AreSlotsAvailable(slots []models.Slot, startSlotID uuid.UUID, requiredSlots int) ([]models.Slot, error) {
+	var startIndex int = -1
+
+	for i, slot := range slots {
+		if slot.Id == startSlotID {
+			startIndex = i
+			break
+		}
+	}
+
+	if startIndex == -1 {
+		return nil, errors.New("start slot not found")
+	}
+
+	if startIndex+requiredSlots > len(slots) {
+		return nil, errors.New("not enough slots after start slot")
+	}
+
+	for i := 0; i < requiredSlots; i++ {
+		current := slots[startIndex+i]
+
+		if current.Status != "available" {
+			return nil, errors.New("slot already booked")
+		}
+
+		if i > 0 {
+			prev := slots[startIndex+i-1]
+			if !prev.Slot_end.Equal(current.Slot_start) {
+				return nil, errors.New("slots are not consecutive")
+			}
+		}
+	}
+
+	return slots[startIndex : startIndex+requiredSlots], nil
+}
 
 func FindAvailableSlots(slots []models.Slot, requiredSlots int) []models.Slot {
 
