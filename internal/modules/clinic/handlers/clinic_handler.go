@@ -109,15 +109,24 @@ func (h *ClinicHandler) GetClinic(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse "Internal Server Error"
 // @Router /api/clinics [post]
 func (h *ClinicHandler) CreateClinic(w http.ResponseWriter, r *http.Request) {
-	var clinic models.Clinic
+	var req dto.CreateClinicRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&clinic); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 	defer r.Body.Close()
 
-	createdClinic, err := h.service.CreateClinic(&clinic)
+	clinic := &models.Clinic{
+		Name:        req.Name,
+		Description: req.Description,
+		Phone:       req.Phone,
+		Email:       req.Email,
+		Website:     req.Website,
+		IsActive:    req.IsActive,
+	}
+
+	createdClinic, err := h.service.CreateClinic(clinic)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err.Error())
 		return
@@ -127,7 +136,6 @@ func (h *ClinicHandler) CreateClinic(w http.ResponseWriter, r *http.Request) {
 		Message: "Clinic created successfully",
 		Data:    createdClinic,
 	})
-
 }
 // UpdateClinic godoc
 // @Summary Update clinic
@@ -153,15 +161,23 @@ func (h *ClinicHandler) UpdateClinic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var clinic models.Clinic
-
-	if err := json.NewDecoder(r.Body).Decode(&clinic); err != nil {
+	var req dto.CreateClinicRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 	defer r.Body.Close()
 
-	updatedClinic, err := h.service.UpdateClinic(id, &clinic)
+	clinic := &models.Clinic{
+		Name:        req.Name,
+		Description: req.Description,
+		Phone:       req.Phone,
+		Email:       req.Email,
+		Website:     req.Website,
+		IsActive:    req.IsActive,
+	}
+
+	updatedClinic, err := h.service.UpdateClinic(id, clinic)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, err.Error())
 		return
@@ -171,7 +187,6 @@ func (h *ClinicHandler) UpdateClinic(w http.ResponseWriter, r *http.Request) {
 		Message: "Clinic updated successfully",
 		Data:    updatedClinic,
 	})
-
 }
 // DeleteClinic godoc
 // @Summary Delete clinic
