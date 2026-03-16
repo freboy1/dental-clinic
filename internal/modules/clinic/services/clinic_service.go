@@ -7,7 +7,6 @@ import (
 	"dental_clinic/internal/modules/clinic/models"
 	"dental_clinic/internal/modules/clinic/repository"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -35,7 +34,7 @@ func (s *ClinicService) CreateClinic(clinic *models.Clinic) (*models.Clinic, err
 		return nil, fmt.Errorf("clinic phone is required")
 	}
 
-	clinic.ID = uuid.New();
+	clinic.Id = uuid.New();
 	clinic.IsActive = true
 
 	return s.repo.Create(clinic)

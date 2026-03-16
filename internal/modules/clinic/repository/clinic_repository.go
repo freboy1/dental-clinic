@@ -175,7 +175,7 @@ func (r *clinicRepo) AddAddress(id, clinic_id uuid.UUID, address_id string, is_m
 			return err
 		}
 	}
-	
+
 	err := r.db.QueryRow(
 		context.Background(),
 		query,
