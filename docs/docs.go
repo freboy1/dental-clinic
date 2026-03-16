@@ -253,6 +253,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/appointment": {
+            "post": {
+                "description": "Creates a new appointment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Appointment"
+                ],
+                "summary": "Create new appointment",
+                "parameters": [
+                    {
+                        "description": "Appointment registration data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateScheduleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateAppointmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateAppointmentResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/clinics": {
             "get": {
                 "security": [
@@ -1523,6 +1563,20 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateAppointmentResponse": {
+            "type": "object",
+            "properties": {
+                "appointment_id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateDoctorRequest": {
             "type": "object",
             "properties": {
@@ -1705,12 +1759,18 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                },
+                "role": {
+                    "type": "string"
                 }
             }
         },
         "dto.LoginResponse": {
             "type": "object",
             "properties": {
+                "role": {
+                    "type": "string"
+                },
                 "success": {
                     "type": "string"
                 },
@@ -1944,7 +2004,7 @@ const docTemplate = `{
         "models.Clinic": {
             "type": "object",
             "properties": {
-                "createdAt": {
+                "created_at": {
                     "type": "string"
                 },
                 "description": {
@@ -1956,7 +2016,7 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean"
                 },
                 "name": {

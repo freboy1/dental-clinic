@@ -3,6 +3,8 @@ package utils
 import (
 	"time"
 	"fmt"
+	"strings"
+	"net/http"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -45,4 +47,12 @@ func GetClaims(tokenStr, secret string) (jwt.MapClaims, error) {
 	}
 
 	return nil, fmt.Errorf("invalid token or claims")
+}
+
+
+func GetToken(r *http.Request) string {
+	authHeader := r.Header.Get("Authorization")
+	parts := strings.Split(authHeader, " ")
+	tokenStr := parts[1]
+	return tokenStr
 }

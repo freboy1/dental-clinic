@@ -11,6 +11,7 @@ import (
 	"dental_clinic/internal/modules/clinic"
 	"dental_clinic/internal/modules/doctor"
 	"dental_clinic/internal/modules/schedule"
+	"dental_clinic/internal/modules/appointment"
 	dentalservices "dental_clinic/internal/modules/services"
 	"dental_clinic/internal/modules/user"
 
@@ -37,6 +38,7 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	doctor.RegisterPublicRoutes(public, db)
 	dentalservices.RegisterPublicRoutes(public,db)
 	schedule.RegisterPublicRoutes(public, db, cfg)
+	appointment.RegisterPublicRoutes(public, db, cfg)
 
 	// Private routes
 	private := api.NewRoute().Subrouter()

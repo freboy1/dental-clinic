@@ -30,6 +30,15 @@ definitions:
       success:
         type: string
     type: object
+  dto.CreateAppointmentResponse:
+    properties:
+      appointment_id:
+        type: string
+      message:
+        type: string
+      success:
+        type: string
+    type: object
   dto.CreateDoctorRequest:
     properties:
       bio:
@@ -149,9 +158,13 @@ definitions:
         type: string
       password:
         type: string
+      role:
+        type: string
     type: object
   dto.LoginResponse:
     properties:
+      role:
+        type: string
       success:
         type: string
       token:
@@ -303,7 +316,7 @@ definitions:
     type: object
   models.Clinic:
     properties:
-      createdAt:
+      created_at:
         type: string
       description:
         type: string
@@ -311,7 +324,7 @@ definitions:
         type: string
       id:
         type: string
-      isActive:
+      is_active:
         type: boolean
       name:
         type: string
@@ -477,6 +490,32 @@ paths:
       summary: Update addresss
       tags:
       - Addresss
+  /api/appointment:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new appointment
+      parameters:
+      - description: Appointment registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CreateAppointmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.CreateAppointmentResponse'
+      summary: Create new appointment
+      tags:
+      - Appointment
   /api/clinics:
     get:
       description: Returns a list of all clinics
