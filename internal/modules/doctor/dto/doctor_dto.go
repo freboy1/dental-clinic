@@ -1,6 +1,8 @@
 package dto
 
 type CreateDoctorRequest struct {
+	Name string `json:"name"`
+	Email string `json:"email"`
 	Specialization string `json:"specialization"`
 	Experience     int    `json:"experience"`
 	ClinicID       string `json:"clinic_id"`
@@ -19,6 +21,8 @@ type UpdateDoctorRequest struct {
 type DoctorResponse struct {
 	Id             string `json:"id"`
 	Specialization string `json:"specialization"`
+	Name string `json:"name"`
+	Email string `json:"email"`
 	Experience     int    `json:"experience"`
 	ClinicID       string `json:"clinic_id"`
 	Bio            string `json:"bio"`
