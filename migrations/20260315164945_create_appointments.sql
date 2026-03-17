@@ -10,7 +10,9 @@ CREATE TABLE appointments (
   end_time TIMESTAMP,
 
   status VARCHAR,
-  created_at TIMESTAMP
+  created_at TIMESTAMP,
+  name VARCHAR,
+  email VARCHAR
 );
 
 -- +goose Down

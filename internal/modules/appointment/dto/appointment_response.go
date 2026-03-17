@@ -11,7 +11,8 @@ type CreateAppointmentRequest struct {
 	Service_id      		string    	`json:"service_id"`
 	Slot_id      			string    	`json:"slot_id"`
 	Date	      			string    	`json:"date"`
-	
+	Name	      			string    	`json:"name"`
+	Email	      			string    	`json:"email"`
 }
 
 type CreateAppointmentResponse struct {

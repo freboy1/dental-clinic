@@ -105,8 +105,17 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		End_time: slotsToBook[len(slotsToBook)-1].Slot_end,
 		Status: "booked",
 		Created_at: time.Time{},
+		Name: req.Name,
+		Email: req.Email,
 	}
 
-	return s.repo.Create(appointment)
+	appointment, err = s.repo.Create(appointment)
+	if err != nil {
+		return nil, err
+	}
+
+	utils.SendEmail(&s.cfx, appointment.Email, "Appointment was created", "Appointment was created")
+
+	return appointment, nil
 }
 
