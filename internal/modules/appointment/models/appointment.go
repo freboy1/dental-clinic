@@ -18,4 +18,6 @@ type Appointment struct {
 
 	Status					string
 	Created_at 				time.Time
+	Name					string
+	Email					string
 }
