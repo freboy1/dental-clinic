@@ -26,8 +26,8 @@ func NewDoctorRepository(db *pgxpool.Pool) DoctorRepository {
 
 func (r *doctorRepo) Create(doctor *models.Doctor) (*models.Doctor, error) {
 	query := `
-		INSERT INTO doctors (specialization, experience, clinic_id, bio, is_available)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO doctors (specialization, experience, clinic_id, bio, is_available, name, email)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id
 	`
 	err := r.db.QueryRow(
@@ -38,12 +38,14 @@ func (r *doctorRepo) Create(doctor *models.Doctor) (*models.Doctor, error) {
 		doctor.ClinicID,
 		doctor.Bio,
 		doctor.IsAvailable,
+		doctor.Name,
+		doctor.Email,
 	).Scan(&doctor.Id)
 	return doctor, err
 }
 
 func (r *doctorRepo) GetAll() ([]models.Doctor, error) {
-	query := `SELECT id, specialization, experience, clinic_id, bio, is_available FROM doctors`
+	query := `SELECT id, specialization, experience, clinic_id, bio, is_available, name, email FROM doctors`
 
 	rows, err := r.db.Query(context.Background(), query)
 	if err != nil {
@@ -54,7 +56,7 @@ func (r *doctorRepo) GetAll() ([]models.Doctor, error) {
 	var doctors []models.Doctor
 	for rows.Next() {
 		var d models.Doctor
-		if err := rows.Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable); err != nil {
+		if err := rows.Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable, &d.Name, &d.Email); err != nil {
 			return nil, err
 		}
 		doctors = append(doctors, d)

@@ -24,6 +24,12 @@ func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Docto
 	if req.Experience < 0 {
 		return nil, errors.New("experience cannot be negative")
 	}
+	if req.Name ==  "" {
+		return nil, errors.New("name is empty")
+	}
+	if req.Email ==  "" {
+		return nil, errors.New("email is empty")
+	}
 
 	clinicID, err := uuid.Parse(req.ClinicID)
 	if err != nil {
@@ -31,6 +37,8 @@ func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Docto
 	}
 
 	doctor := &models.Doctor{
+		Name: req.Name,
+		Email: req.Email,
 		Specialization: req.Specialization,
 		Experience:     req.Experience,
 		ClinicID:       clinicID,
@@ -99,14 +107,16 @@ func (s *DoctorService) DeleteDoctor(id string) error {
 }
 
 func ToDoctorResponse(d models.Doctor) dto.DoctorResponse {
-	return dto.DoctorResponse{
-		Id:             d.Id.String(),
-		Specialization: d.Specialization,
-		Experience:     d.Experience,
-		ClinicID:       d.ClinicID.String(),
-		Bio:            d.Bio,
-		IsAvailable:    d.IsAvailable,
-	}
+  return dto.DoctorResponse{
+    Id:             d.Id.String(),
+    Specialization: d.Specialization,
+    Experience:     d.Experience,
+    ClinicID:       d.ClinicID.String(),
+    Bio:            d.Bio,
+    IsAvailable:    d.IsAvailable,
+    Name:    d.Name,
+    Email:    d.Email,
+  }
 }
 
 func ToDoctorResponseList(doctors []models.Doctor) []dto.DoctorResponse {
@@ -116,3 +126,4 @@ func ToDoctorResponseList(doctors []models.Doctor) []dto.DoctorResponse {
 	}
 	return result
 }
+
