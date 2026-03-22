@@ -52,7 +52,14 @@ func GetClaims(tokenStr, secret string) (jwt.MapClaims, error) {
 
 func GetToken(r *http.Request) string {
 	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return ""
+	}
+
 	parts := strings.Split(authHeader, " ")
-	tokenStr := parts[1]
-	return tokenStr
+	if len(parts) < 2 {
+		return ""
+	}
+
+	return parts[1]
 }

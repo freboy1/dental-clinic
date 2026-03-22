@@ -33,7 +33,7 @@ func NewAppointmentHandler(s *services.AppointmentService, cfg config.Config) *A
 // @Tags Appointment
 // @Accept  json
 // @Produce  json
-// @Param request body dto.CreateScheduleRequest true "Appointment registration data"
+// @Param request body dto.CreateAppointmentRequest true "Appointment registration data"
 // @Success 200 {object} dto.CreateAppointmentResponse
 // @Failure 400 {object} dto.CreateAppointmentResponse
 // @Router /api/appointment [post]
@@ -51,7 +51,7 @@ func (h *AppointmentHandler) CreateAppointment(w http.ResponseWriter, r *http.Re
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
+	
 	_ = r
 	tokenStr := utils.GetToken(r)
 

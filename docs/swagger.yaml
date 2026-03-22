@@ -30,6 +30,23 @@ definitions:
       success:
         type: string
     type: object
+  dto.CreateAppointmentRequest:
+    properties:
+      clinic_address_id:
+        type: string
+      date:
+        type: string
+      doctor_id:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      service_id:
+        type: string
+      slot_id:
+        type: string
+    type: object
   dto.CreateAppointmentResponse:
     properties:
       appointment_id:
@@ -45,10 +62,14 @@ definitions:
         type: string
       clinic_id:
         type: string
+      email:
+        type: string
       experience:
         type: integer
       is_available:
         type: boolean
+      name:
+        type: string
       specialization:
         type: string
     type: object
@@ -127,12 +148,16 @@ definitions:
         type: string
       clinic_id:
         type: string
+      email:
+        type: string
       experience:
         type: integer
       id:
         type: string
       is_available:
         type: boolean
+      name:
+        type: string
       specialization:
         type: string
     type: object
@@ -501,7 +526,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateScheduleRequest'
+          $ref: '#/definitions/dto.CreateAppointmentRequest'
       produces:
       - application/json
       responses:
