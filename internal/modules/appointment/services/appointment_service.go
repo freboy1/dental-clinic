@@ -6,8 +6,8 @@ import (
 	"dental_clinic/internal/modules/appointment/models"
 	"dental_clinic/internal/modules/appointment/repository"
 	"dental_clinic/internal/utils"
-	"time"
 
+	"time"
 
 	scheduleServices "dental_clinic/internal/modules/schedule/services"
 	serviceServices "dental_clinic/internal/modules/services/services"
@@ -35,23 +35,26 @@ func NewAppointmentService(r repository.AppointmentRepository, cfx config.Config
 }
 
 func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAppointmentRequest) (*models.Appointment, error) {
-
+	var userId uuid.UUID
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
-
-	userIDStr, ok := claims["UserID"].(string)
-	if !ok {
-		return nil, errors.New("invalid UserID type in claims")
-	}
-
-	userId, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return nil, errors.New("invalid UserID")
-	}
 
 	doctorId, err := uuid.Parse(req.Doctor_id)
 	if err != nil {
 		return nil, errors.New("invalid doctorId")
 	}
+
+	userIDStr, ok := claims["UserID"].(string)
+	if userIDStr == "" {
+		userId = uuid.New()
+	} else if !ok {
+		return nil, errors.New("invalid UserID type in claims")
+	} else {
+		userId, err = uuid.Parse(userIDStr)
+		if err != nil {
+			return nil, errors.New("invalid UserID")
+		}
+	}
+
 
 	clinic_addressId, err := uuid.Parse(req.Clinic_address_id)
 	if err != nil {

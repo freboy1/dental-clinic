@@ -273,7 +273,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateScheduleRequest"
+                            "$ref": "#/definitions/dto.CreateAppointmentRequest"
                         }
                     }
                 ],
@@ -1563,6 +1563,32 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateAppointmentRequest": {
+            "type": "object",
+            "properties": {
+                "clinic_address_id": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "doctor_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "service_id": {
+                    "type": "string"
+                },
+                "slot_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateAppointmentResponse": {
             "type": "object",
             "properties": {
@@ -1586,11 +1612,17 @@ const docTemplate = `{
                 "clinic_id": {
                     "type": "string"
                 },
+                "email": {
+                    "type": "string"
+                },
                 "experience": {
                     "type": "integer"
                 },
                 "is_available": {
                     "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
                 },
                 "specialization": {
                     "type": "string"
@@ -1712,6 +1744,9 @@ const docTemplate = `{
                 "clinic_id": {
                     "type": "string"
                 },
+                "email": {
+                    "type": "string"
+                },
                 "experience": {
                     "type": "integer"
                 },
@@ -1720,6 +1755,9 @@ const docTemplate = `{
                 },
                 "is_available": {
                     "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
                 },
                 "specialization": {
                     "type": "string"
