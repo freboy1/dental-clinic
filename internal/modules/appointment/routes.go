@@ -36,9 +36,22 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	r.HandleFunc("/appointment", handler.CreateAppointment).Methods("POST")
 }
 
-// func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
-// 	repo := repository.NewAppointmentRepository(db)
-// 	service := services.NewAppointmentService(repo, *cfg)
-// 	handler := handlers.NewAppointmentHandler(service, *cfg)
+func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
+	repo := repository.NewAppointmentRepository(db)
 
-// }
+	serviceRepo := serviceRepository.NewServiceRepository(db)
+	serviceService := serviceServices.NewServiceService(serviceRepo)
+
+
+	scheduleRepo := scheduleRepository.NewScheduleRepository(db)
+	scheduleService := scheduleServices.NewScheduleService(scheduleRepo, *cfg, *serviceService)
+
+
+
+	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService)
+	
+	handler := handlers.NewAppointmentHandler(service, *cfg)
+
+	r.HandleFunc("/appointment", handler.GetAllAppointments).Methods("GET")
+
+}

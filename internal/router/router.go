@@ -49,6 +49,7 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	doctor.RegisterPrivateRoutes(private, db)
 	dentalservices.RegisterPrivateRoutes(private, db)
 	schedule.RegisterPrivateRoutes(private, db, cfg)
+	appointment.RegisterPrivateRoutes(private, db, cfg)
 
 	// CORS configuration
 	headersOk := gorilla_handler.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
