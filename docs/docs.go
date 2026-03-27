@@ -1306,7 +1306,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.ServiceResponse"
+                                "$ref": "#/definitions/dto.ServiceResponseWithName"
                             }
                         }
                     },
@@ -1996,6 +1996,35 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "clinic_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.ServiceResponseWithName": {
+            "type": "object",
+            "properties": {
+                "clinic_id": {
+                    "type": "string"
+                },
+                "clinic_name": {
                     "type": "string"
                 },
                 "description": {

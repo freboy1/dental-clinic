@@ -5,13 +5,30 @@ import (
 	"dental_clinic/internal/modules/services/repository"
 	"dental_clinic/internal/modules/services/services"
 
+	
+	"dental_clinic/internal/config"
+
+	clinicRepository "dental_clinic/internal/modules/clinic/repository"
+	clinicServices "dental_clinic/internal/modules/clinic/services"
+
+	addressRepository "dental_clinic/internal/modules/address/repository"
+	addressServices "dental_clinic/internal/modules/address/services"
+
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool) {
+func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	repo := repository.NewServiceRepository(db)
-	service := services.NewServiceService(repo)
+
+	addressRepo := addressRepository.NewAddressRepository(db)
+	addressService := addressServices.NewAddressService(addressRepo, *cfg)
+
+	clinicRepo := clinicRepository.NewClinicRepository(db)
+	clinicService := clinicServices.NewClinicService(clinicRepo, *cfg, *addressService)
+
+	service := services.NewServiceService(repo, *clinicService)
+
 	handler := handlers.NewServiceHandler(service)
 
 	r.HandleFunc("/services", handler.GetAllServices).Methods("GET")
@@ -19,9 +36,18 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool) {
 	r.HandleFunc("/clinics/{clinic_id}/services", handler.GetServicesByClinic).Methods("GET")
 }
 
-func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool) {
+func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	repo := repository.NewServiceRepository(db)
-	service := services.NewServiceService(repo)
+
+
+	addressRepo := addressRepository.NewAddressRepository(db)
+	addressService := addressServices.NewAddressService(addressRepo, *cfg)
+
+	clinicRepo := clinicRepository.NewClinicRepository(db)
+	clinicService := clinicServices.NewClinicService(clinicRepo, *cfg, *addressService)
+
+
+	service := services.NewServiceService(repo, *clinicService)
 	handler := handlers.NewServiceHandler(service)
 
 	r.HandleFunc("/services", handler.CreateService).Methods("POST")

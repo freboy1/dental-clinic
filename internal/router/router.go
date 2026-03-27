@@ -36,7 +36,7 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	user.RegisterPublicRoutes(public, db, cfg)
 	clinic.RegisterPublicRoutes(public, db, cfg)
 	doctor.RegisterPublicRoutes(public, db)
-	dentalservices.RegisterPublicRoutes(public,db)
+	dentalservices.RegisterPublicRoutes(public,db, cfg)
 	schedule.RegisterPublicRoutes(public, db, cfg)
 	appointment.RegisterPublicRoutes(public, db, cfg)
 
@@ -47,7 +47,7 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	clinic.RegisterPrivateRoutes(private, db, cfg)
 	address.RegisterPrivateRoutes(private, db, cfg)
 	doctor.RegisterPrivateRoutes(private, db)
-	dentalservices.RegisterPrivateRoutes(private, db)
+	dentalservices.RegisterPrivateRoutes(private, db, cfg)
 	schedule.RegisterPrivateRoutes(private, db, cfg)
 	appointment.RegisterPrivateRoutes(private, db, cfg)
 

@@ -297,6 +297,25 @@ definitions:
       price:
         type: number
     type: object
+  dto.ServiceResponseWithName:
+    properties:
+      clinic_id:
+        type: string
+      clinic_name:
+        type: string
+      description:
+        type: string
+      duration:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   dto.SlotResponse:
     properties:
       id:
@@ -1207,7 +1226,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/dto.ServiceResponse'
+              $ref: '#/definitions/dto.ServiceResponseWithName'
             type: array
         "500":
           description: Internal Server Error
