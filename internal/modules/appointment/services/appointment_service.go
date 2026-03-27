@@ -122,3 +122,33 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 	return appointment, nil
 }
 
+
+
+func (s *AppointmentService) GetAllAppointments() ([]models.Appointment, error) {
+	return s.repo.GetAll()
+}
+
+
+
+func ToAppointmentResponse(appointment models.Appointment) dto.GetAppointmentsResponse {
+	return dto.GetAppointmentsResponse{
+		Id:     appointment.Id.String(),
+		Doctor_id:  appointment.Doctor_id.String(),
+		Clinic_address_id:   appointment.Clinic_address_id.String(),
+		Service_id:    appointment.Service_id.String(),
+		User_id: appointment.User_id.String(),
+		Start_time:   appointment.Start_time.Format("2006-01-02 15:04:05"),
+		End_time:   appointment.End_time.Format("2006-01-02 15:04:05"),
+		Status: appointment.Status,
+		Name: appointment.Name,
+		Email: appointment.Email,
+	}
+}
+
+func ToAppointmentResponseList(appointments []models.Appointment) []dto.GetAppointmentsResponse {
+	result := make([]dto.GetAppointmentsResponse, 0, len(appointments))
+	for _, u := range appointments {
+		result = append(result, ToAppointmentResponse(u))
+	}
+	return result
+}

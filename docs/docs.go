@@ -254,6 +254,50 @@ const docTemplate = `{
             }
         },
         "/api/appointment": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get appointments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Appointment"
+                ],
+                "summary": "get appointments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetAppointmentsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Creates a new appointment",
                 "consumes": [
@@ -1771,6 +1815,41 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "to_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetAppointmentsResponse": {
+            "type": "object",
+            "properties": {
+                "clinic_address_id": {
+                    "type": "string"
+                },
+                "doctor_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "service_id": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }

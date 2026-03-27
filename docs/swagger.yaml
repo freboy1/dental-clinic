@@ -168,6 +168,29 @@ definitions:
       to_date:
         type: string
     type: object
+  dto.GetAppointmentsResponse:
+    properties:
+      clinic_address_id:
+        type: string
+      doctor_id:
+        type: string
+      email:
+        type: string
+      end_time:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      service_id:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+      user_id:
+        type: string
+    type: object
   dto.GetClinicAddressResponse:
     properties:
       address_id:
@@ -516,6 +539,34 @@ paths:
       tags:
       - Addresss
   /api/appointment:
+    get:
+      consumes:
+      - application/json
+      description: Get appointments
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetAppointmentsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get appointments
+      tags:
+      - Appointment
     post:
       consumes:
       - application/json

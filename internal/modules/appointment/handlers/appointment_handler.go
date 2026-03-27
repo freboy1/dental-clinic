@@ -70,3 +70,30 @@ func (h *AppointmentHandler) CreateAppointment(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(response)
 
 }
+
+
+
+
+// GetAppointments godoc
+// @Summary get appointments
+// @Description Get appointments
+// @Tags Appointment
+// @Security BearerAuth
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} dto.GetAppointmentsResponse
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/appointment [get]
+func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.Request) {
+	
+	appointments, err := h.service.GetAllAppointments()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(services.ToAppointmentResponseList(appointments))
+
+}
