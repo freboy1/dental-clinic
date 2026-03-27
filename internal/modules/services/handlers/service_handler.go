@@ -68,7 +68,7 @@ func (h *ServiceHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 // @Tags Services
 // @Security BearerAuth
 // @Produce json
-// @Success 200 {array} dto.ServiceResponse
+// @Success 200 {array} dto.ServiceResponseWithName
 // @Failure 500 {object} map[string]string
 // @Router /api/services [get]
 func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) {
@@ -77,9 +77,14 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	servicesListWithClinicNames, err := h.service.GetClinicNames(servicesList)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToServiceResponseList(servicesList))
+	json.NewEncoder(w).Encode(services.ToServiceNameResponseList(servicesListWithClinicNames))
 }
 
 // GetServicesByClinic godoc

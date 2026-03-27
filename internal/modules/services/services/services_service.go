@@ -1,6 +1,8 @@
 package services
 
 import (
+	"dental_clinic/internal/modules/clinic/services"
+
 	"dental_clinic/internal/modules/services/dto"
 	"dental_clinic/internal/modules/services/models"
 	"dental_clinic/internal/modules/services/repository"
@@ -11,10 +13,14 @@ import (
 
 type ServiceService struct {
 	repo repository.ServiceRepository
+	clinicSrv services.ClinicService
 }
 
-func NewServiceService(r repository.ServiceRepository) *ServiceService {
-	return &ServiceService{repo: r}
+func NewServiceService(r repository.ServiceRepository, clinicSrv services.ClinicService) *ServiceService {
+	return &ServiceService{
+		repo: r,
+		clinicSrv: clinicSrv,
+	}
 }
 
 func (s *ServiceService) CreateService(req dto.CreateServiceRequest) (*models.Service, error) {
@@ -47,6 +53,32 @@ func (s *ServiceService) CreateService(req dto.CreateServiceRequest) (*models.Se
 
 func (s *ServiceService) GetAllServices() ([]models.Service, error) {
 	return s.repo.GetAll()
+}
+
+func (s *ServiceService) GetClinicNames(services []models.Service) ([]models.ServiceWithClinicName, error) {
+	var servicesListWithClinicNames []models.ServiceWithClinicName
+
+	for _, service := range services {
+
+		clinic, err := s.clinicSrv.GetClinicByID(service.ClinicID)
+		if err != nil {
+			return servicesListWithClinicNames, err
+		}
+        serviceWithClinicName := models.ServiceWithClinicName{
+			Id: service.Id,
+			Name: service.Name,
+			Description: service.Description,
+			Price: service.Price,
+			Duration: service.Duration,
+			ClinicID: service.ClinicID,
+			IsActive: service.IsActive,
+			ClinicName: clinic.Name,
+		}
+
+        servicesListWithClinicNames = append(servicesListWithClinicNames, serviceWithClinicName)
+    }
+
+	return servicesListWithClinicNames, nil
 }
 
 func (s *ServiceService) GetServicesByClinic(clinicID string) ([]models.Service, error) {
@@ -120,6 +152,7 @@ func ToServiceResponse(s models.Service) dto.ServiceResponse {
 		Duration:    s.Duration,
 		ClinicID:    s.ClinicID.String(),
 		IsActive:    s.IsActive,
+		// ClinicName: ,
 	}
 }
 
@@ -127,6 +160,29 @@ func ToServiceResponseList(services []models.Service) []dto.ServiceResponse {
 	result := make([]dto.ServiceResponse, 0, len(services))
 	for _, s := range services {
 		result = append(result, ToServiceResponse(s))
+	}
+	return result
+}
+
+
+
+func ToServiceNameResponse(s models.ServiceWithClinicName) dto.ServiceResponseWithName {
+	return dto.ServiceResponseWithName{
+		Id:          s.Id.String(),
+		Name:        s.Name,
+		Description: s.Description,
+		Price:       s.Price,
+		Duration:    s.Duration,
+		ClinicID:    s.ClinicID.String(),
+		IsActive:    s.IsActive,
+		ClinicName: s.ClinicName,
+	}
+}
+
+func ToServiceNameResponseList(services []models.ServiceWithClinicName) []dto.ServiceResponseWithName {
+	result := make([]dto.ServiceResponseWithName, 0, len(services))
+	for _, s := range services {
+		result = append(result, ToServiceNameResponse(s))
 	}
 	return result
 }
