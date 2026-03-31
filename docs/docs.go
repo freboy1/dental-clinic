@@ -678,11 +678,6 @@ const docTemplate = `{
         },
         "/api/clinics/{id}/address": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "description": "Returns a list of all clinic address",
                 "produces": [
                     "application/json"
