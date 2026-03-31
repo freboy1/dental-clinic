@@ -79,5 +79,6 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	handler := handlers.NewAppointmentHandler(service, *cfg)
 
 	r.HandleFunc("/appointment", handler.GetAllAppointments).Methods("GET")
+	r.HandleFunc("/appointment/{id}", handler.DeleteAppointment).Methods("DELETE")
 
 }

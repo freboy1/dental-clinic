@@ -23,6 +23,13 @@ definitions:
       street:
         type: string
     type: object
+  dto.AppointmentResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: string
+    type: object
   dto.ClinicResponse:
     properties:
       message:
@@ -609,6 +616,41 @@ paths:
           schema:
             $ref: '#/definitions/dto.CreateAppointmentResponse'
       summary: Create new appointment
+      tags:
+      - Appointment
+  /api/appointment/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete appointment
+      parameters:
+      - description: Appointment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AppointmentResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete appointment
       tags:
       - Appointment
   /api/clinics:

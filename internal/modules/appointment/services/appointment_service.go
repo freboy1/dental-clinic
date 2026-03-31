@@ -148,3 +148,15 @@ func ToAppointmentResponseList(appointments []models.Appointment) []dto.GetAppoi
 	}
 	return result
 }
+
+
+func (s *AppointmentService) DeleteAppointment(id string) (error) {
+	appointment, err := s.repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+	if appointment == nil {
+		return errors.New("appointmnet not found")
+	}
+	return s.repo.Delete(id)
+}
