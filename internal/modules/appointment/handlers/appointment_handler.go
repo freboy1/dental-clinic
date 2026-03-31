@@ -1,17 +1,17 @@
 package handlers
 
 import (
-	// "database/sql"
+	"database/sql"
 	"dental_clinic/internal/config"
 	"dental_clinic/internal/modules/appointment/dto"
 	"dental_clinic/internal/modules/appointment/services"
 	"dental_clinic/internal/utils"
 	"encoding/json"
-	// "errors"
+	"errors"
 	"net/http"
 	// "strings"
 
-	// "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 )
 
 type AppointmentHandler struct {
@@ -96,4 +96,46 @@ func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(services.ToAppointmentResponseList(appointments))
 
+}
+
+
+
+
+
+// DeleteAppointment godoc
+// @Summary Delete appointment 
+// @Description Delete appointment
+// @Tags Appointment
+// @Security BearerAuth
+// @Param id path string true "Appointment ID"
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} dto.AppointmentResponse
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/appointment/{id} [delete]
+func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Request) {
+	response := dto.AppointmentResponse{
+		Success:   "0",
+		Message:   "",
+	}
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	err := h.service.DeleteAppointment(id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) || err.Error() == "service not found" {
+			response.Message = "Service not found"
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		response.Message = "Internal server error"
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	response.Success, response.Message = "1", "Successfully deleted"
+	w.WriteHeader(http.StatusBadRequest)
+	json.NewEncoder(w).Encode(response)
 }

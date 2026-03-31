@@ -34,3 +34,8 @@ type GetAppointmentsResponse struct {
 	Name  string `json:"name"`
 	Email  string `json:"email"`
 }
+
+type AppointmentResponse struct {
+	Success 		string `json:"success"`
+	Message 		string `json:"message"`
+}
