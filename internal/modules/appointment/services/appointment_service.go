@@ -43,12 +43,8 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, errors.New("invalid doctorId")
 	}
 
-	userIDStr, ok := claims["UserID"].(string)
-	if userIDStr == "" {
-		userId = uuid.New()
-	} else if !ok {
-		return nil, errors.New("invalid UserID type in claims")
-	} else {
+	userIDStr, _ := claims["user_id"].(string)
+	if userIDStr != "" {
 		userId, err = uuid.Parse(userIDStr)
 		if err != nil {
 			return nil, errors.New("invalid UserID")
