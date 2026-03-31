@@ -857,8 +857,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-      security:
-      - BearerAuth: []
       summary: Get all clinic address
       tags:
       - Clinics

@@ -277,7 +277,6 @@ func (h *ClinicHandler) AddAddress(w http.ResponseWriter, r *http.Request) {
 // GetClinicAddress godoc
 // @Summary Get all clinic address
 // @Description Returns a list of all clinic address
-// @Security BearerAuth
 // @Tags Clinics
 // @Produce json
 // @Param id path string true "Clinic ID (UUID)"
