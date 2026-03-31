@@ -45,7 +45,7 @@ func (r *doctorRepo) Create(doctor *models.Doctor) (*models.Doctor, error) {
 }
 
 func (r *doctorRepo) GetAll() ([]models.Doctor, error) {
-	query := `SELECT id, specialization, experience, clinic_id, bio, is_available, name, email FROM doctors`
+	query := `SELECT id, specialization, experience, clinic_id, bio, is_available, name, email FROM doctors WHERE is_deleted=0`
 
 	rows, err := r.db.Query(context.Background(), query)
 	if err != nil {
@@ -70,7 +70,7 @@ func (r *doctorRepo) GetAll() ([]models.Doctor, error) {
 }
 
 func (r *doctorRepo) GetByID(id string) (*models.Doctor, error) {
-	query := `SELECT id, specialization, experience, clinic_id, bio, is_available FROM doctors WHERE id = $1`
+	query := `SELECT id, specialization, experience, clinic_id, bio, is_available FROM doctors WHERE id = $1 AND is_deleted=0`
 	var d models.Doctor
 	err := r.db.QueryRow(context.Background(), query, id).
 		Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable)
@@ -111,7 +111,11 @@ func (r *doctorRepo) Update(id string, doctor *models.Doctor) (*models.Doctor, e
 }
 
 func (r *doctorRepo) Delete(id string) error {
-	query := `DELETE FROM doctors WHERE id=$1`
+	query := `
+				UPDATE doctors
+				SET is_deleted=1
+				WHERE id=$1`
+
 	result, err := r.db.Exec(context.Background(), query, id)
 	if err != nil {
 		return err
