@@ -195,3 +195,35 @@ func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusBadRequest)
 	json.NewEncoder(w).Encode(response)
 }
+
+
+
+
+// GetMyAppointments godoc
+// @Summary get my appointments
+// @Description Get my appointments
+// @Tags Appointment
+// @Security BearerAuth
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} dto.GetAppointmentsResponse
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/appointment/my-appointments [get]
+func (h *AppointmentHandler) GetMyAppointments(w http.ResponseWriter, r *http.Request) {
+	
+
+	_ = r
+	tokenStr := utils.GetToken(r)
+
+
+	appointments, err := h.service.GetMyAppointments(tokenStr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(services.ToAppointmentResponseList(appointments))
+
+}

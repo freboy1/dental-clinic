@@ -744,6 +744,35 @@ paths:
       summary: Update appointment
       tags:
       - Appointment
+  /api/appointment/my-appointments:
+    get:
+      consumes:
+      - application/json
+      description: Get my appointments
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetAppointmentsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get my appointments
+      tags:
+      - Appointment
   /api/clinics:
     get:
       description: Returns a list of all clinics
