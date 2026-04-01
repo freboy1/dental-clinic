@@ -2,11 +2,12 @@ package repository
 
 import (
 	"context"
-	
+	// "fmt"
+
 	// "dental_clinic/internal"
 
-
 	"dental_clinic/internal/modules/appointment/models"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -17,6 +18,7 @@ type AppointmentRepository interface {
 	GetByID(id string) (*models.Appointment, error)
 	Update(appointment *models.Appointment) (*models.Appointment, error)
 	Delete(id string) error
+	GetMyAppointments(userId string) ([]models.Appointment, error)
 }
 
 type appointmentRepo struct {
@@ -115,4 +117,35 @@ func (r *appointmentRepo) Delete(id string) error {
 		return pgx.ErrNoRows
 	}
 	return nil
+}
+
+
+
+func (r *appointmentRepo) GetMyAppointments(userId string) ([]models.Appointment, error) {
+	query := `
+			SELECT id, doctor_id, clinic_address_id, service_id, user_id, start_time, end_time, status, name, email 
+			FROM appointments
+			WHERE user_id = $1
+			`
+
+	rows, err := r.db.Query(context.Background(), query, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var appointments []models.Appointment
+	for rows.Next() {
+		var appointment models.Appointment
+		if err := rows.Scan(&appointment.Id, &appointment.Doctor_id, &appointment.Clinic_address_id, &appointment.Service_id, &appointment.User_id, &appointment.Start_time, &appointment.End_time, &appointment.Status, &appointment.Name, &appointment.Email); err != nil {
+			return nil, err
+		}
+		appointments = append(appointments, appointment)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return appointments, nil
 }

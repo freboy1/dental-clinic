@@ -6,6 +6,7 @@ import (
 	"dental_clinic/internal/modules/appointment/models"
 	"dental_clinic/internal/modules/appointment/repository"
 	"dental_clinic/internal/utils"
+	// "fmt"
 
 	"time"
 
@@ -234,4 +235,21 @@ func (s *AppointmentService) DeleteAppointment(id string) (error) {
 		return errors.New("appointmnet not found")
 	}
 	return s.repo.Delete(id)
+}
+
+
+func (s *AppointmentService) GetMyAppointments(tokenStr string) ([]models.Appointment, error) {
+	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
+
+	userIDStr, _ := claims["user_id"].(string)
+
+	if userIDStr == "" {
+		return nil, errors.New("No user Id")
+	}
+	userId, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return nil, errors.New("invalid UserID")
+	}
+
+	return s.repo.GetMyAppointments(userId.String())
 }
