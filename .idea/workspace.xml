@@ -5,9 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6cddf09d-d57f-442a-9b9a-f7efc243241a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_13_03_2026_15_06_[Changes]/shelved.patch" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/modules/clinic/repository/clinic_repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/modules/clinic/repository/clinic_repository.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/modules/clinic/services/clinic_service.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/modules/clinic/services/clinic_service.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/docs.go" beforeDir="false" afterPath="$PROJECT_DIR$/docs/docs.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/swagger.json" beforeDir="false" afterPath="$PROJECT_DIR$/docs/swagger.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/swagger.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docs/swagger.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/modules/appointment/dto/appointment_response.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/modules/appointment/dto/appointment_response.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/modules/appointment/handlers/appointment_handler.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/modules/appointment/handlers/appointment_handler.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/modules/appointment/repository/appointment_repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/modules/appointment/repository/appointment_repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/modules/appointment/routes.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/modules/appointment/routes.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/modules/appointment/services/appointment_service.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/modules/appointment/services/appointment_service.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,6 +127,17 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
