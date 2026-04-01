@@ -334,6 +334,25 @@ definitions:
       status:
         type: string
     type: object
+  dto.UpdateAppointmentRequest:
+    properties:
+      clinic_address_id:
+        type: string
+      doctor_id:
+        type: string
+      email:
+        type: string
+      end_time:
+        type: string
+      name:
+        type: string
+      service_id:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+    type: object
   dto.UpdateDoctorRequest:
     properties:
       bio:
@@ -651,6 +670,78 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete appointment
+      tags:
+      - Appointment
+    get:
+      description: Returns a single appointment by UUID
+      parameters:
+      - description: Appointment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetAppointmentsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get appointment by ID
+      tags:
+      - Appointment
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing appointment by UUID
+      parameters:
+      - description: Appointment ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated appointment data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateAppointmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetAppointmentsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update appointment
       tags:
       - Appointment
   /api/clinics:

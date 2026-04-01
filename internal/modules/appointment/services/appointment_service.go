@@ -124,6 +124,81 @@ func (s *AppointmentService) GetAllAppointments() ([]models.Appointment, error) 
 	return s.repo.GetAll()
 }
 
+func (s *AppointmentService) GetAppointmentByID(id string) (*models.Appointment, error) {
+	appointment, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if appointment == nil {
+		return nil, errors.New("appointment not found")
+	}
+	return appointment, nil
+}
+
+func (s *AppointmentService) UpdateAppointment(id string, req dto.UpdateAppointmentRequest) (*models.Appointment, error) {
+	appointment, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if appointment == nil {
+		return nil, errors.New("appointment not found")
+	}
+
+	if req.Doctor_id != "" {
+		doctorId, err := uuid.Parse(req.Doctor_id)
+		if err != nil {
+			return nil, errors.New("invalid doctor_id")
+		}
+		appointment.Doctor_id = doctorId
+	}
+
+	if req.Clinic_address_id != "" {
+		clinicAddressId, err := uuid.Parse(req.Clinic_address_id)
+		if err != nil {
+			return nil, errors.New("invalid clinic_address_id")
+		}
+		appointment.Clinic_address_id = clinicAddressId
+	}
+
+	if req.Service_id != "" {
+		serviceId, err := uuid.Parse(req.Service_id)
+		if err != nil {
+			return nil, errors.New("invalid service_id")
+		}
+		appointment.Service_id = serviceId
+	}
+
+	if req.Start_time != "" {
+		startTime, err := time.Parse("2006-01-02 15:04:05", req.Start_time)
+		if err != nil {
+			return nil, errors.New("invalid start_time format, use: 2006-01-02 15:04:05")
+		}
+		appointment.Start_time = startTime
+	}
+
+	if req.End_time != "" {
+		endTime, err := time.Parse("2006-01-02 15:04:05", req.End_time)
+		if err != nil {
+			return nil, errors.New("invalid end_time format, use: 2006-01-02 15:04:05")
+		}
+		appointment.End_time = endTime
+	}
+
+	if req.Status != "" {
+		appointment.Status = req.Status
+	}
+
+	if req.Name != "" {
+		appointment.Name = req.Name
+	}
+
+	if req.Email != "" {
+		appointment.Email = req.Email
+	}
+
+	return s.repo.Update(appointment)
+}
+
 
 
 func ToAppointmentResponse(appointment models.Appointment) dto.GetAppointmentsResponse {

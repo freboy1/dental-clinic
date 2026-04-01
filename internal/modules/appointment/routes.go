@@ -29,7 +29,7 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	repo := repository.NewAppointmentRepository(db)
 
 
-	
+
 	addressRepo := addressRepository.NewAddressRepository(db)
 	addressService := addressServices.NewAddressService(addressRepo, *cfg)
 
@@ -55,8 +55,8 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	repo := repository.NewAppointmentRepository(db)
 
-	
-	
+
+
 	addressRepo := addressRepository.NewAddressRepository(db)
 	addressService := addressServices.NewAddressService(addressRepo, *cfg)
 
@@ -75,10 +75,11 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 
 
 	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService)
-	
+
 	handler := handlers.NewAppointmentHandler(service, *cfg)
 
 	r.HandleFunc("/appointment", handler.GetAllAppointments).Methods("GET")
+	r.HandleFunc("/appointment/{id}", handler.GetAppointmentByID).Methods("GET")
+	r.HandleFunc("/appointment/{id}", handler.UpdateAppointment).Methods("PUT")
 	r.HandleFunc("/appointment/{id}", handler.DeleteAppointment).Methods("DELETE")
-
 }

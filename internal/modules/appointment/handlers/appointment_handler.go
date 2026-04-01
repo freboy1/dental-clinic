@@ -99,8 +99,64 @@ func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.R
 }
 
 
+// GetAppointmentByID godoc
+// @Summary Get appointment by ID
+// @Description Returns a single appointment by UUID
+// @Tags Appointment
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Appointment ID (UUID)"
+// @Success 200 {object} dto.GetAppointmentsResponse
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/appointment/{id} [get]
+func (h *AppointmentHandler) GetAppointmentByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
 
+	appointment, err := h.service.GetAppointmentByID(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
 
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(services.ToAppointmentResponse(*appointment))
+}
+
+// UpdateAppointment godoc
+// @Summary Update appointment
+// @Description Updates an existing appointment by UUID
+// @Tags Appointment
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "Appointment ID (UUID)"
+// @Param request body dto.UpdateAppointmentRequest true "Updated appointment data"
+// @Success 200 {object} dto.GetAppointmentsResponse
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /api/appointment/{id} [put]
+func (h *AppointmentHandler) UpdateAppointment(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	var req dto.UpdateAppointmentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	appointment, err := h.service.UpdateAppointment(id, req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(services.ToAppointmentResponse(*appointment))
+}
 
 // DeleteAppointment godoc
 // @Summary Delete appointment 
