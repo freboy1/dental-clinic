@@ -6,6 +6,7 @@ import (
 	"dental_clinic/internal/modules/appointment/models"
 	"dental_clinic/internal/modules/appointment/repository"
 	"dental_clinic/internal/utils"
+
 	// "fmt"
 
 	"time"
@@ -20,18 +21,18 @@ import (
 )
 
 type AppointmentService struct {
-	repo repository.AppointmentRepository
-	cfx  config.Config
+	repo        repository.AppointmentRepository
+	cfx         config.Config
 	scheduleSrv scheduleServices.ScheduleService
-	serviceSrv serviceServices.ServiceService
+	serviceSrv  serviceServices.ServiceService
 }
 
 func NewAppointmentService(r repository.AppointmentRepository, cfx config.Config, scheduleSrv scheduleServices.ScheduleService, serviceSrv serviceServices.ServiceService) *AppointmentService {
 	return &AppointmentService{
-		repo: r,
-		cfx:  cfx,
+		repo:        r,
+		cfx:         cfx,
 		scheduleSrv: scheduleSrv,
-		serviceSrv: serviceSrv,
+		serviceSrv:  serviceSrv,
 	}
 }
 
@@ -52,12 +53,11 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		}
 	}
 
-
 	clinic_addressId, err := uuid.Parse(req.Clinic_address_id)
 	if err != nil {
 		return nil, errors.New("invalid clinic_addressId")
 	}
-	
+
 	serviceId, err := uuid.Parse(req.Service_id)
 	if err != nil {
 		return nil, errors.New("invalid serviceId")
@@ -78,8 +78,10 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, errors.New("invalid date format")
 	}
 
-
 	slot, err := s.scheduleSrv.GetSlotById(slotId)
+	if err != nil {
+		return nil, err
+	}
 
 	requiredSlots := s.scheduleSrv.HowManySlots(service.Duration)
 
@@ -93,20 +95,18 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, err
 	}
 
-
-
 	appointment := &models.Appointment{
-		Id: uuid.New(),
-		Doctor_id: doctorId,
-		User_id: userId,
+		Id:                uuid.New(),
+		Doctor_id:         doctorId,
+		User_id:           userId,
 		Clinic_address_id: clinic_addressId,
-		Service_id: serviceId,
-		Start_time: slotsToBook[0].Slot_start,
-		End_time: slotsToBook[len(slotsToBook)-1].Slot_end,
-		Status: "booked",
-		Created_at: time.Time{},
-		Name: req.Name,
-		Email: req.Email,
+		Service_id:        serviceId,
+		Start_time:        slotsToBook[0].Slot_start,
+		End_time:          slotsToBook[len(slotsToBook)-1].Slot_end,
+		Status:            "booked",
+		Created_at:        time.Time{},
+		Name:              req.Name,
+		Email:             req.Email,
 	}
 
 	appointment, err = s.repo.Create(appointment)
@@ -114,12 +114,10 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, err
 	}
 
-	utils.SendEmail(&s.cfx, appointment.Email, "Appointment was created", "Appointment was created")
+	_ = utils.SendEmail(&s.cfx, appointment.Email, "Appointment was created", "Appointment was created")
 
 	return appointment, nil
 }
-
-
 
 func (s *AppointmentService) GetAllAppointments() ([]models.Appointment, error) {
 	return s.repo.GetAll()
@@ -200,20 +198,18 @@ func (s *AppointmentService) UpdateAppointment(id string, req dto.UpdateAppointm
 	return s.repo.Update(appointment)
 }
 
-
-
 func ToAppointmentResponse(appointment models.Appointment) dto.GetAppointmentsResponse {
 	return dto.GetAppointmentsResponse{
-		Id:     appointment.Id.String(),
-		Doctor_id:  appointment.Doctor_id.String(),
-		Clinic_address_id:   appointment.Clinic_address_id.String(),
-		Service_id:    appointment.Service_id.String(),
-		User_id: appointment.User_id.String(),
-		Start_time:   appointment.Start_time.Format("2006-01-02 15:04:05"),
-		End_time:   appointment.End_time.Format("2006-01-02 15:04:05"),
-		Status: appointment.Status,
-		Name: appointment.Name,
-		Email: appointment.Email,
+		Id:                appointment.Id.String(),
+		Doctor_id:         appointment.Doctor_id.String(),
+		Clinic_address_id: appointment.Clinic_address_id.String(),
+		Service_id:        appointment.Service_id.String(),
+		User_id:           appointment.User_id.String(),
+		Start_time:        appointment.Start_time.Format("2006-01-02 15:04:05"),
+		End_time:          appointment.End_time.Format("2006-01-02 15:04:05"),
+		Status:            appointment.Status,
+		Name:              appointment.Name,
+		Email:             appointment.Email,
 	}
 }
 
@@ -225,8 +221,7 @@ func ToAppointmentResponseList(appointments []models.Appointment) []dto.GetAppoi
 	return result
 }
 
-
-func (s *AppointmentService) DeleteAppointment(id string) (error) {
+func (s *AppointmentService) DeleteAppointment(id string) error {
 	appointment, err := s.repo.GetByID(id)
 	if err != nil {
 		return err
@@ -236,7 +231,6 @@ func (s *AppointmentService) DeleteAppointment(id string) (error) {
 	}
 	return s.repo.Delete(id)
 }
-
 
 func (s *AppointmentService) GetMyAppointments(tokenStr string) ([]models.Appointment, error) {
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)

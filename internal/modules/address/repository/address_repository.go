@@ -2,11 +2,11 @@ package repository
 
 import (
 	"context"
-	
+
 	// "dental_clinic/internal"
 
-
 	"dental_clinic/internal/modules/address/models"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -89,9 +89,8 @@ func (r *addressRepo) Delete(id string) error {
 	return nil
 }
 
-
 func (r *addressRepo) Update(id string, address *models.Address) (*models.Address, error) {
-	//country, city, street, building, latitude, longitude
+	// country, city, street, building, latitude, longitude
 	query := `
 		UPDATE addresses
 		SET country=$1, city=$2, street=$3, building=$4, latitude=$5, longitude=$6

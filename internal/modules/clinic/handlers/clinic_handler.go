@@ -1,14 +1,16 @@
 package handlers
 
 import (
-	"dental_clinic/internal/config"
-	"dental_clinic/internal/modules/clinic/models"
-	"dental_clinic/internal/modules/clinic/services"
 	"encoding/json"
+	"net/http"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"net/http"
+
+	"dental_clinic/internal/config"
 	"dental_clinic/internal/modules/clinic/dto"
+	"dental_clinic/internal/modules/clinic/models"
+	"dental_clinic/internal/modules/clinic/services"
 )
 
 type ClinicHandler struct {
@@ -43,6 +45,7 @@ func respondJSON(w http.ResponseWriter, statusCode int, data interface{}) {
 func respondError(w http.ResponseWriter, statusCode int, message string) {
 	respondJSON(w, statusCode, ErrorResponse{Error: message})
 }
+
 // GetClinics godoc
 // @Summary Get all clinics
 // @Description Returns a list of all clinics
@@ -65,6 +68,7 @@ func (h *ClinicHandler) GetClinics(w http.ResponseWriter, r *http.Request) {
 		Data: clinics,
 	})
 }
+
 // GetClinic godoc
 // @Summary Get clinic by ID
 // @Description Returns a single clinic by its UUID
@@ -96,6 +100,7 @@ func (h *ClinicHandler) GetClinic(w http.ResponseWriter, r *http.Request) {
 		Data: clinic,
 	})
 }
+
 // CreateClinic godoc
 // @Summary Create a new clinic
 // @Description Creates a new clinic
@@ -137,6 +142,7 @@ func (h *ClinicHandler) CreateClinic(w http.ResponseWriter, r *http.Request) {
 		Data:    createdClinic,
 	})
 }
+
 // UpdateClinic godoc
 // @Summary Update clinic
 // @Description Updates an existing clinic by UUID
@@ -188,6 +194,7 @@ func (h *ClinicHandler) UpdateClinic(w http.ResponseWriter, r *http.Request) {
 		Data:    updatedClinic,
 	})
 }
+
 // DeleteClinic godoc
 // @Summary Delete clinic
 // @Description Deletes a clinic by UUID
@@ -245,7 +252,7 @@ func (h *ClinicHandler) AddAddress(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Message = "Invalid clinic ID format"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -253,7 +260,7 @@ func (h *ClinicHandler) AddAddress(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Message = "Invalid request body"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -261,17 +268,22 @@ func (h *ClinicHandler) AddAddress(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Message = "Clinic not found"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	err = h.service.AddAddress(clinic.Id, req)
+	if err = h.service.AddAddress(clinic.Id, req); err != nil {
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
 
 	response.Success = "1"
 	response.Message = "successfully added"
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 // GetClinicAddress godoc
@@ -300,8 +312,12 @@ func (h *ClinicHandler) GetClinicAddress(w http.ResponseWriter, r *http.Request)
 	}
 
 	clinicAddress, err := h.service.GetClinicAddress(clinic.Id)
+	if err != nil {
+		http.Error(w, "Failed to get clinic address", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(services.ToClinicAddressResponseList(clinicAddress))
+	_ = json.NewEncoder(w).Encode(services.ToClinicAddressResponseList(clinicAddress))
 }
 
 // DeleteClinicAddress godoc
@@ -323,13 +339,12 @@ func (h *ClinicHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	idStr, addressIdStr := vars["id"], vars["addressId"]
-	
 
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		response.Message = "Invalid clinic ID format"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -337,25 +352,28 @@ func (h *ClinicHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Message = "Invalid address ID format"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
-
-
 
 	clinic, err := h.service.GetClinicByID(id)
 	if err != nil {
 		response.Message = "Clinic not found"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	err = h.service.DeleteAddress(clinic.Id, addressId)
-	
+	if err = h.service.DeleteAddress(clinic.Id, addressId); err != nil {
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	response.Success = "1"
 	response.Message = "successfully deleted"
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }

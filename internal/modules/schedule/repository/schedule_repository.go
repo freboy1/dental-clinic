@@ -2,22 +2,23 @@ package repository
 
 import (
 	"context"
-	
+
 	// "dental_clinic/internal"
 
-
-	"dental_clinic/internal/modules/schedule/models"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"fmt"
 	"time"
+
+	"dental_clinic/internal/modules/schedule/models"
+
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ScheduleRepository interface {
 	Create(schedule *models.Schedule) (*models.Schedule, error)
 	GetSchedules() ([]models.Schedule, error)
-	CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUID, slot_start, slot_end time.Time) (error)
+	CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUID, slot_start, slot_end time.Time) error
 	GetAvailableSlotsByDateAndDoctorAndClinic(doctor_id, clinic_address_id uuid.UUID, date time.Time) ([]models.Slot, error)
 	GetScheduleByDoctor(doctor_id uuid.UUID) ([]models.Schedule, error)
 	GetSlotById(slotId uuid.UUID) (*models.Slot, error)
@@ -38,7 +39,6 @@ func (r *scheduleRepo) Create(schedule *models.Schedule) (*models.Schedule, erro
 		Scan(&schedule.Id)
 	return schedule, err
 }
-
 
 func (r *scheduleRepo) GetSchedules() ([]models.Schedule, error) {
 	query := `SELECT id, doctor_id, clinic_address_id, day_of_week, start_time, end_time FROM doctor_working_hours`
@@ -65,8 +65,7 @@ func (r *scheduleRepo) GetSchedules() ([]models.Schedule, error) {
 	return schedules, nil
 }
 
-
-func (r *scheduleRepo) CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUID, slot_start, slot_end time.Time) (error) {
+func (r *scheduleRepo) CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUID, slot_start, slot_end time.Time) error {
 	slot_id := uuid.New()
 	query := `INSERT INTO doctor_time_slots (id, doctor_id, clinic_address_id, slot_start, slot_end, status, created_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7) 
@@ -82,16 +81,13 @@ func (r *scheduleRepo) CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUI
 		"available",
 		time.Now(),
 	)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to create slot: %w", err)
 	}
-	
+
 	return nil
 }
-
-
-
 
 func (r *scheduleRepo) GetAvailableSlotsByDateAndDoctorAndClinic(doctor_id, clinic_address_id uuid.UUID, date time.Time) ([]models.Slot, error) {
 	query := `SELECT id, slot_start, slot_end, status FROM doctor_time_slots WHERE doctor_id = $1 AND DATE(slot_start) = $2 AND clinic_address_id = $3 ORDER BY slot_start;`
@@ -118,7 +114,6 @@ func (r *scheduleRepo) GetAvailableSlotsByDateAndDoctorAndClinic(doctor_id, clin
 	return slots, nil
 }
 
-
 func (r *scheduleRepo) GetScheduleByDoctor(doctor_id uuid.UUID) ([]models.Schedule, error) {
 	query := `SELECT id, doctor_id, clinic_address_id, day_of_week, start_time, end_time FROM doctor_working_hours WHERE doctor_id = $1`
 
@@ -143,7 +138,6 @@ func (r *scheduleRepo) GetScheduleByDoctor(doctor_id uuid.UUID) ([]models.Schedu
 
 	return schedules, nil
 }
-
 
 func (r *scheduleRepo) GetSlotById(slotId uuid.UUID) (*models.Slot, error) {
 	query := `SELECT id, slot_start, slot_end, status FROM doctor_time_slots WHERE id = $1 ;`

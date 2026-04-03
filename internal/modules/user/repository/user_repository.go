@@ -2,11 +2,11 @@ package repository
 
 import (
 	"context"
-	
+
 	// "dental_clinic/internal"
 
-
 	"dental_clinic/internal/modules/user/models"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -24,7 +24,7 @@ type UserRepository interface {
 	UpdatePassword(user_id, new_password string) error
 	GetUserByID(id string) (*models.User, error)
 	LogLogin(userID, ip string, success bool) error
-	SaveEmailVerificationToken(userID, NewEmail, verifyToken string) error
+	SaveEmailVerificationToken(userID, newEmail, verifyToken string) error
 	VerifyEmailToken(token string) (string, string, error)
 	UpdateEmailInDatabase(userId, newEmail string) error
 }
@@ -209,12 +209,12 @@ func (r *userRepo) LogLogin(userID, ip string, success bool) error {
 	_, err := r.db.Exec(context.Background(), query, userID, ip, success)
 	return err
 }
-func (r *userRepo) SaveEmailVerificationToken(userID, NewEmail, verifyToken string) error {
+func (r *userRepo) SaveEmailVerificationToken(userID, newEmail, verifyToken string) error {
 	query := `
 		INSERT INTO email_change_tokens (user_id, new_email, token)
 		VALUES ($1, $2, $3)
 	`
-	_, err := r.db.Exec(context.Background(), query, userID, NewEmail, verifyToken)
+	_, err := r.db.Exec(context.Background(), query, userID, newEmail, verifyToken)
 	return err
 }
 

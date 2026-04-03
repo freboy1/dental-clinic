@@ -10,8 +10,8 @@ type CreateClinicRequest struct {
 }
 
 type AddAddressRequest struct {
-	Address_id   string    `json:"address_id"`
-	Is_main      bool    `json:"is_main"`
+	Address_id string `json:"address_id"`
+	Is_main    bool   `json:"is_main"`
 }
 
 type ClinicResponse struct {
@@ -20,7 +20,7 @@ type ClinicResponse struct {
 }
 
 type GetClinicAddressResponse struct {
-	Id 				string		`json:"id"`
-	Address_id   	string    	`json:"address_id"`
-	Is_main      	bool    	`json:"is_main"`
+	Id         string `json:"id"`
+	Address_id string `json:"address_id"`
+	Is_main    bool   `json:"is_main"`
 }

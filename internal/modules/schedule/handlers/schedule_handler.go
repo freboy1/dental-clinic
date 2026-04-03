@@ -5,10 +5,11 @@ import (
 	// "fmt"
 
 	// "dental_clinic/internal/modules/schedule/models"
-	"dental_clinic/internal/modules/schedule/dto"
-	"dental_clinic/internal/modules/schedule/services"
 	"encoding/json"
 	"time"
+
+	"dental_clinic/internal/modules/schedule/dto"
+	"dental_clinic/internal/modules/schedule/services"
 
 	"net/http"
 
@@ -28,7 +29,6 @@ func NewScheduleHandler(s *services.ScheduleService, cfg config.Config) *Schedul
 	}
 }
 
-
 // CreateSchedule godoc
 // @Summary Create new schedule
 // @Description Creates a new schedule
@@ -43,18 +43,18 @@ func NewScheduleHandler(s *services.ScheduleService, cfg config.Config) *Schedul
 // @Router /api/schedule/doctors/{doctorId}/working-hours [post]
 func (h *ScheduleHandler) CreateDoctorSchedule(w http.ResponseWriter, r *http.Request) {
 	response := dto.CreateScheduleResponse{
-		Success: "0",
-		Message: "",
-		Schedule_id:  "",
+		Success:     "0",
+		Message:     "",
+		Schedule_id: "",
 	}
 	vars := mux.Vars(r)
 	doctorIDStr := vars["doctorId"]
- 
+
 	doctor_id, err := uuid.Parse(doctorIDStr)
 	if err != nil {
 		response.Message = "Invalid doctorId"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -62,7 +62,7 @@ func (h *ScheduleHandler) CreateDoctorSchedule(w http.ResponseWriter, r *http.Re
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Message = "Invalid request body"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -70,7 +70,7 @@ func (h *ScheduleHandler) CreateDoctorSchedule(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 	response.Success = "1"
@@ -78,12 +78,9 @@ func (h *ScheduleHandler) CreateDoctorSchedule(w http.ResponseWriter, r *http.Re
 	response.Schedule_id = schedule.Id.String()
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 
 }
-
-
-
 
 // GenerateSlots godoc
 // @Summary Generate new slots
@@ -101,13 +98,12 @@ func (h *ScheduleHandler) GenerateSlots(w http.ResponseWriter, r *http.Request) 
 		Success: "0",
 		Message: "",
 	}
-	
 
 	var req dto.GenerateSlotsRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Message = "Invalid request body"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -115,19 +111,16 @@ func (h *ScheduleHandler) GenerateSlots(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 	response.Success = "1"
 	response.Message = "successfully generated"
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 
 }
-
-
-
 
 // Get Slots godoc
 // @Summary Get available slots
@@ -144,7 +137,7 @@ func (h *ScheduleHandler) GenerateSlots(w http.ResponseWriter, r *http.Request) 
 // @Failure 400 {array} dto.SlotResponse
 // @Router /api/schedule/available-slots [get]
 func (h *ScheduleHandler) GetAvailableSlots(w http.ResponseWriter, r *http.Request) {
-	
+
 	query := r.URL.Query()
 
 	doctorIDStr := query.Get("doctor_id")
@@ -188,11 +181,8 @@ func (h *ScheduleHandler) GetAvailableSlots(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToSlotResponseList(slots))
+	_ = json.NewEncoder(w).Encode(services.ToSlotResponseList(slots))
 }
-
-
-
 
 // GetDoctorSchedule godoc
 // @Summary Get doctor schedule
@@ -222,9 +212,5 @@ func (h *ScheduleHandler) GetDoctorSchedule(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(services.ToScheduleResponseList(schedules))
+	_ = json.NewEncoder(w).Encode(services.ToScheduleResponseList(schedules))
 }
-
-
-
-

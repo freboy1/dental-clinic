@@ -2,8 +2,8 @@ package services
 
 import (
 	"dental_clinic/internal/config"
-	"dental_clinic/internal/modules/address/models"
 	"dental_clinic/internal/modules/address/dto"
+	"dental_clinic/internal/modules/address/models"
 	"dental_clinic/internal/modules/address/repository"
 
 	"errors"
@@ -34,13 +34,13 @@ func (s *AddressService) CreateAddress(req dto.CreateRequest) (*models.Address, 
 	}
 
 	address := &models.Address{
-		ID: uuid.New(),
-		Street:         req.Street,
-		City:        req.City,
-		Country:     req.Country,
-		Building:         req.Building,
-		Latitude:       req.Latitude,
-		Longitude:          req.Longitude,
+		ID:        uuid.New(),
+		Street:    req.Street,
+		City:      req.City,
+		Country:   req.Country,
+		Building:  req.Building,
+		Latitude:  req.Latitude,
+		Longitude: req.Longitude,
 	}
 
 	return s.repo.Create(address)
@@ -89,16 +89,15 @@ func (s *AddressService) DeleteAddress(id, tokenStr string) error {
 	return s.repo.Delete(id)
 }
 
-
 func ToAddressResponse(address models.Address) dto.AddressResponse {
 	return dto.AddressResponse{
-		ID:     address.ID.String(),
-		Country:  address.Country,
-		City:   address.City,
+		ID:        address.ID.String(),
+		Country:   address.Country,
+		City:      address.City,
 		Street:    address.Street,
-		Building: address.Building,
-		Latitude:   address.Latitude,
-		Longitude:   address.Longitude,
+		Building:  address.Building,
+		Latitude:  address.Latitude,
+		Longitude: address.Longitude,
 	}
 }
 
