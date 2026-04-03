@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"database/sql"
-	"dental_clinic/internal/modules/services/dto"
-	"dental_clinic/internal/modules/services/services"
 	"encoding/json"
 	"errors"
 	"net/http"
+
+	"dental_clinic/internal/modules/services/dto"
+	"dental_clinic/internal/modules/services/services"
 
 	"github.com/gorilla/mux"
 )
@@ -41,7 +42,7 @@ func (h *ServiceHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Message = "Invalid request body"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -49,7 +50,7 @@ func (h *ServiceHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -59,7 +60,7 @@ func (h *ServiceHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 // GetAllServices godoc
@@ -84,7 +85,7 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToServiceNameResponseList(servicesListWithClinicNames))
+	_ = json.NewEncoder(w).Encode(services.ToServiceNameResponseList(servicesListWithClinicNames))
 }
 
 // GetServicesByClinic godoc
@@ -108,7 +109,7 @@ func (h *ServiceHandler) GetServicesByClinic(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToServiceResponseList(servicesList))
+	_ = json.NewEncoder(w).Encode(services.ToServiceResponseList(servicesList))
 }
 
 // GetServiceByID godoc
@@ -132,7 +133,7 @@ func (h *ServiceHandler) GetServiceByID(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToServiceResponse(*service))
+	_ = json.NewEncoder(w).Encode(services.ToServiceResponse(*service))
 }
 
 // UpdateService godoc
@@ -165,7 +166,7 @@ func (h *ServiceHandler) UpdateService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToServiceResponse(*service))
+	_ = json.NewEncoder(w).Encode(services.ToServiceResponse(*service))
 }
 
 // DeleteService godoc
@@ -192,5 +193,5 @@ func (h *ServiceHandler) DeleteService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"message": "Service deleted successfully"})
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Service deleted successfully"})
 }

@@ -11,13 +11,12 @@ import (
 	addressRepository "dental_clinic/internal/modules/address/repository"
 	addressServices "dental_clinic/internal/modules/address/services"
 
-
 	"github.com/gorilla/mux"
 )
 
 func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	repo := repository.NewClinicRepository(db)
-	
+
 	addressRepo := addressRepository.NewAddressRepository(db)
 	addressService := addressServices.NewAddressService(addressRepo, *cfg)
 
@@ -36,7 +35,6 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 
 	addressRepo := addressRepository.NewAddressRepository(db)
 	addressService := addressServices.NewAddressService(addressRepo, *cfg)
-
 
 	service := services.NewClinicService(repo, *cfg, *addressService)
 	handler := handlers.NewClinicHandler(service, *cfg)

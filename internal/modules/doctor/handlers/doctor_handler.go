@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"database/sql"
-	"dental_clinic/internal/modules/doctor/dto"
-	"dental_clinic/internal/modules/doctor/services"
 	"encoding/json"
 	"errors"
 	"net/http"
+
+	"dental_clinic/internal/modules/doctor/dto"
+	"dental_clinic/internal/modules/doctor/services"
 
 	"github.com/gorilla/mux"
 )
@@ -41,7 +42,7 @@ func (h *DoctorHandler) CreateDoctor(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Message = "Invalid request body"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -49,7 +50,7 @@ func (h *DoctorHandler) CreateDoctor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -59,7 +60,7 @@ func (h *DoctorHandler) CreateDoctor(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 // GetAllDoctors godoc
@@ -79,7 +80,7 @@ func (h *DoctorHandler) GetAllDoctors(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToDoctorResponseList(doctors))
+	_ = json.NewEncoder(w).Encode(services.ToDoctorResponseList(doctors))
 }
 
 // GetDoctorByID godoc
@@ -103,7 +104,7 @@ func (h *DoctorHandler) GetDoctorByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToDoctorResponse(*doctor))
+	_ = json.NewEncoder(w).Encode(services.ToDoctorResponse(*doctor))
 }
 
 // UpdateDoctor godoc
@@ -136,7 +137,7 @@ func (h *DoctorHandler) UpdateDoctor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToDoctorResponse(*doctor))
+	_ = json.NewEncoder(w).Encode(services.ToDoctorResponse(*doctor))
 }
 
 // DeleteDoctor godoc
@@ -163,5 +164,5 @@ func (h *DoctorHandler) DeleteDoctor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"message": "Doctor deleted successfully"})
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Doctor deleted successfully"})
 }

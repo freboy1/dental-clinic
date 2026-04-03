@@ -20,5 +20,5 @@ type ServiceWithClinicName struct {
 	Duration    int
 	ClinicID    uuid.UUID
 	IsActive    bool
-	ClinicName    string
+	ClinicName  string
 }

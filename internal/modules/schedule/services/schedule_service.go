@@ -13,26 +13,24 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"math"
+
+	"github.com/google/uuid"
 )
 
 type ScheduleService struct {
-	repo repository.ScheduleRepository
-	cfx  config.Config
+	repo       repository.ScheduleRepository
+	cfx        config.Config
 	serviceSrv services.ServiceService
 }
 
 func NewScheduleService(r repository.ScheduleRepository, cfx config.Config, serviceSrv services.ServiceService) *ScheduleService {
 	return &ScheduleService{
-		repo: r,
-		cfx:  cfx,
+		repo:       r,
+		cfx:        cfx,
 		serviceSrv: serviceSrv,
 	}
 }
-
-
-
 
 func (s *ScheduleService) CreateSchedule(doctor_id uuid.UUID, req dto.CreateScheduleRequest) (*models.Schedule, error) {
 
@@ -46,28 +44,25 @@ func (s *ScheduleService) CreateSchedule(doctor_id uuid.UUID, req dto.CreateSche
 	}
 
 	schedule := &models.Schedule{
-		Id: uuid.New(),
-		Doctor_id: doctor_id,
+		Id:                uuid.New(),
+		Doctor_id:         doctor_id,
 		Clinic_address_id: clinic_address_id,
-		Day_of_week: req.Day_of_week,
-		Start_time: req.Start_time,
-		End_time: req.End_time,
+		Day_of_week:       req.Day_of_week,
+		Start_time:        req.Start_time,
+		End_time:          req.End_time,
 	}
 
 	return s.repo.Create(schedule)
 }
 
-
-
 func (s *ScheduleService) GetSchedules() ([]models.Schedule, error) {
 	return s.repo.GetSchedules()
 }
 
-
 func (s *ScheduleService) GenerateSlots(req dto.GenerateSlotsRequest) error {
 
 	schedules, err := s.GetSchedules()
-	if (err != nil) {
+	if err != nil {
 		return err
 	}
 
@@ -92,7 +87,6 @@ func (s *ScheduleService) GenerateSlots(req dto.GenerateSlotsRequest) error {
 		if err != nil {
 			return err
 		}
-		
 
 		for date := fromDate; !date.After(toDate); date = date.AddDate(0, 0, 1) {
 
@@ -129,34 +123,30 @@ func (s *ScheduleService) GenerateSlots(req dto.GenerateSlotsRequest) error {
 		}
 
 	}
-	
+
 	// return s.repo.Create(schedule)
 	return nil
 }
-
-
-
-
 
 func (s *ScheduleService) GetAvailableSlots(doctorID, serviceID, clinic_addressID uuid.UUID, date time.Time) ([]models.Slot, error) {
 
 	service, err := s.serviceSrv.GetServiceByID(serviceID.String())
 
-	if (err != nil) {
+	if err != nil {
 		return nil, err
 	}
 
 	raw_slots, err := s.GetAvailableSlotsByDateAndDoctorAndClinic(doctorID, clinic_addressID, date)
-	
-	required_slots := s.HowManySlots(service.Duration)
+	if err != nil {
+		return nil, err
+	}
 
+	required_slots := s.HowManySlots(service.Duration)
 
 	slots := FindAvailableSlots(raw_slots, required_slots)
 
-
 	return slots, nil
 }
-
 
 func (s *ScheduleService) GetAvailableSlotsByDateAndDoctorAndClinic(doctorID uuid.UUID, clinic_addressID uuid.UUID, date time.Time) ([]models.Slot, error) {
 	return s.repo.GetAvailableSlotsByDateAndDoctorAndClinic(doctorID, clinic_addressID, date)
@@ -167,7 +157,7 @@ func (s *ScheduleService) GetSlotById(slotId uuid.UUID) (*models.Slot, error) {
 }
 
 func (s *ScheduleService) HowManySlots(duration int) int {
-	slotDuration := 30 
+	slotDuration := 30
 
 	slots := int(math.Ceil(float64(duration) / float64(slotDuration)))
 
@@ -178,8 +168,6 @@ func (s *ScheduleService) HowManySlots(duration int) int {
 	return slots
 
 }
-
-
 
 func (s *ScheduleService) AreSlotsAvailable(slots []models.Slot, startSlotID uuid.UUID, requiredSlots int) ([]models.Slot, error) {
 	var startIndex int = -1
@@ -251,16 +239,12 @@ func FindAvailableSlots(slots []models.Slot, requiredSlots int) []models.Slot {
 	return result
 }
 
-
-
-
-
 func ToSlotResponse(slot models.Slot) dto.SlotResponse {
 	return dto.SlotResponse{
-		Id: slot.Id.String(),
+		Id:         slot.Id.String(),
 		Slot_start: slot.Slot_start,
-		Slot_end: slot.Slot_end,
-		Status: slot.Status,
+		Slot_end:   slot.Slot_end,
+		Status:     slot.Status,
 	}
 }
 
@@ -272,20 +256,17 @@ func ToSlotResponseList(slots []models.Slot) []dto.SlotResponse {
 	return result
 }
 
-
-
 func (s *ScheduleService) GetDoctorSchedule(doctor_id uuid.UUID) ([]models.Schedule, error) {
 	return s.repo.GetScheduleByDoctor(doctor_id)
 }
 
-
 func ToScheduleResponse(schedule models.Schedule) dto.ScheduleDoctorResponse {
 	return dto.ScheduleDoctorResponse{
-		Id: schedule.Id.String(),
+		Id:                schedule.Id.String(),
 		Clinic_address_id: schedule.Clinic_address_id.String(),
-		Day_of_week: schedule.Day_of_week,
-		Start_time: schedule.Start_time,
-		End_time: schedule.End_time,
+		Day_of_week:       schedule.Day_of_week,
+		Start_time:        schedule.Start_time,
+		End_time:          schedule.End_time,
 	}
 }
 

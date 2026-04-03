@@ -7,20 +7,20 @@ import (
 )
 
 type Config struct {
-	Port       string
-	DB_DSN     string
-	JWTSecret  string
-	SMTPUser   string
-	SMTPPass   string
-	SMTPHost string
-	SMTPPort string
+	Port      string
+	DB_DSN    string
+	JWTSecret string
+	SMTPUser  string
+	SMTPPass  string
+	SMTPHost  string
+	SMTPPort  string
 }
 
 func LoadConfig() *Config {
 	// if err := godotenv.Load(); err != nil {
 	// 	log.Println("Error with .env")
 	// }
-	_ = godotenv.Load() 
+	_ = godotenv.Load()
 
 	cfg := &Config{
 		Port:      getEnv("APP_PORT", "8080"),
