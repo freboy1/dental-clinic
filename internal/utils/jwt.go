@@ -1,10 +1,11 @@
 package utils
 
 import (
-	"time"
 	"fmt"
-	"strings"
 	"net/http"
+	"strings"
+	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -21,7 +22,7 @@ func GenerateJWT(userID, email, role, secret string) (string, error) {
 		Email:  email,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), 
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "dental-clinic",
 		},
@@ -48,7 +49,6 @@ func GetClaims(tokenStr, secret string) (jwt.MapClaims, error) {
 
 	return nil, fmt.Errorf("invalid token or claims")
 }
-
 
 func GetToken(r *http.Request) string {
 	authHeader := r.Header.Get("Authorization")

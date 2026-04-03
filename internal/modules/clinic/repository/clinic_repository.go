@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+
 	"github.com/google/uuid"
 
 	// "dental_clinic/internal"
@@ -163,7 +164,6 @@ func (r *clinicRepo) Delete(id uuid.UUID) error {
 	return nil
 }
 
-
 func (r *clinicRepo) AddAddress(id, clinic_id uuid.UUID, address_id string, is_main bool) error {
 	query := `INSERT INTO clinic_addresses (id, clinic_id, address_id, is_main)
             VALUES ($1, $2, $3, $4) 
@@ -176,7 +176,7 @@ func (r *clinicRepo) AddAddress(id, clinic_id uuid.UUID, address_id string, is_m
 		}
 	}
 
-	err := r.db.QueryRow(
+	_, err := r.db.Exec(
 		context.Background(),
 		query,
 		id,
@@ -184,7 +184,6 @@ func (r *clinicRepo) AddAddress(id, clinic_id uuid.UUID, address_id string, is_m
 		address_id,
 		is_main,
 	)
-
 	if err != nil {
 		return fmt.Errorf("failed to create clinic address: %w", err)
 	}
@@ -206,7 +205,6 @@ func (r *clinicRepo) UnsetMainAddress(clinic_id uuid.UUID) error {
 
 	return nil
 }
-
 
 func (r *clinicRepo) GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, error) {
 	query := `SELECT id, clinic_id, address_id, is_main
@@ -241,7 +239,6 @@ func (r *clinicRepo) GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, err
 
 	return clinics, nil
 }
-
 
 func (r *clinicRepo) DeleteAddress(id, address_id uuid.UUID) error {
 	query := `DELETE FROM clinic_addresses WHERE address_id = $1 AND clinic_id = $2`

@@ -4,9 +4,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"dental_clinic/internal/config"
+	"dental_clinic/internal/modules/appointment/handlers"
 	"dental_clinic/internal/modules/appointment/repository"
 	"dental_clinic/internal/modules/appointment/services"
-	"dental_clinic/internal/modules/appointment/handlers"
 
 	scheduleRepository "dental_clinic/internal/modules/schedule/repository"
 	scheduleServices "dental_clinic/internal/modules/schedule/services"
@@ -20,15 +20,11 @@ import (
 	addressRepository "dental_clinic/internal/modules/address/repository"
 	addressServices "dental_clinic/internal/modules/address/services"
 
-
-
 	"github.com/gorilla/mux"
 )
 
 func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	repo := repository.NewAppointmentRepository(db)
-
-
 
 	addressRepo := addressRepository.NewAddressRepository(db)
 	addressService := addressServices.NewAddressService(addressRepo, *cfg)
@@ -36,15 +32,11 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	clinicRepo := clinicRepository.NewClinicRepository(db)
 	clinicService := clinicServices.NewClinicService(clinicRepo, *cfg, *addressService)
 
-
 	serviceRepo := serviceRepository.NewServiceRepository(db)
 	serviceService := serviceServices.NewServiceService(serviceRepo, *clinicService)
 
-
 	scheduleRepo := scheduleRepository.NewScheduleRepository(db)
 	scheduleService := scheduleServices.NewScheduleService(scheduleRepo, *cfg, *serviceService)
-
-
 
 	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService)
 	handler := handlers.NewAppointmentHandler(service, *cfg)
@@ -55,24 +47,17 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	repo := repository.NewAppointmentRepository(db)
 
-
-
 	addressRepo := addressRepository.NewAddressRepository(db)
 	addressService := addressServices.NewAddressService(addressRepo, *cfg)
 
 	clinicRepo := clinicRepository.NewClinicRepository(db)
 	clinicService := clinicServices.NewClinicService(clinicRepo, *cfg, *addressService)
 
-
-
 	serviceRepo := serviceRepository.NewServiceRepository(db)
 	serviceService := serviceServices.NewServiceService(serviceRepo, *clinicService)
 
-
 	scheduleRepo := scheduleRepository.NewScheduleRepository(db)
 	scheduleService := scheduleServices.NewScheduleService(scheduleRepo, *cfg, *serviceService)
-
-
 
 	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService)
 
@@ -81,10 +66,9 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	r.HandleFunc("/appointment", handler.GetAllAppointments).Methods("GET")
 
 	r.HandleFunc("/appointment/my-appointments", handler.GetMyAppointments).Methods("GET")
-	
+
 	r.HandleFunc("/appointment/{id}", handler.GetAppointmentByID).Methods("GET")
 	r.HandleFunc("/appointment/{id}", handler.UpdateAppointment).Methods("PUT")
 	r.HandleFunc("/appointment/{id}", handler.DeleteAppointment).Methods("DELETE")
-
 
 }

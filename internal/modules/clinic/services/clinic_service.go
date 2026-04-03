@@ -1,26 +1,27 @@
 package services
 
 import (
+	"fmt"
+
 	"dental_clinic/internal/config"
 	"dental_clinic/internal/modules/address/services"
 	"dental_clinic/internal/modules/clinic/dto"
 	"dental_clinic/internal/modules/clinic/models"
 	"dental_clinic/internal/modules/clinic/repository"
-	"fmt"
 
 	"github.com/google/uuid"
 )
 
 type ClinicService struct {
-	repo repository.ClinicRepository
-	cfx  config.Config
+	repo       repository.ClinicRepository
+	cfx        config.Config
 	addressSrv services.AddressService
 }
 
 func NewClinicService(r repository.ClinicRepository, cfx config.Config, addressSrv services.AddressService) *ClinicService {
 	return &ClinicService{
-		repo: r,
-		cfx:  cfx,
+		repo:       r,
+		cfx:        cfx,
 		addressSrv: addressSrv,
 	}
 }
@@ -34,7 +35,7 @@ func (s *ClinicService) CreateClinic(clinic *models.Clinic) (*models.Clinic, err
 		return nil, fmt.Errorf("clinic phone is required")
 	}
 
-	clinic.Id = uuid.New();
+	clinic.Id = uuid.New()
 	clinic.IsActive = true
 
 	return s.repo.Create(clinic)
@@ -73,8 +74,7 @@ func (s *ClinicService) DeleteClinic(id uuid.UUID) error {
 	return s.repo.Delete(id)
 }
 
-
-func (s *ClinicService) AddAddress(id uuid.UUID, req dto.AddAddressRequest) (error) {
+func (s *ClinicService) AddAddress(id uuid.UUID, req dto.AddAddressRequest) error {
 	_, err := s.addressSrv.GetAddressByID(req.Address_id)
 	if err != nil {
 		return fmt.Errorf("address not found: %w", err)
@@ -89,9 +89,9 @@ func (s *ClinicService) GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, 
 
 func ToClinicAddressResponse(clinicAddress models.ClinicAddress) dto.GetClinicAddressResponse {
 	return dto.GetClinicAddressResponse{
-		Id: clinicAddress.Id.String(),
-		Address_id:     clinicAddress.AddressId.String(),
-		Is_main:  clinicAddress.IsMain,
+		Id:         clinicAddress.Id.String(),
+		Address_id: clinicAddress.AddressId.String(),
+		Is_main:    clinicAddress.IsMain,
 	}
 }
 
@@ -103,7 +103,7 @@ func ToClinicAddressResponseList(clinicAddress []models.ClinicAddress) []dto.Get
 	return result
 }
 
-func (s *ClinicService) DeleteAddress(id, address_id uuid.UUID) (error) {
+func (s *ClinicService) DeleteAddress(id, address_id uuid.UUID) error {
 	_, err := s.addressSrv.GetAddressByID(address_id.String())
 	if err != nil {
 		return fmt.Errorf("address not found: %w", err)

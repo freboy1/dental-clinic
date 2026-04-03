@@ -1,8 +1,9 @@
 package main
 
 import (
-	"net/http"
 	"log"
+	"net/http"
+
 	"dental_clinic/internal/config"
 	"dental_clinic/internal/database"
 	"dental_clinic/internal/router"
@@ -24,5 +25,7 @@ func main() {
 	r := router.NewRouter(cfg, db)
 
 	log.Printf("Server running on port %s", cfg.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Port, r))
+	if err := http.ListenAndServe(":"+cfg.Port, r); err != nil {
+		log.Println(err)
+	}
 }

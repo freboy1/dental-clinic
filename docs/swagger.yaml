@@ -213,8 +213,6 @@ definitions:
         type: string
       password:
         type: string
-      role:
-        type: string
     type: object
   dto.LoginResponse:
     properties:

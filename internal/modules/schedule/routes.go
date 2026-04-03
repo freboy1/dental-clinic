@@ -3,22 +3,20 @@ package schedule
 import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"dental_clinic/internal/modules/schedule/handlers"
 	"dental_clinic/internal/modules/schedule/repository"
 	"dental_clinic/internal/modules/schedule/services"
-	"dental_clinic/internal/modules/schedule/handlers"
 
 	"dental_clinic/internal/config"
 
 	serviceRepository "dental_clinic/internal/modules/services/repository"
 	serviceServices "dental_clinic/internal/modules/services/services"
 
-	
 	clinicRepository "dental_clinic/internal/modules/clinic/repository"
 	clinicServices "dental_clinic/internal/modules/clinic/services"
 
 	addressRepository "dental_clinic/internal/modules/address/repository"
 	addressServices "dental_clinic/internal/modules/address/services"
-
 
 	"github.com/gorilla/mux"
 )
@@ -26,17 +24,14 @@ import (
 func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	repo := repository.NewScheduleRepository(db)
 
-	
 	addressRepo := addressRepository.NewAddressRepository(db)
 	addressService := addressServices.NewAddressService(addressRepo, *cfg)
 
 	clinicRepo := clinicRepository.NewClinicRepository(db)
 	clinicService := clinicServices.NewClinicService(clinicRepo, *cfg, *addressService)
 
-
 	serviceRepo := serviceRepository.NewServiceRepository(db)
 	serviceService := serviceServices.NewServiceService(serviceRepo, *clinicService)
-
 
 	service := services.NewScheduleService(repo, *cfg, *serviceService)
 	handler := handlers.NewScheduleHandler(service, *cfg)
@@ -49,18 +44,14 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	repo := repository.NewScheduleRepository(db)
 
-	
 	addressRepo := addressRepository.NewAddressRepository(db)
 	addressService := addressServices.NewAddressService(addressRepo, *cfg)
 
 	clinicRepo := clinicRepository.NewClinicRepository(db)
 	clinicService := clinicServices.NewClinicService(clinicRepo, *cfg, *addressService)
 
-
-
 	serviceRepo := serviceRepository.NewServiceRepository(db)
 	serviceService := serviceServices.NewServiceService(serviceRepo, *clinicService)
-
 
 	service := services.NewScheduleService(repo, *cfg, *serviceService)
 	handler := handlers.NewScheduleHandler(service, *cfg)

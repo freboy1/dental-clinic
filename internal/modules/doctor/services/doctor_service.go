@@ -1,10 +1,11 @@
 package services
 
 import (
+	"errors"
+
 	"dental_clinic/internal/modules/doctor/dto"
 	"dental_clinic/internal/modules/doctor/models"
 	"dental_clinic/internal/modules/doctor/repository"
-	"errors"
 
 	"github.com/google/uuid"
 )
@@ -24,10 +25,10 @@ func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Docto
 	if req.Experience < 0 {
 		return nil, errors.New("experience cannot be negative")
 	}
-	if req.Name ==  "" {
+	if req.Name == "" {
 		return nil, errors.New("name is empty")
 	}
-	if req.Email ==  "" {
+	if req.Email == "" {
 		return nil, errors.New("email is empty")
 	}
 
@@ -37,8 +38,8 @@ func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Docto
 	}
 
 	doctor := &models.Doctor{
-		Name: req.Name,
-		Email: req.Email,
+		Name:           req.Name,
+		Email:          req.Email,
 		Specialization: req.Specialization,
 		Experience:     req.Experience,
 		ClinicID:       clinicID,
@@ -80,7 +81,6 @@ func (s *DoctorService) UpdateDoctor(id string, req dto.UpdateDoctorRequest) (*m
 		return nil, errors.New("experience cannot be negative")
 	}
 
-
 	clinicID, err := uuid.Parse(req.ClinicID)
 	if err != nil {
 		return nil, errors.New("invalid clinic_id")
@@ -107,16 +107,16 @@ func (s *DoctorService) DeleteDoctor(id string) error {
 }
 
 func ToDoctorResponse(d models.Doctor) dto.DoctorResponse {
-  return dto.DoctorResponse{
-    Id:             d.Id.String(),
-    Specialization: d.Specialization,
-    Experience:     d.Experience,
-    ClinicID:       d.ClinicID.String(),
-    Bio:            d.Bio,
-    IsAvailable:    d.IsAvailable,
-    Name:    d.Name,
-    Email:    d.Email,
-  }
+	return dto.DoctorResponse{
+		Id:             d.Id.String(),
+		Specialization: d.Specialization,
+		Experience:     d.Experience,
+		ClinicID:       d.ClinicID.String(),
+		Bio:            d.Bio,
+		IsAvailable:    d.IsAvailable,
+		Name:           d.Name,
+		Email:          d.Email,
+	}
 }
 
 func ToDoctorResponseList(doctors []models.Doctor) []dto.DoctorResponse {
@@ -126,4 +126,3 @@ func ToDoctorResponseList(doctors []models.Doctor) []dto.DoctorResponse {
 	}
 	return result
 }
-

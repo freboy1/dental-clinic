@@ -37,8 +37,6 @@ func (r *appointmentRepo) Create(appointment *models.Appointment) (*models.Appoi
 	return appointment, err
 }
 
-
-
 func (r *appointmentRepo) GetAll() ([]models.Appointment, error) {
 	query := `SELECT id, doctor_id, clinic_address_id, service_id, user_id, start_time, end_time, status, name, email FROM appointments`
 
@@ -118,8 +116,6 @@ func (r *appointmentRepo) Delete(id string) error {
 	}
 	return nil
 }
-
-
 
 func (r *appointmentRepo) GetMyAppointments(userId string) ([]models.Appointment, error) {
 	query := `

@@ -37,3 +37,12 @@ tidy:
 #Update/Create swagger
 swagger:
 	swag init -g cmd/main.go
+
+lint:
+	golangci-lint run
+
+lintfix:
+	 golangci-lint run --fix
+
+check: swagger lintfix
+	@echo Ready to push

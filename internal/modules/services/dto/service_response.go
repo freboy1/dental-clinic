@@ -9,7 +9,6 @@ type CreateServiceRequest struct {
 	IsActive    bool    `json:"is_active"`
 }
 
-
 type UpdateServiceRequest struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
@@ -36,7 +35,7 @@ type ServiceResponseWithName struct {
 	Price       float64 `json:"price"`
 	Duration    int     `json:"duration"`
 	ClinicID    string  `json:"clinic_id"`
-	ClinicName    string  `json:"clinic_name"`
+	ClinicName  string  `json:"clinic_name"`
 	IsActive    bool    `json:"is_active"`
 }
 

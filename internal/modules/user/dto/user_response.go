@@ -1,6 +1,5 @@
 package dto
 
-
 type RegisterRequest struct {
 	Role        string `json:"role"`
 	Email       string `json:"email"`
@@ -14,7 +13,6 @@ type RegisterRequest struct {
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	Role     string `json:"role"`
 }
 
 type UpdatePasswordRequest struct {
@@ -29,21 +27,20 @@ type UpdateEmailRequest struct {
 type RegisterResponse struct {
 	Success string `json:"success"`
 	Message string `json:"message"`
-	User_id  string `json:"user_id"`
+	User_id string `json:"user_id"`
 }
 
 type LoginResponse struct {
 	Success string `json:"success"`
-	Token string `json:"token"`
-	Role string `json:"role"`
+	Token   string `json:"token"`
+	Role    string `json:"role"`
 }
 
 type UserResponse struct {
-    Id    string `json:"id"`
-    Email string `json:"email"`
-    Name  string `json:"name"`
-    Age   int    `json:"age"`
-    Gender string `json:"gender"`
-    Role  string `json:"role"`
+	Id     string `json:"id"`
+	Email  string `json:"email"`
+	Name   string `json:"name"`
+	Age    int    `json:"age"`
+	Gender string `json:"gender"`
+	Role   string `json:"role"`
 }
-

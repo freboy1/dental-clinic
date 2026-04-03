@@ -5,7 +5,6 @@ import (
 	"dental_clinic/internal/modules/services/repository"
 	"dental_clinic/internal/modules/services/services"
 
-	
 	"dental_clinic/internal/config"
 
 	clinicRepository "dental_clinic/internal/modules/clinic/repository"
@@ -39,13 +38,11 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	repo := repository.NewServiceRepository(db)
 
-
 	addressRepo := addressRepository.NewAddressRepository(db)
 	addressService := addressServices.NewAddressService(addressRepo, *cfg)
 
 	clinicRepo := clinicRepository.NewClinicRepository(db)
 	clinicService := clinicServices.NewClinicService(clinicRepo, *cfg, *addressService)
-
 
 	service := services.NewServiceService(repo, *clinicService)
 	handler := handlers.NewServiceHandler(service)

@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"dental_clinic/internal/config"
 	"fmt"
 	"net/smtp"
+
+	"dental_clinic/internal/config"
 )
 
 func SendVerificationEmail(cfx *config.Config, to, token string) error {
@@ -12,7 +13,6 @@ func SendVerificationEmail(cfx *config.Config, to, token string) error {
 	password := cfx.SMTPPass
 	smtpHost := cfx.SMTPHost
 	smtpPort := cfx.SMTPPort
-
 
 	verifyLink := fmt.Sprintf("http://localhost:8080/api/verify?token=%s", token)
 

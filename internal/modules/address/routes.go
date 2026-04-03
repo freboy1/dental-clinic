@@ -4,9 +4,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"dental_clinic/internal/config"
+	"dental_clinic/internal/modules/address/handlers"
 	"dental_clinic/internal/modules/address/repository"
 	"dental_clinic/internal/modules/address/services"
-	"dental_clinic/internal/modules/address/handlers"
+
 	"github.com/gorilla/mux"
 )
 
@@ -15,7 +16,7 @@ import (
 // 	service := services.NewAddressService(repo, *cfg)
 // 	handler := handlers.NewAddressHandler(service, *cfg)
 
-	// r.HandleFunc("/address", handler.Register).Methods("POST")
+// r.HandleFunc("/address", handler.Register).Methods("POST")
 // }
 
 func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {

@@ -1,13 +1,14 @@
 package services
 
 import (
+	"fmt"
+	"regexp"
+
 	"dental_clinic/internal/config"
 	"dental_clinic/internal/modules/user/dto"
 	"dental_clinic/internal/modules/user/models"
 	"dental_clinic/internal/modules/user/repository"
 	"dental_clinic/internal/utils"
-	"fmt"
-	"regexp"
 
 	"errors"
 
@@ -60,7 +61,7 @@ func (s *UserService) Register(req dto.RegisterRequest) (*models.User, error) {
 	if err != nil {
 		return created_user, err
 	}
-	utils.SendVerificationEmail(&s.cfx, user.Email, token)
+	_ = utils.SendVerificationEmail(&s.cfx, user.Email, token)
 
 	return created_user, err
 }
@@ -157,7 +158,7 @@ func (s *UserService) Login(req dto.LoginRequest, ip string) (*models.User, erro
 
 	// add check for existing user
 	if req.Email == "" {
-		s.repo.LogLogin("", ip, false)
+		_ = s.repo.LogLogin("", ip, false)
 		return nil, errors.New("email is empty")
 	}
 	user, err := s.repo.GetUserByEmail(req.Email)
@@ -175,10 +176,10 @@ func (s *UserService) Login(req dto.LoginRequest, ip string) (*models.User, erro
 	fmt.Println(req.Password)
 
 	if !CheckPassword(user.Password, req.Password) {
-		s.repo.LogLogin(user.Id.String(), ip, false)
+		_ = s.repo.LogLogin(user.Id.String(), ip, false)
 		return nil, errors.New("Invalid credentials")
 	}
-	s.repo.LogLogin(user.Id.String(), ip, true)
+	_ = s.repo.LogLogin(user.Id.String(), ip, true)
 	return user, err
 }
 

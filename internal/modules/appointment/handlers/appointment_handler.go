@@ -2,13 +2,15 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
+	"errors"
+	"net/http"
+
 	"dental_clinic/internal/config"
 	"dental_clinic/internal/modules/appointment/dto"
 	"dental_clinic/internal/modules/appointment/services"
 	"dental_clinic/internal/utils"
-	"encoding/json"
-	"errors"
-	"net/http"
+
 	// "strings"
 
 	"github.com/gorilla/mux"
@@ -16,16 +18,15 @@ import (
 
 type AppointmentHandler struct {
 	service *services.AppointmentService
-	cfg config.Config
+	cfg     config.Config
 }
 
 func NewAppointmentHandler(s *services.AppointmentService, cfg config.Config) *AppointmentHandler {
 	return &AppointmentHandler{
 		service: s,
-		cfg: cfg,
+		cfg:     cfg,
 	}
 }
-
 
 // CreateAppointment godoc
 // @Summary Create new appointment
@@ -39,19 +40,19 @@ func NewAppointmentHandler(s *services.AppointmentService, cfg config.Config) *A
 // @Router /api/appointment [post]
 func (h *AppointmentHandler) CreateAppointment(w http.ResponseWriter, r *http.Request) {
 	response := dto.CreateAppointmentResponse{
-		Success: "0",
-		Message: "",
-		Appointment_id:  "",
+		Success:        "0",
+		Message:        "",
+		Appointment_id: "",
 	}
 
 	var req dto.CreateAppointmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Message = "Invalid request body"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
-	
+
 	_ = r
 	tokenStr := utils.GetToken(r)
 
@@ -59,7 +60,7 @@ func (h *AppointmentHandler) CreateAppointment(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 	response.Success = "1"
@@ -67,12 +68,9 @@ func (h *AppointmentHandler) CreateAppointment(w http.ResponseWriter, r *http.Re
 	response.Appointment_id = appointment.Id.String()
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 
 }
-
-
-
 
 // GetAppointments godoc
 // @Summary get appointments
@@ -86,7 +84,7 @@ func (h *AppointmentHandler) CreateAppointment(w http.ResponseWriter, r *http.Re
 // @Failure 500 {object} map[string]string
 // @Router /api/appointment [get]
 func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.Request) {
-	
+
 	appointments, err := h.service.GetAllAppointments()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -94,10 +92,9 @@ func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.R
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(services.ToAppointmentResponseList(appointments))
+	_ = json.NewEncoder(w).Encode(services.ToAppointmentResponseList(appointments))
 
 }
-
 
 // GetAppointmentByID godoc
 // @Summary Get appointment by ID
@@ -121,7 +118,7 @@ func (h *AppointmentHandler) GetAppointmentByID(w http.ResponseWriter, r *http.R
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToAppointmentResponse(*appointment))
+	_ = json.NewEncoder(w).Encode(services.ToAppointmentResponse(*appointment))
 }
 
 // UpdateAppointment godoc
@@ -155,11 +152,11 @@ func (h *AppointmentHandler) UpdateAppointment(w http.ResponseWriter, r *http.Re
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToAppointmentResponse(*appointment))
+	_ = json.NewEncoder(w).Encode(services.ToAppointmentResponse(*appointment))
 }
 
 // DeleteAppointment godoc
-// @Summary Delete appointment 
+// @Summary Delete appointment
 // @Description Delete appointment
 // @Tags Appointment
 // @Security BearerAuth
@@ -172,8 +169,8 @@ func (h *AppointmentHandler) UpdateAppointment(w http.ResponseWriter, r *http.Re
 // @Router /api/appointment/{id} [delete]
 func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Request) {
 	response := dto.AppointmentResponse{
-		Success:   "0",
-		Message:   "",
+		Success: "0",
+		Message: "",
 	}
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -183,21 +180,18 @@ func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Re
 		if errors.Is(err, sql.ErrNoRows) || err.Error() == "service not found" {
 			response.Message = "Service not found"
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 			return
 		}
 		response.Message = "Internal server error"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 	response.Success, response.Message = "1", "Successfully deleted"
 	w.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
-
-
-
 
 // GetMyAppointments godoc
 // @Summary get my appointments
@@ -211,11 +205,9 @@ func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Re
 // @Failure 500 {object} map[string]string
 // @Router /api/appointment/my-appointments [get]
 func (h *AppointmentHandler) GetMyAppointments(w http.ResponseWriter, r *http.Request) {
-	
 
 	_ = r
 	tokenStr := utils.GetToken(r)
-
 
 	appointments, err := h.service.GetMyAppointments(tokenStr)
 	if err != nil {
@@ -224,6 +216,6 @@ func (h *AppointmentHandler) GetMyAppointments(w http.ResponseWriter, r *http.Re
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(services.ToAppointmentResponseList(appointments))
+	_ = json.NewEncoder(w).Encode(services.ToAppointmentResponseList(appointments))
 
 }

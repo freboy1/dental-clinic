@@ -2,27 +2,30 @@ package handlers
 
 import (
 	"database/sql"
-	"dental_clinic/internal/config"
-	"dental_clinic/internal/modules/address/services"
-	"dental_clinic/internal/modules/address/dto"
 	"encoding/json"
 	"errors"
 	"net/http"
-	"github.com/gorilla/mux"
 	"strings"
+
+	"dental_clinic/internal/config"
+	"dental_clinic/internal/modules/address/dto"
+	"dental_clinic/internal/modules/address/services"
+
+	"github.com/gorilla/mux"
 )
 
 type AddressHandler struct {
 	service *services.AddressService
-	cfg config.Config
+	cfg     config.Config
 }
 
 func NewAddressHandler(s *services.AddressService, cfg config.Config) *AddressHandler {
 	return &AddressHandler{
 		service: s,
-		cfg: cfg,
+		cfg:     cfg,
 	}
 }
+
 // CreateAddress godoc
 // @Summary Create new address
 // @Description Creates a new address
@@ -36,16 +39,16 @@ func NewAddressHandler(s *services.AddressService, cfg config.Config) *AddressHa
 // @Router /api/address [post]
 func (h *AddressHandler) CreateAddress(w http.ResponseWriter, r *http.Request) {
 	response := dto.CreateResponse{
-		Success: "0",
-		Message: "",
-		Address_id:  "",
+		Success:    "0",
+		Message:    "",
+		Address_id: "",
 	}
 
 	var req dto.CreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Message = "Invalid request body"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -53,7 +56,7 @@ func (h *AddressHandler) CreateAddress(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 	response.Success = "1"
@@ -61,10 +64,9 @@ func (h *AddressHandler) CreateAddress(w http.ResponseWriter, r *http.Request) {
 	response.Address_id = address.ID.String()
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 
 }
-
 
 // GetAllAddresss godoc
 // @Summary Get all addresss
@@ -86,7 +88,7 @@ func (h *AddressHandler) GetAllAddresss(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(services.ToAddressResponseList(addresss))
+	_ = json.NewEncoder(w).Encode(services.ToAddressResponseList(addresss))
 }
 
 // GetAddress godoc
@@ -111,7 +113,7 @@ func (h *AddressHandler) GetAddressByID(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(services.ToAddressResponse(*address))
+	_ = json.NewEncoder(w).Encode(services.ToAddressResponse(*address))
 }
 
 // UpdateAddresss godoc
@@ -138,7 +140,7 @@ func (h *AddressHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Message = "Invalid request body"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -146,7 +148,7 @@ func (h *AddressHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -154,7 +156,7 @@ func (h *AddressHandler) UpdateAddress(w http.ResponseWriter, r *http.Request) {
 	response.Message = "successfully updated"
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 // DeleteAddress godoc
@@ -180,12 +182,12 @@ func (h *AddressHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, sql.ErrNoRows) || err.Error() == "address not found" {
 			response.Message = "Address not found"
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(response)
+			_ = json.NewEncoder(w).Encode(response)
 			return
 		}
 		response.Message = "Internal server error"
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(response)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -193,7 +195,7 @@ func (h *AddressHandler) DeleteAddress(w http.ResponseWriter, r *http.Request) {
 	response.Message = "successfully deleted"
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func getToken(r *http.Request) string {

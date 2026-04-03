@@ -3,22 +3,23 @@ package services
 import (
 	"dental_clinic/internal/modules/clinic/services"
 
+	"errors"
+
 	"dental_clinic/internal/modules/services/dto"
 	"dental_clinic/internal/modules/services/models"
 	"dental_clinic/internal/modules/services/repository"
-	"errors"
 
 	"github.com/google/uuid"
 )
 
 type ServiceService struct {
-	repo repository.ServiceRepository
+	repo      repository.ServiceRepository
 	clinicSrv services.ClinicService
 }
 
 func NewServiceService(r repository.ServiceRepository, clinicSrv services.ClinicService) *ServiceService {
 	return &ServiceService{
-		repo: r,
+		repo:      r,
 		clinicSrv: clinicSrv,
 	}
 }
@@ -64,19 +65,19 @@ func (s *ServiceService) GetClinicNames(services []models.Service) ([]models.Ser
 		if err != nil {
 			return servicesListWithClinicNames, err
 		}
-        serviceWithClinicName := models.ServiceWithClinicName{
-			Id: service.Id,
-			Name: service.Name,
+		serviceWithClinicName := models.ServiceWithClinicName{
+			Id:          service.Id,
+			Name:        service.Name,
 			Description: service.Description,
-			Price: service.Price,
-			Duration: service.Duration,
-			ClinicID: service.ClinicID,
-			IsActive: service.IsActive,
-			ClinicName: clinic.Name,
+			Price:       service.Price,
+			Duration:    service.Duration,
+			ClinicID:    service.ClinicID,
+			IsActive:    service.IsActive,
+			ClinicName:  clinic.Name,
 		}
 
-        servicesListWithClinicNames = append(servicesListWithClinicNames, serviceWithClinicName)
-    }
+		servicesListWithClinicNames = append(servicesListWithClinicNames, serviceWithClinicName)
+	}
 
 	return servicesListWithClinicNames, nil
 }
@@ -164,8 +165,6 @@ func ToServiceResponseList(services []models.Service) []dto.ServiceResponse {
 	return result
 }
 
-
-
 func ToServiceNameResponse(s models.ServiceWithClinicName) dto.ServiceResponseWithName {
 	return dto.ServiceResponseWithName{
 		Id:          s.Id.String(),
@@ -175,7 +174,7 @@ func ToServiceNameResponse(s models.ServiceWithClinicName) dto.ServiceResponseWi
 		Duration:    s.Duration,
 		ClinicID:    s.ClinicID.String(),
 		IsActive:    s.IsActive,
-		ClinicName: s.ClinicName,
+		ClinicName:  s.ClinicName,
 	}
 }
 
