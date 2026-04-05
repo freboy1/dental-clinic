@@ -27,6 +27,7 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	r.HandleFunc("/clinics/{id}", handler.GetClinic).Methods("GET")
 
 	r.HandleFunc("/clinics/{id}/address", handler.GetClinicAddress).Methods("GET")
+	r.HandleFunc("/clinics/{id}/address-names", handler.GetClinicAddress).Methods("GET")
 
 }
 

@@ -22,5 +22,6 @@ type ClinicResponse struct {
 type GetClinicAddressResponse struct {
 	Id         string `json:"id"`
 	Address_id string `json:"address_id"`
+	Address_name string `json:"address_name"`
 	Is_main    bool   `json:"is_main"`
 }

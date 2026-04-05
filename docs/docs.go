@@ -2079,6 +2079,9 @@ const docTemplate = `{
                 "address_id": {
                     "type": "string"
                 },
+                "address_name": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },

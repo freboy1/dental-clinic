@@ -87,15 +87,16 @@ func (s *ClinicService) GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, 
 	return s.repo.GetClinicAddress(id)
 }
 
-func ToClinicAddressResponse(clinicAddress models.ClinicAddress) dto.GetClinicAddressResponse {
+func ToClinicAddressResponse(clinicAddress models.ClinicAddressWithNames) dto.GetClinicAddressResponse {
 	return dto.GetClinicAddressResponse{
 		Id:         clinicAddress.Id.String(),
 		Address_id: clinicAddress.AddressId.String(),
 		Is_main:    clinicAddress.IsMain,
+		Address_name: clinicAddress.AddressName,
 	}
 }
 
-func ToClinicAddressResponseList(clinicAddress []models.ClinicAddress) []dto.GetClinicAddressResponse {
+func ToClinicAddressResponseList(clinicAddress []models.ClinicAddressWithNames) []dto.GetClinicAddressResponse {
 	result := make([]dto.GetClinicAddressResponse, 0, len(clinicAddress))
 	for _, u := range clinicAddress {
 		result = append(result, ToClinicAddressResponse(u))
@@ -110,4 +111,38 @@ func (s *ClinicService) DeleteAddress(id, address_id uuid.UUID) error {
 	}
 
 	return s.repo.DeleteAddress(id, address_id)
+}
+
+
+func (s *ClinicService) GetClinicAddressWithName(id uuid.UUID) ([]models.ClinicAddressWithNames, error) {
+	clinics, err := s.repo.GetClinicAddress(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var clinics_with_name []models.ClinicAddressWithNames
+
+	for _, clinic := range clinics {
+
+		clinic_with_name := models.ClinicAddressWithNames{}
+
+		clinic_with_name.Id = clinic.ClinicId
+		clinic_with_name.ClinicId = clinic.ClinicId
+		clinic_with_name.AddressId = clinic.AddressId
+		clinic_with_name.IsMain = clinic.IsMain
+
+		address, err := s.addressSrv.GetAddressByID(clinic_with_name.AddressId.String())
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan clinic: %w", err)
+		}
+		clinic_with_name.AddressName = address.Street
+
+		clinics_with_name = append(clinics_with_name, clinic_with_name)
+
+	}
+
+
+	return clinics_with_name, nil
+
 }

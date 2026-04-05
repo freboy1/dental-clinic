@@ -311,7 +311,7 @@ func (h *ClinicHandler) GetClinicAddress(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	clinicAddress, err := h.service.GetClinicAddress(clinic.Id)
+	clinicAddress, err := h.service.GetClinicAddressWithName(clinic.Id)
 	if err != nil {
 		http.Error(w, "Failed to get clinic address", http.StatusInternalServerError)
 		return
