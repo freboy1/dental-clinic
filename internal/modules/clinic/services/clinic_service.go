@@ -93,6 +93,7 @@ func ToClinicAddressResponse(clinicAddress models.ClinicAddressWithNames) dto.Ge
 		Address_id: clinicAddress.AddressId.String(),
 		Is_main:    clinicAddress.IsMain,
 		Address_name: clinicAddress.AddressName,
+		Address_building: clinicAddress.AddressBuilding,
 	}
 }
 
@@ -137,6 +138,7 @@ func (s *ClinicService) GetClinicAddressWithName(id uuid.UUID) ([]models.ClinicA
 			return nil, fmt.Errorf("failed to scan clinic: %w", err)
 		}
 		clinic_with_name.AddressName = address.Street
+		clinic_with_name.AddressBuilding = address.Building
 
 		clinics_with_name = append(clinics_with_name, clinic_with_name)
 

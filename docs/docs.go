@@ -2076,6 +2076,9 @@ const docTemplate = `{
         "dto.GetClinicAddressResponse": {
             "type": "object",
             "properties": {
+                "address_building": {
+                    "type": "string"
+                },
                 "address_id": {
                     "type": "string"
                 },

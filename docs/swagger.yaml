@@ -200,6 +200,8 @@ definitions:
     type: object
   dto.GetClinicAddressResponse:
     properties:
+      address_building:
+        type: string
       address_id:
         type: string
       address_name:
