@@ -22,6 +22,7 @@ type ScheduleRepository interface {
 	GetAvailableSlotsByDateAndDoctorAndClinic(doctor_id, clinic_address_id uuid.UUID, date time.Time) ([]models.Slot, error)
 	GetScheduleByDoctor(doctor_id uuid.UUID) ([]models.Schedule, error)
 	GetSlotById(slotId uuid.UUID) (*models.Slot, error)
+	UpdateSlotStatus(slotId uuid.UUID, status string) (error)
 }
 
 type scheduleRepo struct {
@@ -151,4 +152,20 @@ func (r *scheduleRepo) GetSlotById(slotId uuid.UUID) (*models.Slot, error) {
 		return nil, err
 	}
 	return &slot, nil
+}
+
+
+func (r *scheduleRepo) UpdateSlotStatus(slotId uuid.UUID, status string) (error) {
+	query := `UPDATE doctor_time_slots SET status = $1 WHERE id = $2 ;`
+
+	result, err := r.db.Exec(context.Background(), query, status, slotId)
+	if err != nil {
+		return fmt.Errorf("failed to update slot: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("slot not found")
+	}
+
+	return nil
 }

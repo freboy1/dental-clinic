@@ -277,3 +277,20 @@ func ToScheduleResponseList(schedules []models.Schedule) []dto.ScheduleDoctorRes
 	}
 	return result
 }
+
+
+
+func (s *ScheduleService) ChangeSlotStatus(slot models.Slot, status string) error {
+
+	if status == "" {
+		return errors.New("status can not be empty")
+	}
+
+	_, err := s.repo.GetSlotById(slot.Id)
+	
+	if err != nil {
+		return errors.New("slot does not exist")
+	}
+
+	return s.repo.UpdateSlotStatus(slot.Id, status)
+}

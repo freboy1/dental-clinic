@@ -95,6 +95,15 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, err
 	}
 
+	for _, slot := range slotsToBook {
+		
+		err := s.scheduleSrv.ChangeSlotStatus(slot, "booked")
+		if err != nil {
+			return nil, err
+		}
+
+	}
+
 	appointment := &models.Appointment{
 		Id:                uuid.New(),
 		Doctor_id:         doctorId,
