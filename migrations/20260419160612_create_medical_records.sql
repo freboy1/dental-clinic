@@ -7,6 +7,7 @@ CREATE TABLE medical_records (
 
   diagnosis TEXT,
   notes TEXT,
+  is_checked BOOLEAN,
 
   created_at TIMESTAMP,
   updated_at TIMESTAMP
