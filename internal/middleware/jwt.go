@@ -24,7 +24,7 @@ func JWTAuth(secret string) func(http.Handler) http.Handler {
 			parts := strings.Split(authHeader, " ")
 			if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 				http.Error(w, "Invalid Authorization header", http.StatusUnauthorized)
-				// return
+				return
 			}
 
 			tokenStr := parts[1]
@@ -49,6 +49,36 @@ func JWTAuth(secret string) func(http.Handler) http.Handler {
 
 			ctx := context.WithValue(r.Context(), UserContextKey, claims)
 			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func RequireRoles(allowedRoles ...string) func(http.Handler) http.Handler {
+	allowed := make(map[string]struct{}, len(allowedRoles))
+	for _, role := range allowedRoles {
+		allowed[role] = struct{}{}
+	}
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			claims, ok := r.Context().Value(UserContextKey).(jwt.MapClaims)
+			if !ok {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			role, ok := claims["role"].(string)
+			if !ok {
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+
+			if _, exists := allowed[role]; !exists {
+				http.Error(w, "Forbidden: insufficient role", http.StatusForbidden)
+				return
+			}
+
+			next.ServeHTTP(w, r)
 		})
 	}
 }
