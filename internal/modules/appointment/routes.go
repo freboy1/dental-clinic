@@ -20,6 +20,9 @@ import (
 	addressRepository "dental_clinic/internal/modules/address/repository"
 	addressServices "dental_clinic/internal/modules/address/services"
 
+	medical_recordRepository "dental_clinic/internal/modules/medical_record/repository"
+	medical_recordServices "dental_clinic/internal/modules/medical_record/services"
+
 	"github.com/gorilla/mux"
 )
 
@@ -38,7 +41,10 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	scheduleRepo := scheduleRepository.NewScheduleRepository(db)
 	scheduleService := scheduleServices.NewScheduleService(scheduleRepo, *cfg, *serviceService)
 
-	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService)
+	medical_recordRepo := medical_recordRepository.NewDoctorRepository(db)
+	medical_recordService := medical_recordServices.NewMedicalRecordService(medical_recordRepo)
+
+	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService, *medical_recordService)
 	handler := handlers.NewAppointmentHandler(service, *cfg)
 
 	r.HandleFunc("/appointment", handler.CreateAppointment).Methods("POST")
@@ -59,7 +65,10 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	scheduleRepo := scheduleRepository.NewScheduleRepository(db)
 	scheduleService := scheduleServices.NewScheduleService(scheduleRepo, *cfg, *serviceService)
 
-	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService)
+	medical_recordRepo := medical_recordRepository.NewDoctorRepository(db)
+	medical_recordService := medical_recordServices.NewMedicalRecordService(medical_recordRepo)
+
+	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService, *medical_recordService)
 
 	handler := handlers.NewAppointmentHandler(service, *cfg)
 
