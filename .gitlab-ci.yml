@@ -3,6 +3,7 @@ stages:
   - build
   - test
   - docker
+  - deploy
 
 variables:
   GITLAB_DEPENDENCY_PROXY_DISABLED: "true"
@@ -56,20 +57,34 @@ test:
 
 docker-build:
   stage: docker
-  # Используем хостовый Docker — без dind
-  image: docker:24
-  variables:
-    DOCKER_HOST: unix:///var/run/docker.sock
+  tags:
+    - build
+  image: docker:25.0
+  services:
+    - docker:25.0-dind
+  only:
+    - main
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
   script:
+    - export FULL_IMAGE="$CI_REGISTRY/$CI_PROJECT_PATH:latest"
+    - docker build -f docker/Dockerfile.deploy -t "$FULL_IMAGE" .
+    - docker push "$FULL_IMAGE"
+
+deploy:
+  image: docker:stable
+  stage: deploy
+  tags:
+    - prod
+  only:
+    - main
+  before_script:
+    - docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+  script:
+    - echo "$SSH_PRIVATE_KEY" > /tmp/id_rsa
+    - chmod 600 /tmp/id_rsa
     - |
-      docker build \
-        -f docker/Dockerfile \
-        -t $IMAGE_NAME:$IMAGE_TAG \
-        -t $IMAGE_NAME:latest \
-        .
-    - docker push $IMAGE_NAME:$IMAGE_TAG
-    - docker push $IMAGE_NAME:latest
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
+      ssh -o StrictHostKeyChecking=no -i /tmp/id_rsa $SSH_USER@$SSH_HOST "
+        cd /home/vm/Projects/dental-clinic &&
+        docker compose up -d --pull always --no-deps --force-recreate backend
+      "
