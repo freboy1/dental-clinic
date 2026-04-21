@@ -172,9 +172,6 @@ func (s *UserService) Login(req dto.LoginRequest, ip string) (*models.User, erro
 		return nil, errors.New("user not found")
 	}
 
-	fmt.Println(user.Password)
-	fmt.Println(req.Password)
-
 	if !CheckPassword(user.Password, req.Password) {
 		_ = s.repo.LogLogin(user.Id.String(), ip, false)
 		return nil, errors.New("Invalid credentials")
@@ -192,11 +189,7 @@ func (s *UserService) UpdatePassword(tokenStr string, req dto.UpdatePasswordRequ
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
 	userIDAny := claims["user_id"]
 	userID, _ := userIDAny.(string)
-	fmt.Println("User id")
-	fmt.Println(userID)
-	fmt.Println(req.OldPassword)
 	user, err := s.repo.GetUserByID(userID)
-	fmt.Println(user.Password)
 	if err != nil {
 		return err
 	}
