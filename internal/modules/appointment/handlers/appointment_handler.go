@@ -189,7 +189,7 @@ func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Re
 		return
 	}
 	response.Success, response.Message = "1", "Successfully deleted"
-	w.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(response)
 }
 
