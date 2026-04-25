@@ -104,6 +104,16 @@ func (s *DoctorService) UpdateDoctor(id string, req dto.UpdateDoctorRequest) (*m
 		return nil, errors.New("invalid clinic_id")
 	}
 
+	err = s.userSrv.UpdatePasswordWithUserId(doctor.UserId.String(), req.NewPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.userSrv.UpdateUserVerification(doctor.UserId.String(), req.Is_active)
+	if err != nil {
+		return nil, err
+	}
+
 	doctor.Specialization = req.Specialization
 	doctor.Experience = req.Experience
 	doctor.ClinicID = clinicID

@@ -27,6 +27,7 @@ type UserRepository interface {
 	SaveEmailVerificationToken(userID, newEmail, verifyToken string) error
 	VerifyEmailToken(token string) (string, string, error)
 	UpdateEmailInDatabase(userId, newEmail string) error
+	UpdateUserVerification(user_id string, is_active bool) error
 }
 
 type userRepo struct {
@@ -153,6 +154,13 @@ func (r *userRepo) FindUserIdByToken(token string) (string, error) {
 func (r *userRepo) MarkUserAsVerified(user_id string) error {
 	query := "UPDATE users SET is_verified=TRUE WHERE id=$1"
 	_, err := r.db.Exec(context.Background(), query, user_id)
+
+	return err
+}
+
+func (r *userRepo) UpdateUserVerification(user_id string, is_active bool) error {
+	query := "UPDATE users SET is_verified=$1 WHERE id=$2"
+	_, err := r.db.Exec(context.Background(), query, is_active, user_id)
 
 	return err
 }

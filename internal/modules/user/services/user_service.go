@@ -307,3 +307,33 @@ func ToUserResponseList(users []models.User) []dto.UserResponse {
 	}
 	return result
 }
+
+func (s *UserService) UpdatePasswordWithUserId(user_id, password string) error {
+	user, err := s.repo.GetUserByID(user_id)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	if !isValidPassword(password) {
+		return errors.New("weak password")
+	}
+
+	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	err = s.repo.UpdatePassword(user_id, string(hash))
+	if err != nil {
+		return err
+	}
+	err = utils.SendEmail(&s.cfx, user.Email, "You have updated your Password", "You have updated your Password")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) UpdateUserVerification(user_id string, is_active bool) error {
+	return s.repo.UpdateUserVerification(user_id, is_active)
+}
