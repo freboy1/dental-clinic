@@ -20,11 +20,11 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool) {
 }
 
 func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool) {
-	//repo := repository.NewMedicalRecordRepository(db)
-	//service := services.NewMedicalRecordService(repo)
-	//handler := handlers.NewMedicalRecordHandler(service)
+	repo := repository.NewMedicalRecordRepository(db)
+	service := services.NewMedicalRecordService(repo)
+	handler := handlers.NewMedicalRecordHandler(service)
 
-	//r.HandleFunc("/medical-records/{id}", handler.GetMedicalRecord).Methods("GET")
+	r.HandleFunc("/medical-records/{id}", handler.GetMedicalRecord).Methods("GET")
 }
 
 func RegisterDoctorRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {

@@ -1240,6 +1240,59 @@
             }
         },
         "/api/medical-records/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "gets an existing MedicalRecord's information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MedicalRecord"
+                ],
+                "summary": "Get MedicalRecord",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "MedicalRecord ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetMedicalRecordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -2152,6 +2205,26 @@
                 },
                 "is_main": {
                     "type": "boolean"
+                }
+            }
+        },
+        "dto.GetMedicalRecordResponse": {
+            "type": "object",
+            "properties": {
+                "diagnosis": {
+                    "type": "string"
+                },
+                "is_checked": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
