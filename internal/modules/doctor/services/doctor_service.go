@@ -53,12 +53,14 @@ func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Docto
 		IsAvailable:    req.IsAvailable,
 	}
 
-	doctor, err = s.repo.Create(doctor)
+	user, err := s.userSrv.CreateUser(doctor.Email, req.Password, doctor.Name, "doctor", req.Is_active)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = s.userSrv.CreateUser(doctor.Email, req.Password, doctor.Name, "doctor", req.Is_active)
+	doctor.UserId = user.Id
+
+	doctor, err = s.repo.Create(doctor)
 	if err != nil {
 		return nil, err
 	}

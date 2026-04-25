@@ -27,8 +27,8 @@ func NewDoctorRepository(db *pgxpool.Pool) DoctorRepository {
 
 func (r *doctorRepo) Create(doctor *models.Doctor) (*models.Doctor, error) {
 	query := `
-		INSERT INTO doctors (specialization, experience, clinic_id, bio, is_available, name, email)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO doctors (specialization, experience, clinic_id, bio, is_available, name, email, user_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id
 	`
 	err := r.db.QueryRow(
@@ -41,6 +41,7 @@ func (r *doctorRepo) Create(doctor *models.Doctor) (*models.Doctor, error) {
 		doctor.IsAvailable,
 		doctor.Name,
 		doctor.Email,
+		doctor.UserId,
 	).Scan(&doctor.Id)
 	return doctor, err
 }
