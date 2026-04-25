@@ -66,6 +66,39 @@ func (s *UserService) Register(req dto.RegisterRequest) (*models.User, error) {
 	return created_user, err
 }
 
+func (s *UserService) CreateUser(email, password, name, role string, is_active bool) (*models.User, error) {
+	if !isValidEmail(email) {
+		return nil, errors.New("invalid email format")
+	}
+	if !isValidPassword(password) {
+		return nil, errors.New("weak password")
+	}
+	if !isValidName(name) {
+		return nil, errors.New("invalid name")
+	}
+
+	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	user := &models.User{
+		Role:         role,
+		Email:        email,
+		Password:     string(hash),
+		Name:         name,
+		Gender:       "",
+		Age:          0,
+		Push_consent: false,
+	}
+	created_user, err := s.repo.Create(user)
+	if err != nil {
+		return created_user, err
+	}
+
+	if is_active {
+		s.repo.MarkUserAsVerified(created_user.Id.String())
+	}
+
+	return created_user, err
+}
+
 func (s *UserService) GetAllUsers(tokenStr string) ([]models.User, error) {
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
 	if claims["role"] == "admin" {

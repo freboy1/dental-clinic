@@ -8,6 +8,8 @@ type CreateDoctorRequest struct {
 	ClinicID       string `json:"clinic_id"`
 	Bio            string `json:"bio"`
 	IsAvailable    bool   `json:"is_available"`
+	Password       string `json:"password"`
+	Is_active      bool   `json:"is_active"`
 }
 
 type UpdateDoctorRequest struct {

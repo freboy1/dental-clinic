@@ -7,15 +7,21 @@ import (
 	"dental_clinic/internal/modules/doctor/models"
 	"dental_clinic/internal/modules/doctor/repository"
 
+	userServices "dental_clinic/internal/modules/user/services"
+
 	"github.com/google/uuid"
 )
 
 type DoctorService struct {
-	repo repository.DoctorRepository
+	repo    repository.DoctorRepository
+	userSrv userServices.UserService
 }
 
-func NewDoctorService(r repository.DoctorRepository) *DoctorService {
-	return &DoctorService{repo: r}
+func NewDoctorService(r repository.DoctorRepository, userSrv userServices.UserService) *DoctorService {
+	return &DoctorService{
+		repo:    r,
+		userSrv: userSrv,
+	}
 }
 
 func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Doctor, error) {
@@ -47,7 +53,17 @@ func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Docto
 		IsAvailable:    req.IsAvailable,
 	}
 
-	return s.repo.Create(doctor)
+	doctor, err = s.repo.Create(doctor)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.userSrv.CreateUser(doctor.Email, req.Password, doctor.Name, "doctor", req.Is_active)
+	if err != nil {
+		return nil, err
+	}
+
+	return doctor, nil
 }
 
 func (s *DoctorService) GetAllDoctors() ([]models.Doctor, error) {
