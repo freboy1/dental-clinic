@@ -41,7 +41,7 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	scheduleRepo := scheduleRepository.NewScheduleRepository(db)
 	scheduleService := scheduleServices.NewScheduleService(scheduleRepo, *cfg, *serviceService)
 
-	medical_recordRepo := medical_recordRepository.NewDoctorRepository(db)
+	medical_recordRepo := medical_recordRepository.NewMedicalRecordRepository(db)
 	medical_recordService := medical_recordServices.NewMedicalRecordService(medical_recordRepo)
 
 	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService, *medical_recordService)
@@ -65,7 +65,7 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	scheduleRepo := scheduleRepository.NewScheduleRepository(db)
 	scheduleService := scheduleServices.NewScheduleService(scheduleRepo, *cfg, *serviceService)
 
-	medical_recordRepo := medical_recordRepository.NewDoctorRepository(db)
+	medical_recordRepo := medical_recordRepository.NewMedicalRecordRepository(db)
 	medical_recordService := medical_recordServices.NewMedicalRecordService(medical_recordRepo)
 
 	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService, *medical_recordService)

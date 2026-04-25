@@ -1274,12 +1274,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Doctor update data",
+                        "description": "Medical record update data",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateDoctorRequest"
+                            "$ref": "#/definitions/dto.UpdateMedicalRecordRequest"
                         }
                     }
                 ],
@@ -1287,7 +1287,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.DoctorResponse"
+                            "$ref": "#/definitions/dto.MedicalRecordResponse"
                         }
                     },
                     "400": {
@@ -1945,10 +1945,16 @@ const docTemplate = `{
                 "experience": {
                     "type": "integer"
                 },
+                "is_active": {
+                    "type": "boolean"
+                },
                 "is_available": {
                     "type": "boolean"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 },
                 "specialization": {
@@ -2182,6 +2188,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.MedicalRecordResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.RegisterRequest": {
             "type": "object",
             "properties": {
@@ -2391,10 +2408,30 @@ const docTemplate = `{
                 "experience": {
                     "type": "integer"
                 },
+                "is_active": {
+                    "type": "boolean"
+                },
                 "is_available": {
                     "type": "boolean"
                 },
+                "new_password": {
+                    "type": "string"
+                },
                 "specialization": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateMedicalRecordRequest": {
+            "type": "object",
+            "properties": {
+                "diagnosis": {
+                    "type": "string"
+                },
+                "is_checked": {
+                    "type": "boolean"
+                },
+                "notes": {
                     "type": "string"
                 }
             }

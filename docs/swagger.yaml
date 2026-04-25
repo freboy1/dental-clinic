@@ -73,9 +73,13 @@ definitions:
         type: string
       experience:
         type: integer
+      is_active:
+        type: boolean
       is_available:
         type: boolean
       name:
+        type: string
+      password:
         type: string
       specialization:
         type: string
@@ -227,6 +231,13 @@ definitions:
       token:
         type: string
     type: object
+  dto.MedicalRecordResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: string
+    type: object
   dto.RegisterRequest:
     properties:
       age:
@@ -363,9 +374,22 @@ definitions:
         type: string
       experience:
         type: integer
+      is_active:
+        type: boolean
       is_available:
         type: boolean
+      new_password:
+        type: string
       specialization:
+        type: string
+    type: object
+  dto.UpdateMedicalRecordRequest:
+    properties:
+      diagnosis:
+        type: string
+      is_checked:
+        type: boolean
+      notes:
         type: string
     type: object
   dto.UpdateServiceRequest:
@@ -1230,19 +1254,19 @@ paths:
         name: id
         required: true
         type: string
-      - description: Doctor update data
+      - description: Medical record update data
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.UpdateDoctorRequest'
+          $ref: '#/definitions/dto.UpdateMedicalRecordRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.DoctorResponse'
+            $ref: '#/definitions/dto.MedicalRecordResponse'
         "400":
           description: Bad Request
           schema:

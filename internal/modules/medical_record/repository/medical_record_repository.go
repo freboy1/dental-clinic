@@ -4,14 +4,15 @@ import (
 	"context"
 	"dental_clinic/internal/modules/medical_record/models"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type MedicalRecordRepository interface {
 	Create(medical_record *models.MedicalRecord) (*models.MedicalRecord, error)
-	//GetByID(id string) (*models.Doctor, error)
+	GetByID(id string) (*models.MedicalRecord, error)
 	//GetAll() ([]models.Doctor, error)
-	//Update(id string, doctor *models.Doctor) (*models.Doctor, error)
+	Update(id string, doctor *models.MedicalRecord) (*models.MedicalRecord, error)
 	//Delete(id string) error
 }
 
@@ -19,7 +20,7 @@ type medical_report_Repo struct {
 	db *pgxpool.Pool
 }
 
-func NewDoctorRepository(db *pgxpool.Pool) MedicalRecordRepository {
+func NewMedicalRecordRepository(db *pgxpool.Pool) MedicalRecordRepository {
 	return &medical_report_Repo{db: db}
 }
 
@@ -43,4 +44,51 @@ func (r *medical_report_Repo) Create(medical_record *models.MedicalRecord) (*mod
 		medical_record.Updated_at,
 	).Scan(&medical_record.Id)
 	return medical_record, err
+}
+
+func (r *medical_report_Repo) GetByID(id string) (*models.MedicalRecord, error) {
+	query := `SELECT appointment_id, doctor_id, patient_id, diagnosis, notes, is_checked, created_at, updated_at FROM medical_records WHERE id = $1`
+	var medical_record models.MedicalRecord
+	err := r.db.QueryRow(context.Background(), query, id).Scan(&medical_record.Appointment_id, &medical_record.Doctor_id, &medical_record.Patient_id, &medical_record.Diagnosis, &medical_record.Notes, &medical_record.Is_checked, &medical_record.Created_at, &medical_record.Updated_at)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &medical_record, nil
+}
+
+func (r *medical_report_Repo) Update(id string, medical_record *models.MedicalRecord) (*models.MedicalRecord, error) {
+	query := `
+		UPDATE medical_records
+		SET diagnosis=$1, notes=$2, is_checked=$3, updated_at=$4
+		WHERE id=$5
+		RETURNING id, diagnosis, notes, is_checked, updated_at
+	`
+
+	err := r.db.QueryRow(
+		context.Background(),
+		query,
+		medical_record.Diagnosis,
+		medical_record.Notes,
+		medical_record.Is_checked,
+		medical_record.Updated_at,
+		id,
+	).Scan(
+		&medical_record.Id,
+		&medical_record.Diagnosis,
+		&medical_record.Notes,
+		&medical_record.Is_checked,
+		&medical_record.Updated_at,
+	)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return medical_record, nil
 }
