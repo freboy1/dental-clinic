@@ -11,6 +11,7 @@ import (
 type MedicalRecordRepository interface {
 	Create(medical_record *models.MedicalRecord) (*models.MedicalRecord, error)
 	GetByID(id string) (*models.MedicalRecord, error)
+	GetMedicalRecordByAppointmentId(id string) (*models.MedicalRecord, error)
 	//GetAll() ([]models.Doctor, error)
 	Update(id string, doctor *models.MedicalRecord) (*models.MedicalRecord, error)
 	//Delete(id string) error
@@ -91,4 +92,17 @@ func (r *medical_report_Repo) Update(id string, medical_record *models.MedicalRe
 	}
 
 	return medical_record, nil
+}
+
+func (r *medical_report_Repo) GetMedicalRecordByAppointmentId(id string) (*models.MedicalRecord, error) {
+	query := `SELECT appointment_id, doctor_id, patient_id, diagnosis, notes, is_checked, created_at, updated_at FROM medical_records WHERE appointment_id = $1`
+	var medical_record models.MedicalRecord
+	err := r.db.QueryRow(context.Background(), query, id).Scan(&medical_record.Appointment_id, &medical_record.Doctor_id, &medical_record.Patient_id, &medical_record.Diagnosis, &medical_record.Notes, &medical_record.Is_checked, &medical_record.Created_at, &medical_record.Updated_at)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &medical_record, nil
 }

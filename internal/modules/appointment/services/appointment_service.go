@@ -269,3 +269,26 @@ func (s *AppointmentService) GetMyAppointments(tokenStr string) ([]models.Appoin
 
 	return s.repo.GetMyAppointments(userId.String())
 }
+
+// GetMedicalRecord
+func (s *AppointmentService) GetMedicalRecord(id string) (dto.GetMedicalRecordAppointmentResponse, error) {
+
+	response := dto.GetMedicalRecordAppointmentResponse{
+		Status:  "0",
+		Message: "",
+	}
+
+	medical_record, err := s.medical_recordSrv.GetMedicalRecordByAppointmentId(id)
+
+	if err != nil {
+		response.Message = err.Error()
+		return response, err
+	}
+
+	response.Status = "1"
+	response.Notes = medical_record.Notes
+	response.Diagnosis = medical_record.Diagnosis
+	response.Is_checked = medical_record.Is_checked
+
+	return response, nil
+}

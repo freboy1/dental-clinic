@@ -215,6 +215,19 @@ definitions:
       is_main:
         type: boolean
     type: object
+  dto.GetMedicalRecordAppointmentResponse:
+    properties:
+      diagnosis:
+        type: string
+      is_checked:
+        type: boolean
+      message:
+        type: string
+      notes:
+        type: string
+      status:
+        type: string
+    type: object
   dto.GetMedicalRecordResponse:
     properties:
       diagnosis:
@@ -781,6 +794,41 @@ paths:
       security:
       - BearerAuth: []
       summary: Update appointment
+      tags:
+      - Appointment
+  /api/appointment/medical-record/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get my medical record
+      parameters:
+      - description: Appointment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetMedicalRecordAppointmentResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: get my medical record
       tags:
       - Appointment
   /api/appointment/my-appointments:

@@ -60,3 +60,6 @@ func (s *MedicalRecordService) UpdateMedicalRecord(id string, req dto.UpdateMedi
 func (s *MedicalRecordService) GetMedicalRecord(id string) (*models.MedicalRecord, error) {
 	return s.repo.GetByID(id)
 }
+func (s *MedicalRecordService) GetMedicalRecordByAppointmentId(id string) (*models.MedicalRecord, error) {
+	return s.repo.GetMedicalRecordByAppointmentId(id)
+}

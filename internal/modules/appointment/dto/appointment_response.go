@@ -46,3 +46,11 @@ type UpdateAppointmentRequest struct {
 	Name              string `json:"name"`
 	Email             string `json:"email"`
 }
+
+type GetMedicalRecordAppointmentResponse struct {
+	Status     string `json:"status"`
+	Message    string `json:"message"`
+	Diagnosis  string `json:"diagnosis"`
+	Notes      string `json:"notes"`
+	Is_checked bool   `json:"is_checked"`
+}

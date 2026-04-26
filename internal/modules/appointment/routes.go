@@ -75,6 +75,7 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	r.HandleFunc("/appointment", handler.GetAllAppointments).Methods("GET")
 
 	r.HandleFunc("/appointment/my-appointments", handler.GetMyAppointments).Methods("GET")
+	r.HandleFunc("/appointment/medical-record/{id}", handler.GetMedicalRecord).Methods("GET")
 
 	r.HandleFunc("/appointment/{id}", handler.GetAppointmentByID).Methods("GET")
 	r.HandleFunc("/appointment/{id}", handler.UpdateAppointment).Methods("PUT")
