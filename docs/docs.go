@@ -1116,6 +1116,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/doctors/medical-records/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get doctor medical records by ID",
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Get doctor medical records",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Doctor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetMedicalRecordDoctorResponse"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/doctors/{id}": {
             "get": {
                 "security": [
@@ -2287,6 +2330,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetMedicalRecordDoctorResponse": {
+            "type": "object",
+            "properties": {
+                "diagnosis": {
+                    "type": "string"
+                },
+                "is_checked": {
+                    "type": "boolean"
+                },
+                "notes": {
                     "type": "string"
                 }
             }

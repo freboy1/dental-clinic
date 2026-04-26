@@ -38,3 +38,9 @@ type DoctorActionResponse struct {
 	Message  string `json:"message"`
 	DoctorID string `json:"doctor_id"`
 }
+
+type GetMedicalRecordDoctorResponse struct {
+	Diagnosis  string `json:"diagnosis"`
+	Notes      string `json:"notes"`
+	Is_checked bool   `json:"is_checked"`
+}

@@ -166,3 +166,24 @@ func (h *DoctorHandler) DeleteDoctor(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Doctor deleted successfully"})
 }
+
+// GetDoctorByIdMedicalRecords godoc
+// @Summary Get doctor medical records
+// @Description Get doctor medical records by ID
+// @Tags Doctors
+// @Security BearerAuth
+// @Param id path string true "Doctor ID"
+// @Success 200 {array} dto.GetMedicalRecordDoctorResponse
+// @Failure 404 {object} map[string]string
+// @Router /api/doctors/medical-records/{id} [get]
+func (h *DoctorHandler) GetDoctorByIdMedicalRecords(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	responses, err := h.service.GetDoctorByIdMedicalRecords(id)
+	if err != nil {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(responses)
+}

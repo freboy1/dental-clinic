@@ -63,3 +63,7 @@ func (s *MedicalRecordService) GetMedicalRecord(id string) (*models.MedicalRecor
 func (s *MedicalRecordService) GetMedicalRecordByAppointmentId(id string) (*models.MedicalRecord, error) {
 	return s.repo.GetMedicalRecordByAppointmentId(id)
 }
+
+func (s *MedicalRecordService) GetMedicalRecordsByDoctorId(id string) ([]models.MedicalRecord, error) {
+	return s.repo.GetMedicalRecordsByDoctorId(id)
+}
