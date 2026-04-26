@@ -1159,6 +1159,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/doctors/my-medical-records": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get doctor medical records",
+                "tags": [
+                    "Doctors"
+                ],
+                "summary": "Get doctor medical records",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.GetMedicalRecordDoctorResponse"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/doctors/{id}": {
             "get": {
                 "security": [

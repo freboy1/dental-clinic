@@ -26,7 +26,7 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	medical_recordService := medical_recordServices.NewMedicalRecordService(medical_recordRepo)
 
 	service := services.NewDoctorService(repo, *userService, *medical_recordService)
-	handler := handlers.NewDoctorHandler(service)
+	handler := handlers.NewDoctorHandler(service, *cfg)
 
 	r.HandleFunc("/doctors", handler.GetAllDoctors).Methods("GET")
 	r.HandleFunc("/doctors/{id}", handler.GetDoctorByID).Methods("GET")
@@ -42,9 +42,10 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	medical_recordService := medical_recordServices.NewMedicalRecordService(medical_recordRepo)
 
 	service := services.NewDoctorService(repo, *userService, *medical_recordService)
-	handler := handlers.NewDoctorHandler(service)
+	handler := handlers.NewDoctorHandler(service, *cfg)
 
 	r.HandleFunc("/doctors", handler.CreateDoctor).Methods("POST")
+	r.HandleFunc("/doctors/my-medical-records", handler.GetDoctorMedicalRecords).Methods("GET")
 	r.HandleFunc("/doctors/medical-records/{id}", handler.GetDoctorByIdMedicalRecords).Methods("GET")
 	r.HandleFunc("/doctors/{id}", handler.UpdateDoctor).Methods("PUT")
 	r.HandleFunc("/doctors/{id}", handler.DeleteDoctor).Methods("DELETE")

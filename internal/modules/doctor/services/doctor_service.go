@@ -183,3 +183,28 @@ func (s *DoctorService) GetDoctorByIdMedicalRecords(id string) ([]dto.GetMedical
 	}
 	return responses, nil
 }
+func (s *DoctorService) GetDoctorByUserIdMedicalRecords(id string) ([]dto.GetMedicalRecordDoctorResponse, error) {
+	doctor, err := s.repo.GetByUserID(id)
+	if err != nil {
+		return nil, err
+	}
+	if doctor == nil {
+		return nil, errors.New("doctor not found")
+	}
+	medical_records, err := s.medical_recordSrv.GetMedicalRecordsByDoctorId(id)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []dto.GetMedicalRecordDoctorResponse
+	for _, medical_record := range medical_records {
+
+		response := dto.GetMedicalRecordDoctorResponse{
+			Diagnosis:  medical_record.Diagnosis,
+			Notes:      medical_record.Notes,
+			Is_checked: medical_record.Is_checked,
+		}
+		responses = append(responses, response)
+	}
+	return responses, nil
+}

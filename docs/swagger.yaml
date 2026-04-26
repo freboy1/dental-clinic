@@ -1314,6 +1314,27 @@ paths:
       summary: Get doctor medical records
       tags:
       - Doctors
+  /api/doctors/my-medical-records:
+    get:
+      description: Get doctor medical records
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetMedicalRecordDoctorResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get doctor medical records
+      tags:
+      - Doctors
   /api/login:
     post:
       consumes:
