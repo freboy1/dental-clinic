@@ -427,6 +427,19 @@ definitions:
       notes:
         type: string
     type: object
+  dto.UpdateScheduleRequest:
+    properties:
+      clinic_address_id:
+        type: string
+      day_of_week:
+        type: integer
+      doctor_id:
+        type: string
+      end_time:
+        type: string
+      start_time:
+        type: string
+    type: object
   dto.UpdateServiceRequest:
     properties:
       clinic_id:
@@ -1620,6 +1633,38 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete doctor schedule
+      tags:
+      - Schedule
+    put:
+      description: Returns a response
+      parameters:
+      - description: Schedule ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Schedule update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ScheduleResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update doctor schedule
       tags:
       - Schedule
   /api/services:

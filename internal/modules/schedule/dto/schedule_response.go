@@ -42,3 +42,11 @@ type ScheduleDoctorResponse struct {
 	Start_time        string
 	End_time          string
 }
+
+type UpdateScheduleRequest struct {
+	Doctor_id         string `json:"doctor_id"`
+	Clinic_address_id string `json:"clinic_address_id"`
+	Day_of_week       int    `json:"day_of_week"`
+	Start_time        string `json:"start_time"`
+	End_time          string `json:"end_time"`
+}

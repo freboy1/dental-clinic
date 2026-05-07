@@ -25,6 +25,7 @@ type ScheduleRepository interface {
 	UpdateSlotStatus(slotId uuid.UUID, status string) error
 	GetScheduleById(schedule_id uuid.UUID) (*models.Schedule, error)
 	DeleteScheduleById(schedule_id uuid.UUID) error
+	UpdateScheduleById(id string, doctor *models.Schedule) error
 }
 
 type scheduleRepo struct {
@@ -198,5 +199,32 @@ func (r *scheduleRepo) DeleteScheduleById(schedule_id uuid.UUID) error {
 		return pgx.ErrNoRows
 	}
 
+	return nil
+}
+
+func (r *scheduleRepo) UpdateScheduleById(id string, doctor *models.Schedule) error {
+	query := `
+		UPDATE doctor_working_hours
+		SET doctor_id=$1, clinic_address_id=$2, day_of_week=$3, start_time=$4, end_time=$5
+		WHERE id=$6
+		RETURNING id, doctor_id, clinic_address_id, day_of_week, start_time, end_time
+	`
+	err := r.db.QueryRow(
+		context.Background(),
+		query,
+		doctor.Doctor_id,
+		doctor.Clinic_address_id,
+		doctor.Day_of_week,
+		doctor.Start_time,
+		doctor.End_time,
+		id,
+	).Scan(&doctor.Id, &doctor.Doctor_id, &doctor.Clinic_address_id, &doctor.Day_of_week, &doctor.Start_time, &doctor.End_time)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil
+		}
+		return err
+	}
 	return nil
 }
