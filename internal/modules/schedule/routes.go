@@ -62,8 +62,8 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	scheduleRouter.HandleFunc("/generate", handler.GenerateSlots).Methods("POST")
 	scheduleRouter.HandleFunc("/doctors/{doctorId}/working-hours", handler.GetDoctorSchedule).Methods("GET")
 
-	// scheduleRouter.HandleFunc("/working-hours/{id}", handler.UpdateDoctorSchedule).Methods("PUT")
-	// scheduleRouter.HandleFunc("/working-hours/{id}", handler.DeleteDoctorSchedule).Methods("DELETE")
+	//scheduleRouter.HandleFunc("/working-hours/{id}", handler.UpdateDoctorSchedule).Methods("PUT")
+	scheduleRouter.HandleFunc("/working-hours/{id}", handler.DeleteDoctorSchedule).Methods("DELETE")
 
 	// scheduleRouter.HandleFunc("/doctors/{id}/slots", handler.GetSlots).Methods("GET")
 }
