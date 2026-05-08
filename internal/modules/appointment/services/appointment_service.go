@@ -11,6 +11,7 @@ import (
 
 	"time"
 
+	medical_recordServices "dental_clinic/internal/modules/medical_record/services"
 	scheduleServices "dental_clinic/internal/modules/schedule/services"
 	serviceServices "dental_clinic/internal/modules/services/services"
 
@@ -21,18 +22,20 @@ import (
 )
 
 type AppointmentService struct {
-	repo        repository.AppointmentRepository
-	cfx         config.Config
-	scheduleSrv scheduleServices.ScheduleService
-	serviceSrv  serviceServices.ServiceService
+	repo              repository.AppointmentRepository
+	cfx               config.Config
+	scheduleSrv       scheduleServices.ScheduleService
+	serviceSrv        serviceServices.ServiceService
+	medical_recordSrv medical_recordServices.MedicalRecordService
 }
 
-func NewAppointmentService(r repository.AppointmentRepository, cfx config.Config, scheduleSrv scheduleServices.ScheduleService, serviceSrv serviceServices.ServiceService) *AppointmentService {
+func NewAppointmentService(r repository.AppointmentRepository, cfx config.Config, scheduleSrv scheduleServices.ScheduleService, serviceSrv serviceServices.ServiceService, medical_recordSrv medical_recordServices.MedicalRecordService) *AppointmentService {
 	return &AppointmentService{
-		repo:        r,
-		cfx:         cfx,
-		scheduleSrv: scheduleSrv,
-		serviceSrv:  serviceSrv,
+		repo:              r,
+		cfx:               cfx,
+		scheduleSrv:       scheduleSrv,
+		serviceSrv:        serviceSrv,
+		medical_recordSrv: medical_recordSrv,
 	}
 }
 
@@ -96,7 +99,7 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 	}
 
 	for _, slot := range slotsToBook {
-		
+
 		err := s.scheduleSrv.ChangeSlotStatus(slot, "booked")
 		if err != nil {
 			return nil, err
@@ -119,6 +122,16 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 	}
 
 	appointment, err = s.repo.Create(appointment)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.medical_recordSrv.CreateMedicalRecord(
+		appointment.Id,
+		appointment.Doctor_id,
+		appointment.User_id,
+	)
+
 	if err != nil {
 		return nil, err
 	}
@@ -255,4 +268,27 @@ func (s *AppointmentService) GetMyAppointments(tokenStr string) ([]models.Appoin
 	}
 
 	return s.repo.GetMyAppointments(userId.String())
+}
+
+// GetMedicalRecord
+func (s *AppointmentService) GetMedicalRecord(id string) (dto.GetMedicalRecordAppointmentResponse, error) {
+
+	response := dto.GetMedicalRecordAppointmentResponse{
+		Status:  "0",
+		Message: "",
+	}
+
+	medical_record, err := s.medical_recordSrv.GetMedicalRecordByAppointmentId(id)
+
+	if err != nil {
+		response.Message = err.Error()
+		return response, err
+	}
+
+	response.Status = "1"
+	response.Notes = medical_record.Notes
+	response.Diagnosis = medical_record.Diagnosis
+	response.Is_checked = medical_record.Is_checked
+
+	return response, nil
 }

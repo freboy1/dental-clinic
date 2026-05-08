@@ -7,15 +7,24 @@ import (
 	"dental_clinic/internal/modules/doctor/models"
 	"dental_clinic/internal/modules/doctor/repository"
 
+	medical_recordServices "dental_clinic/internal/modules/medical_record/services"
+	userServices "dental_clinic/internal/modules/user/services"
+
 	"github.com/google/uuid"
 )
 
 type DoctorService struct {
-	repo repository.DoctorRepository
+	repo              repository.DoctorRepository
+	userSrv           userServices.UserService
+	medical_recordSrv medical_recordServices.MedicalRecordService
 }
 
-func NewDoctorService(r repository.DoctorRepository) *DoctorService {
-	return &DoctorService{repo: r}
+func NewDoctorService(r repository.DoctorRepository, userSrv userServices.UserService, medical_recordSrv medical_recordServices.MedicalRecordService) *DoctorService {
+	return &DoctorService{
+		repo:              r,
+		userSrv:           userSrv,
+		medical_recordSrv: medical_recordSrv,
+	}
 }
 
 func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Doctor, error) {
@@ -47,7 +56,19 @@ func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Docto
 		IsAvailable:    req.IsAvailable,
 	}
 
-	return s.repo.Create(doctor)
+	user, err := s.userSrv.CreateUser(doctor.Email, req.Password, doctor.Name, "doctor", req.Is_active)
+	if err != nil {
+		return nil, err
+	}
+
+	doctor.UserId = user.Id
+
+	doctor, err = s.repo.Create(doctor)
+	if err != nil {
+		return nil, err
+	}
+
+	return doctor, nil
 }
 
 func (s *DoctorService) GetAllDoctors() ([]models.Doctor, error) {
@@ -84,6 +105,16 @@ func (s *DoctorService) UpdateDoctor(id string, req dto.UpdateDoctorRequest) (*m
 	clinicID, err := uuid.Parse(req.ClinicID)
 	if err != nil {
 		return nil, errors.New("invalid clinic_id")
+	}
+
+	err = s.userSrv.UpdatePasswordWithUserId(doctor.UserId.String(), req.NewPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.userSrv.UpdateUserVerification(doctor.UserId.String(), req.Is_active)
+	if err != nil {
+		return nil, err
 	}
 
 	doctor.Specialization = req.Specialization
@@ -125,4 +156,55 @@ func ToDoctorResponseList(doctors []models.Doctor) []dto.DoctorResponse {
 		result = append(result, ToDoctorResponse(d))
 	}
 	return result
+}
+
+func (s *DoctorService) GetDoctorByIdMedicalRecords(id string) ([]dto.GetMedicalRecordDoctorResponse, error) {
+	doctor, err := s.repo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if doctor == nil {
+		return nil, errors.New("doctor not found")
+	}
+	medical_records, err := s.medical_recordSrv.GetMedicalRecordsByDoctorId(id)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []dto.GetMedicalRecordDoctorResponse
+	for _, medical_record := range medical_records {
+
+		response := dto.GetMedicalRecordDoctorResponse{
+			Diagnosis:  medical_record.Diagnosis,
+			Notes:      medical_record.Notes,
+			Is_checked: medical_record.Is_checked,
+		}
+		responses = append(responses, response)
+	}
+	return responses, nil
+}
+func (s *DoctorService) GetDoctorByUserIdMedicalRecords(id string) ([]dto.GetMedicalRecordDoctorResponse, error) {
+	doctor, err := s.repo.GetByUserID(id)
+	if err != nil {
+		return nil, err
+	}
+	if doctor == nil {
+		return nil, errors.New("doctor not found")
+	}
+	medical_records, err := s.medical_recordSrv.GetMedicalRecordsByDoctorId(id)
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []dto.GetMedicalRecordDoctorResponse
+	for _, medical_record := range medical_records {
+
+		response := dto.GetMedicalRecordDoctorResponse{
+			Diagnosis:  medical_record.Diagnosis,
+			Notes:      medical_record.Notes,
+			Is_checked: medical_record.Is_checked,
+		}
+		responses = append(responses, response)
+	}
+	return responses, nil
 }

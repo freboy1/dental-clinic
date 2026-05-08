@@ -11,6 +11,7 @@ import (
 	"dental_clinic/internal/modules/appointment"
 	"dental_clinic/internal/modules/clinic"
 	"dental_clinic/internal/modules/doctor"
+	"dental_clinic/internal/modules/medical_record"
 	"dental_clinic/internal/modules/schedule"
 	dentalservices "dental_clinic/internal/modules/services"
 	"dental_clinic/internal/modules/user"
@@ -35,7 +36,7 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	public := api.NewRoute().Subrouter()
 	user.RegisterPublicRoutes(public, db, cfg)
 	clinic.RegisterPublicRoutes(public, db, cfg)
-	doctor.RegisterPublicRoutes(public, db)
+	doctor.RegisterPublicRoutes(public, db, cfg)
 	dentalservices.RegisterPublicRoutes(public, db, cfg)
 	schedule.RegisterPublicRoutes(public, db, cfg)
 	appointment.RegisterPublicRoutes(public, db, cfg)
@@ -46,10 +47,15 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	user.RegisterPrivateRoutes(private, db, cfg)
 	clinic.RegisterPrivateRoutes(private, db, cfg)
 	address.RegisterPrivateRoutes(private, db, cfg)
-	doctor.RegisterPrivateRoutes(private, db)
+	doctor.RegisterPrivateRoutes(private, db, cfg)
 	dentalservices.RegisterPrivateRoutes(private, db, cfg)
 	schedule.RegisterPrivateRoutes(private, db, cfg)
 	appointment.RegisterPrivateRoutes(private, db, cfg)
+
+	doctor_subrouter := api.NewRoute().Subrouter()
+	doctor_subrouter.Use(middleware.JWTAuth(cfg.JWTSecret))
+	doctor_subrouter.Use(middleware.RequireRoles("doctor"))
+	medical_record.RegisterDoctorRoutes(doctor_subrouter, db, cfg)
 
 	// CORS configuration
 	headersOk := gorilla_handler.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})

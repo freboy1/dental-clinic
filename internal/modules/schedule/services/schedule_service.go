@@ -278,8 +278,6 @@ func ToScheduleResponseList(schedules []models.Schedule) []dto.ScheduleDoctorRes
 	return result
 }
 
-
-
 func (s *ScheduleService) ChangeSlotStatus(slot models.Slot, status string) error {
 
 	if status == "" {
@@ -287,10 +285,49 @@ func (s *ScheduleService) ChangeSlotStatus(slot models.Slot, status string) erro
 	}
 
 	_, err := s.repo.GetSlotById(slot.Id)
-	
+
 	if err != nil {
 		return errors.New("slot does not exist")
 	}
 
 	return s.repo.UpdateSlotStatus(slot.Id, status)
+}
+
+func (s *ScheduleService) GetSchedule(schedule_id uuid.UUID) (*models.Schedule, error) {
+	return s.repo.GetScheduleById(schedule_id)
+}
+
+func (s *ScheduleService) DeleteSchedule(schedule_id uuid.UUID) error {
+	return s.repo.DeleteScheduleById(schedule_id)
+}
+
+func (s *ScheduleService) UpdateSchedule(schedule_id uuid.UUID, req dto.UpdateScheduleRequest) error {
+
+	if req.Clinic_address_id == "" {
+		return fmt.Errorf("schedule clinic_address_id is required")
+	}
+
+	clinic_address_id, err := uuid.Parse(req.Clinic_address_id)
+	if err != nil {
+		return errors.New("invalid clinic_address_id")
+	}
+
+	if req.Doctor_id == "" {
+		return fmt.Errorf("schedule doctor_id is required")
+	}
+
+	doctor_id, err := uuid.Parse(req.Doctor_id)
+	if err != nil {
+		return errors.New("invalid clinic_address_id")
+	}
+
+	schedule := &models.Schedule{
+		Doctor_id:         doctor_id,
+		Clinic_address_id: clinic_address_id,
+		Day_of_week:       req.Day_of_week,
+		Start_time:        req.Start_time,
+		End_time:          req.End_time,
+	}
+
+	return s.repo.UpdateScheduleById(schedule_id.String(), schedule)
 }

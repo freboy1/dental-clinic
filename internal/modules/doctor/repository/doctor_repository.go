@@ -12,6 +12,7 @@ import (
 type DoctorRepository interface {
 	Create(doctor *models.Doctor) (*models.Doctor, error)
 	GetByID(id string) (*models.Doctor, error)
+	GetByUserID(id string) (*models.Doctor, error)
 	GetAll() ([]models.Doctor, error)
 	Update(id string, doctor *models.Doctor) (*models.Doctor, error)
 	Delete(id string) error
@@ -27,8 +28,8 @@ func NewDoctorRepository(db *pgxpool.Pool) DoctorRepository {
 
 func (r *doctorRepo) Create(doctor *models.Doctor) (*models.Doctor, error) {
 	query := `
-		INSERT INTO doctors (specialization, experience, clinic_id, bio, is_available, name, email)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		INSERT INTO doctors (specialization, experience, clinic_id, bio, is_available, name, email, user_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id
 	`
 	err := r.db.QueryRow(
@@ -41,6 +42,7 @@ func (r *doctorRepo) Create(doctor *models.Doctor) (*models.Doctor, error) {
 		doctor.IsAvailable,
 		doctor.Name,
 		doctor.Email,
+		doctor.UserId,
 	).Scan(&doctor.Id)
 	return doctor, err
 }
@@ -125,4 +127,18 @@ func (r *doctorRepo) Delete(id string) error {
 		return pgx.ErrNoRows
 	}
 	return nil
+}
+
+func (r *doctorRepo) GetByUserID(id string) (*models.Doctor, error) {
+	query := `SELECT id, specialization, experience, clinic_id, bio, is_available FROM doctors WHERE user_id = $1 AND is_deleted=0`
+	var d models.Doctor
+	err := r.db.QueryRow(context.Background(), query, id).
+		Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &d, nil
 }

@@ -214,3 +214,114 @@ func (h *ScheduleHandler) GetDoctorSchedule(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(services.ToScheduleResponseList(schedules))
 }
+
+// DeleteDoctorSchedule godoc
+// @Summary Delete doctor schedule
+// @Description Returns a response
+// @Tags Schedule
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Schedule ID (UUID)"
+// @Success 200 {object} dto.ScheduleResponse
+// @Failure 401 {object} map[string]string
+// @Router /api/schedule/working-hours/{id} [delete]
+func (h *ScheduleHandler) DeleteDoctorSchedule(w http.ResponseWriter, r *http.Request) {
+
+	response := dto.ScheduleResponse{
+		Success: "0",
+		Message: "",
+	}
+
+	vars := mux.Vars(r)
+	scheduleIDStr := vars["id"]
+
+	scheduleID, err := uuid.Parse(scheduleIDStr)
+	if err != nil {
+		response.Message = "invalid scheduleId"
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	schedule, err := h.service.GetSchedule(scheduleID)
+	if err != nil {
+		response.Message = "no schedule with such Id"
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	err = h.service.DeleteSchedule(schedule.Id)
+	if err != nil {
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	response.Success = "1"
+	response.Message = "successfully deleted"
+
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(response)
+}
+
+// UpdateDoctorSchedule godoc
+// @Summary Update doctor schedule
+// @Description Returns a response
+// @Tags Schedule
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Schedule ID (UUID)"
+// @Param request body dto.UpdateScheduleRequest true "Schedule update data"
+// @Success 200 {object} dto.ScheduleResponse
+// @Failure 401 {object} map[string]string
+// @Router /api/schedule/working-hours/{id} [put]
+func (h *ScheduleHandler) UpdateDoctorSchedule(w http.ResponseWriter, r *http.Request) {
+
+	response := dto.ScheduleResponse{
+		Success: "0",
+		Message: "",
+	}
+
+	vars := mux.Vars(r)
+	scheduleIDStr := vars["id"]
+
+	scheduleID, err := uuid.Parse(scheduleIDStr)
+	if err != nil {
+		response.Message = "invalid scheduleId"
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	var req dto.UpdateScheduleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Message = "Invalid request body"
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	schedule, err := h.service.GetSchedule(scheduleID)
+	if err != nil {
+		response.Message = "no schedule with such Id"
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	err = h.service.UpdateSchedule(schedule.Id, req)
+	if err != nil {
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	response.Success = "1"
+	response.Message = "successfully updated"
+
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(response)
+}

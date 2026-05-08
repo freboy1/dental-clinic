@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"database/sql"
+	"dental_clinic/internal/config"
+	"dental_clinic/internal/middleware"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -14,10 +16,14 @@ import (
 
 type DoctorHandler struct {
 	service *services.DoctorService
+	cfg     config.Config
 }
 
-func NewDoctorHandler(s *services.DoctorService) *DoctorHandler {
-	return &DoctorHandler{service: s}
+func NewDoctorHandler(s *services.DoctorService, cfg config.Config) *DoctorHandler {
+	return &DoctorHandler{
+		service: s,
+		cfg:     cfg,
+	}
 }
 
 // CreateDoctor godoc
@@ -165,4 +171,49 @@ func (h *DoctorHandler) DeleteDoctor(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Doctor deleted successfully"})
+}
+
+// GetDoctorByIdMedicalRecords godoc
+// @Summary Get doctor medical records
+// @Description Get doctor medical records by ID
+// @Tags Doctors
+// @Security BearerAuth
+// @Param id path string true "Doctor ID"
+// @Success 200 {array} dto.GetMedicalRecordDoctorResponse
+// @Failure 404 {object} map[string]string
+// @Router /api/doctors/medical-records/{id} [get]
+func (h *DoctorHandler) GetDoctorByIdMedicalRecords(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	responses, err := h.service.GetDoctorByIdMedicalRecords(id)
+	if err != nil {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(responses)
+}
+
+// GetDoctorMedicalRecords godoc
+// @Summary Get doctor medical records
+// @Description Get doctor medical records
+// @Tags Doctors
+// @Security BearerAuth
+// @Success 200 {array} dto.GetMedicalRecordDoctorResponse
+// @Failure 404 {object} map[string]string
+// @Router /api/doctors/my-medical-records [get]
+func (h *DoctorHandler) GetDoctorMedicalRecords(w http.ResponseWriter, r *http.Request) {
+
+	user_id, err := middleware.GetUserID(r, h.cfg.JWTSecret)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	responses, err := h.service.GetDoctorByUserIdMedicalRecords(user_id.String())
+	if err != nil {
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(responses)
 }
