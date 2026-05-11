@@ -39,12 +39,12 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	serviceService := serviceServices.NewServiceService(serviceRepo, *clinicService)
 
 	scheduleRepo := scheduleRepository.NewScheduleRepository(db)
-	scheduleService := scheduleServices.NewScheduleService(scheduleRepo, *cfg, *serviceService)
+	scheduleService := scheduleServices.NewScheduleService(scheduleRepo, *cfg, *serviceService, *clinicService)
 
 	medical_recordRepo := medical_recordRepository.NewMedicalRecordRepository(db)
 	medical_recordService := medical_recordServices.NewMedicalRecordService(medical_recordRepo)
 
-	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService, *medical_recordService)
+	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService, *medical_recordService, *clinicService)
 	handler := handlers.NewAppointmentHandler(service, *cfg)
 
 	r.HandleFunc("/appointment", handler.CreateAppointment).Methods("POST")
@@ -63,12 +63,12 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	serviceService := serviceServices.NewServiceService(serviceRepo, *clinicService)
 
 	scheduleRepo := scheduleRepository.NewScheduleRepository(db)
-	scheduleService := scheduleServices.NewScheduleService(scheduleRepo, *cfg, *serviceService)
+	scheduleService := scheduleServices.NewScheduleService(scheduleRepo, *cfg, *serviceService, *clinicService)
 
 	medical_recordRepo := medical_recordRepository.NewMedicalRecordRepository(db)
 	medical_recordService := medical_recordServices.NewMedicalRecordService(medical_recordRepo)
 
-	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService, *medical_recordService)
+	service := services.NewAppointmentService(repo, *cfg, *scheduleService, *serviceService, *medical_recordService, *clinicService)
 
 	handler := handlers.NewAppointmentHandler(service, *cfg)
 

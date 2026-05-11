@@ -89,10 +89,10 @@ func (s *ClinicService) GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, 
 
 func ToClinicAddressResponse(clinicAddress models.ClinicAddressWithNames) dto.GetClinicAddressResponse {
 	return dto.GetClinicAddressResponse{
-		Id:         clinicAddress.Id.String(),
-		Address_id: clinicAddress.AddressId.String(),
-		Is_main:    clinicAddress.IsMain,
-		Address_name: clinicAddress.AddressName,
+		Id:               clinicAddress.Id.String(),
+		Address_id:       clinicAddress.AddressId.String(),
+		Is_main:          clinicAddress.IsMain,
+		Address_name:     clinicAddress.AddressName,
 		Address_building: clinicAddress.AddressBuilding,
 	}
 }
@@ -113,7 +113,6 @@ func (s *ClinicService) DeleteAddress(id, address_id uuid.UUID) error {
 
 	return s.repo.DeleteAddress(id, address_id)
 }
-
 
 func (s *ClinicService) GetClinicAddressWithName(id uuid.UUID) ([]models.ClinicAddressWithNames, error) {
 	clinics, err := s.repo.GetClinicAddress(id)
@@ -144,7 +143,10 @@ func (s *ClinicService) GetClinicAddressWithName(id uuid.UUID) ([]models.ClinicA
 
 	}
 
-
 	return clinics_with_name, nil
 
+}
+
+func (s *ClinicService) GetClinicByAddressId(id uuid.UUID) (string, error) {
+	return s.repo.GetClinicByAddressId(id)
 }

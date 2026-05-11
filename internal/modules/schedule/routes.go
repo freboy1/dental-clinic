@@ -33,7 +33,7 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	serviceRepo := serviceRepository.NewServiceRepository(db)
 	serviceService := serviceServices.NewServiceService(serviceRepo, *clinicService)
 
-	service := services.NewScheduleService(repo, *cfg, *serviceService)
+	service := services.NewScheduleService(repo, *cfg, *serviceService, *clinicService)
 	handler := handlers.NewScheduleHandler(service, *cfg)
 
 	scheduleRouter := r.PathPrefix("/schedule").Subrouter()
@@ -53,7 +53,7 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	serviceRepo := serviceRepository.NewServiceRepository(db)
 	serviceService := serviceServices.NewServiceService(serviceRepo, *clinicService)
 
-	service := services.NewScheduleService(repo, *cfg, *serviceService)
+	service := services.NewScheduleService(repo, *cfg, *serviceService, *clinicService)
 	handler := handlers.NewScheduleHandler(service, *cfg)
 
 	scheduleRouter := r.PathPrefix("/schedule").Subrouter()

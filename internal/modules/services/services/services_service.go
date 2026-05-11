@@ -207,3 +207,15 @@ func (s *ServiceService) DeleteServiceByClinic(clinicID, serviceID string) error
 
 	return s.repo.DeleteServiceToClinic(clinicID, serviceID)
 }
+
+func (s *ServiceService) GetByClinicIDAndServiceID(clinicID, serviceID string) (*models.Clinic_Service, error) {
+	if _, err := uuid.Parse(clinicID); err != nil {
+		return nil, errors.New("invalid clinic_id")
+	}
+
+	if _, err := uuid.Parse(serviceID); err != nil {
+		return nil, errors.New("invalid service_id")
+	}
+
+	return s.repo.GetByClinicIDAndServiceID(clinicID, serviceID)
+}
