@@ -16,6 +16,7 @@ type ServiceRepository interface {
 	//GetByClinicID(clinicID string) ([]models.Service, error)
 	Update(id string, service *models.Service) (*models.Service, error)
 	Delete(id string) error
+	AddServiceToClinic(clinic_service *models.Clinic_Service) (*models.Clinic_Service, error)
 }
 
 type serviceRepo struct {
@@ -139,4 +140,23 @@ func (r *serviceRepo) Delete(id string) error {
 		return pgx.ErrNoRows
 	}
 	return nil
+}
+
+func (r *serviceRepo) AddServiceToClinic(clinic_service *models.Clinic_Service) (*models.Clinic_Service, error) {
+	query := `
+		INSERT INTO clinic_services (id, clinic_id, service_id, price, duration_minutes, is_active)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id
+	`
+	err := r.db.QueryRow(
+		context.Background(),
+		query,
+		clinic_service.Id,
+		clinic_service.ClinicID,
+		clinic_service.ServiceID,
+		clinic_service.Price,
+		clinic_service.Duration,
+		clinic_service.IsActive,
+	).Scan(&clinic_service.Id)
+	return clinic_service, err
 }

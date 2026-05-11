@@ -2,12 +2,15 @@ package services
 
 import (
 	"dental_clinic/internal/modules/clinic/services"
+	"fmt"
 
 	"errors"
 
 	"dental_clinic/internal/modules/services/dto"
 	"dental_clinic/internal/modules/services/models"
 	"dental_clinic/internal/modules/services/repository"
+
+	"github.com/google/uuid"
 )
 
 type ServiceService struct {
@@ -152,4 +155,40 @@ func ToServiceNameResponseList(services []models.ServiceWithClinicName) []dto.Se
 
 func (s *ServiceService) GetServices() ([]models.Service, error) {
 	return s.repo.GetAll()
+}
+
+func (s *ServiceService) AddServiceToClinic(id string, req dto.AddServiceRequest) (*models.Clinic_Service, error) {
+	if req.Price < 0 {
+		return nil, errors.New("price cannot be negative")
+	}
+	if req.Duration <= 0 {
+		return nil, errors.New("duration must be greater than 0")
+	}
+
+	fmt.Println("Service id ")
+	fmt.Println(req.ServiceID)
+
+	serviceID, err := uuid.Parse(req.ServiceID)
+	if err != nil {
+		return nil, errors.New("invalid service_id")
+	}
+
+	fmt.Println("clinic_id ")
+	fmt.Println(id)
+
+	clinicID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, errors.New("invalid clinic_id")
+	}
+
+	service := &models.Clinic_Service{
+		Id:        uuid.New(),
+		ClinicID:  clinicID,
+		Price:     req.Price,
+		Duration:  req.Duration,
+		ServiceID: serviceID,
+		IsActive:  req.IsActive,
+	}
+
+	return s.repo.AddServiceToClinic(service)
 }

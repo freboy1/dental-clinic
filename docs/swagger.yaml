@@ -6,6 +6,17 @@ definitions:
       is_main:
         type: boolean
     type: object
+  dto.AddServiceRequest:
+    properties:
+      duration:
+        type: integer
+      is_active:
+        type: boolean
+      price:
+        type: number
+      service_id:
+        type: string
+    type: object
   dto.AddressResponse:
     properties:
       building:
@@ -463,6 +474,39 @@ info:
   title: Dental Clinic API
   version: "1.0"
 paths:
+  /api/add-clinics/{id}/services:
+    post:
+      consumes:
+      - application/json
+      description: Add a new dental service (e.g. teeth cleaning, tooth extraction)
+      parameters:
+      - description: Clinic ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Service creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddServiceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ServiceActionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ServiceActionResponse'
+      security:
+      - BearerAuth: []
+      summary: Add a new service
+      tags:
+      - Services
   /api/address:
     get:
       description: Returns a list of all addresss

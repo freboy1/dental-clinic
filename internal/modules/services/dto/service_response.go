@@ -32,3 +32,10 @@ type ServiceActionResponse struct {
 	Message   string `json:"message"`
 	ServiceID string `json:"service_id"`
 }
+
+type AddServiceRequest struct {
+	ServiceID string  `json:"service_id"`
+	Price     float64 `json:"price"`
+	Duration  int     `json:"duration"`
+	IsActive  bool    `json:"is_active"`
+}

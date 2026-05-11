@@ -15,6 +15,58 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/add-clinics/{id}/services": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add a new dental service (e.g. teeth cleaning, tooth extraction)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Add a new service",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Service creation data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddServiceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ServiceActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ServiceActionResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/address": {
             "get": {
                 "security": [
@@ -2071,6 +2123,23 @@ const docTemplate = `{
                 },
                 "is_main": {
                     "type": "boolean"
+                }
+            }
+        },
+        "dto.AddServiceRequest": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "service_id": {
+                    "type": "string"
                 }
             }
         },

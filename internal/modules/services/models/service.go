@@ -8,17 +8,6 @@ type Service struct {
 	Description string
 }
 
-type Clinic_Service struct {
-	Id uuid.UUID
-
-	ClinicID  uuid.UUID
-	ServiceID uuid.UUID
-
-	Price    float64
-	Duration int
-	IsActive bool
-}
-
 type ServiceWithClinicName struct {
 	Id          uuid.UUID
 	Name        string
