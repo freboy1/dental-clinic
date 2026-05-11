@@ -1596,6 +1596,28 @@ paths:
       tags:
       - Schedule
   /api/services:
+    get:
+      description: Returns services
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ServiceResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get services
+      tags:
+      - Services
     post:
       consumes:
       - application/json

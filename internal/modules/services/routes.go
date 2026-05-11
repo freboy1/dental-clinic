@@ -48,6 +48,7 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	handler := handlers.NewServiceHandler(service)
 
 	r.HandleFunc("/services", handler.CreateService).Methods("POST")
+	r.HandleFunc("/services", handler.GetServices).Methods("GET")
 	r.HandleFunc("/services/{id}", handler.UpdateService).Methods("PUT")
 	r.HandleFunc("/services/{id}", handler.DeleteService).Methods("DELETE")
 }

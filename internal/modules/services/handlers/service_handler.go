@@ -195,3 +195,24 @@ func (h *ServiceHandler) DeleteService(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Service deleted successfully"})
 }
+
+// GetServices godoc
+// @Summary Get services
+// @Description Returns services
+// @Tags Services
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} dto.ServiceResponse
+// @Failure 404 {object} map[string]string
+// @Router /api/services [get]
+func (h *ServiceHandler) GetServices(w http.ResponseWriter, r *http.Request) {
+
+	all_services, err := h.service.GetAllServices()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(services.ToServiceResponseList(all_services))
+}

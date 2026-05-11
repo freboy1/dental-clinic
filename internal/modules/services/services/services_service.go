@@ -149,3 +149,7 @@ func ToServiceNameResponseList(services []models.ServiceWithClinicName) []dto.Se
 	}
 	return result
 }
+
+func (s *ServiceService) GetServices() ([]models.Service, error) {
+	return s.repo.GetAll()
+}
