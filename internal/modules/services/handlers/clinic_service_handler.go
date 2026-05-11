@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"dental_clinic/internal/modules/services/dto"
+	"dental_clinic/internal/modules/services/services"
 	"encoding/json"
 	"net/http"
 
@@ -53,4 +54,28 @@ func (h *ServiceHandler) AddServiceToClinic(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(response)
+}
+
+// GetServicesByClinic godoc
+// @Summary Get services by clinic
+// @Description Returns all services for a specific clinic
+// @Tags Services
+// @Security BearerAuth
+// @Produce json
+// @Param clinic_id path string true "Clinic ID"
+// @Success 200 {array} dto.ServiceResponseWithName
+// @Failure 400 {object} map[string]string
+// @Router /api/clinics/{clinic_id}/services [get]
+func (h *ServiceHandler) GetServicesByClinic(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	clinicID := vars["clinic_id"]
+
+	servicesList, err := h.service.GetServicesByClinic(clinicID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(services.ToServiceNameResponseList(servicesList))
 }

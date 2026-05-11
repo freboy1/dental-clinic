@@ -13,7 +13,7 @@ type ServiceRepository interface {
 	Create(service *models.Service) (*models.Service, error)
 	GetByID(id string) (*models.Service, error)
 	GetAll() ([]models.Service, error)
-	//GetByClinicID(clinicID string) ([]models.Service, error)
+	GetByClinicID(clinicID string) ([]models.Clinic_Service, error)
 	Update(id string, service *models.Service) (*models.Service, error)
 	Delete(id string) error
 	AddServiceToClinic(clinic_service *models.Clinic_Service) (*models.Clinic_Service, error)
@@ -67,30 +67,30 @@ func (r *serviceRepo) GetAll() ([]models.Service, error) {
 	return services, nil
 }
 
-//func (r *serviceRepo) GetByClinicID(clinicID string) ([]models.Service, error) {
-//	query := `SELECT id, name, description, price, duration, clinic_id, is_active FROM services WHERE clinic_id = $1`
-//
-//	rows, err := r.db.Query(context.Background(), query, clinicID)
-//	if err != nil {
-//		return nil, err
-//	}
-//	defer rows.Close()
-//
-//	var services []models.Service
-//	for rows.Next() {
-//		var s models.Service
-//		if err := rows.Scan(&s.Id, &s.Name, &s.Description, &s.Price, &s.Duration, &s.ClinicID, &s.IsActive); err != nil {
-//			return nil, err
-//		}
-//		services = append(services, s)
-//	}
-//
-//	if err = rows.Err(); err != nil {
-//		return nil, err
-//	}
-//
-//	return services, nil
-//}
+func (r *serviceRepo) GetByClinicID(clinicID string) ([]models.Clinic_Service, error) {
+	query := `SELECT id, clinic_id, service_id, price, duration_minutes, is_active FROM clinic_services WHERE clinic_id = $1`
+
+	rows, err := r.db.Query(context.Background(), query, clinicID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var services []models.Clinic_Service
+	for rows.Next() {
+		var s models.Clinic_Service
+		if err := rows.Scan(&s.Id, &s.ClinicID, &s.ServiceID, &s.Price, &s.Duration, &s.IsActive); err != nil {
+			return nil, err
+		}
+		services = append(services, s)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return services, nil
+}
 
 func (r *serviceRepo) GetByID(id string) (*models.Service, error) {
 	query := `SELECT id, name, description FROM services WHERE id = $1`

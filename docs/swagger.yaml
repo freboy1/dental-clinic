@@ -347,6 +347,25 @@ definitions:
       name:
         type: string
     type: object
+  dto.ServiceResponseWithName:
+    properties:
+      clinic_id:
+        type: string
+      clinic_name:
+        type: string
+      description:
+        type: string
+      duration:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price:
+        type: number
+    type: object
   dto.SlotResponse:
     properties:
       id:
@@ -933,6 +952,35 @@ paths:
       summary: Create a new clinic
       tags:
       - Clinics
+  /api/clinics/{clinic_id}/services:
+    get:
+      description: Returns all services for a specific clinic
+      parameters:
+      - description: Clinic ID
+        in: path
+        name: clinic_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ServiceResponseWithName'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get services by clinic
+      tags:
+      - Services
   /api/clinics/{id}:
     delete:
       description: Deletes a clinic by UUID

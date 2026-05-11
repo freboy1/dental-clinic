@@ -2,8 +2,6 @@ package services
 
 import (
 	"dental_clinic/internal/modules/clinic/services"
-	"fmt"
-
 	"errors"
 
 	"dental_clinic/internal/modules/services/dto"
@@ -42,38 +40,49 @@ func (s *ServiceService) GetAllServices() ([]models.Service, error) {
 	return s.repo.GetAll()
 }
 
-//func (s *ServiceService) GetClinicNames(services []models.Service) ([]models.ServiceWithClinicName, error) {
-//	var servicesListWithClinicNames []models.ServiceWithClinicName
-//
-//	for _, service := range services {
-//
-//		clinic, err := s.clinicSrv.GetClinicByID(service.ClinicID)
-//		if err != nil {
-//			return servicesListWithClinicNames, err
-//		}
-//		serviceWithClinicName := models.ServiceWithClinicName{
-//			Id:          service.Id,
-//			Name:        service.Name,
-//			Description: service.Description,
-//			Price:       service.Price,
-//			Duration:    service.Duration,
-//			ClinicID:    service.ClinicID,
-//			IsActive:    service.IsActive,
-//			ClinicName:  clinic.Name,
-//		}
-//
-//		servicesListWithClinicNames = append(servicesListWithClinicNames, serviceWithClinicName)
-//	}
-//
-//	return servicesListWithClinicNames, nil
-//}
+func (s *ServiceService) GetClinicNames(services []models.Clinic_Service) ([]models.ServiceWithClinicName, error) {
+	var servicesListWithClinicNames []models.ServiceWithClinicName
 
-//func (s *ServiceService) GetServicesByClinic(clinicID string) ([]models.Service, error) {
-//	if _, err := uuid.Parse(clinicID); err != nil {
-//		return nil, errors.New("invalid clinic_id")
-//	}
-//	return s.repo.GetByClinicID(clinicID)
-//}
+	for _, service := range services {
+
+		clinic, err := s.clinicSrv.GetClinicByID(service.ClinicID)
+		if err != nil {
+			return servicesListWithClinicNames, err
+		}
+
+		service_info, err := s.GetServiceByID(service.ServiceID.String())
+
+		if err != nil {
+			return servicesListWithClinicNames, err
+		}
+
+		serviceWithClinicName := models.ServiceWithClinicName{
+			Id:          service.Id,
+			Name:        service_info.Name,
+			Description: service_info.Description,
+			Price:       service.Price,
+			Duration:    service.Duration,
+			ClinicID:    service.ClinicID,
+			IsActive:    service.IsActive,
+			ClinicName:  clinic.Name,
+		}
+
+		servicesListWithClinicNames = append(servicesListWithClinicNames, serviceWithClinicName)
+	}
+
+	return servicesListWithClinicNames, nil
+}
+
+func (s *ServiceService) GetServicesByClinic(clinicID string) ([]models.ServiceWithClinicName, error) {
+	if _, err := uuid.Parse(clinicID); err != nil {
+		return nil, errors.New("invalid clinic_id")
+	}
+	clinic_services, err := s.repo.GetByClinicID(clinicID)
+	if err != nil {
+		return nil, err
+	}
+	return s.GetClinicNames(clinic_services)
+}
 
 func (s *ServiceService) GetServiceByID(id string) (*models.Service, error) {
 	service, err := s.repo.GetByID(id)
@@ -165,16 +174,10 @@ func (s *ServiceService) AddServiceToClinic(id string, req dto.AddServiceRequest
 		return nil, errors.New("duration must be greater than 0")
 	}
 
-	fmt.Println("Service id ")
-	fmt.Println(req.ServiceID)
-
 	serviceID, err := uuid.Parse(req.ServiceID)
 	if err != nil {
 		return nil, errors.New("invalid service_id")
 	}
-
-	fmt.Println("clinic_id ")
-	fmt.Println(id)
 
 	clinicID, err := uuid.Parse(id)
 	if err != nil {
