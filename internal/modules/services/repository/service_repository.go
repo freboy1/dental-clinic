@@ -17,6 +17,7 @@ type ServiceRepository interface {
 	Update(id string, service *models.Service) (*models.Service, error)
 	Delete(id string) error
 	AddServiceToClinic(clinic_service *models.Clinic_Service) (*models.Clinic_Service, error)
+	DeleteServiceToClinic(clinicID, serviceID string) error
 }
 
 type serviceRepo struct {
@@ -159,4 +160,16 @@ func (r *serviceRepo) AddServiceToClinic(clinic_service *models.Clinic_Service) 
 		clinic_service.IsActive,
 	).Scan(&clinic_service.Id)
 	return clinic_service, err
+}
+
+func (r *serviceRepo) DeleteServiceToClinic(clinicID, serviceID string) error {
+	query := `DELETE FROM clinic_services WHERE clinic_id=$1 AND service_id=$2`
+	result, err := r.db.Exec(context.Background(), query, clinicID, serviceID)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
 }

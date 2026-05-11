@@ -195,3 +195,15 @@ func (s *ServiceService) AddServiceToClinic(id string, req dto.AddServiceRequest
 
 	return s.repo.AddServiceToClinic(service)
 }
+
+func (s *ServiceService) DeleteServiceByClinic(clinicID, serviceID string) error {
+	if _, err := uuid.Parse(clinicID); err != nil {
+		return errors.New("invalid clinic_id")
+	}
+
+	if _, err := uuid.Parse(serviceID); err != nil {
+		return errors.New("invalid service_id")
+	}
+
+	return s.repo.DeleteServiceToClinic(clinicID, serviceID)
+}

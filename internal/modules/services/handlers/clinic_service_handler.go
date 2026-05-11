@@ -79,3 +79,39 @@ func (h *ServiceHandler) GetServicesByClinic(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(services.ToServiceNameResponseList(servicesList))
 }
+
+// DeleteServicesByClinic godoc
+// @Summary Delete services by clinic
+// @Description Delete service for a specific clinic
+// @Tags Services
+// @Security BearerAuth
+// @Produce json
+// @Param clinic_id path string true "Clinic ID"
+// @Param service_id path string true "Service ID"
+// @Success 200 {array} dto.ServiceActionResponse
+// @Failure 400 {object} map[string]string
+// @Router /api//clinics/{clinic_id}/services/{service_id} [delete]
+func (h *ServiceHandler) DeleteServicesByClinic(w http.ResponseWriter, r *http.Request) {
+	response := dto.ServiceActionResponse{
+		Success:   "0",
+		Message:   "",
+		ServiceID: "",
+	}
+	vars := mux.Vars(r)
+	clinicID := vars["clinic_id"]
+	serviceID := vars["service_id"]
+
+	err := h.service.DeleteServiceByClinic(clinicID, serviceID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	response.Success = "1"
+	response.Message = "service deleted successfully"
+	response.ServiceID = serviceID
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(response)
+}

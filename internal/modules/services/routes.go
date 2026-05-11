@@ -53,4 +53,6 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	r.HandleFunc("/services/{id}", handler.DeleteService).Methods("DELETE")
 
 	r.HandleFunc("/add-clinics/{id}/services", handler.AddServiceToClinic).Methods("POST")
+	r.HandleFunc("/clinics/{clinic_id}/services/{service_id}", handler.DeleteServicesByClinic).Methods("DELETE")
+
 }
