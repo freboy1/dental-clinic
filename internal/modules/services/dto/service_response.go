@@ -1,31 +1,19 @@
 package dto
 
 type CreateServiceRequest struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	Duration    int     `json:"duration"`
-	ClinicID    string  `json:"clinic_id"`
-	IsActive    bool    `json:"is_active"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type UpdateServiceRequest struct {
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	Duration    int     `json:"duration"`
-	ClinicID    string  `json:"clinic_id"`
-	IsActive    bool    `json:"is_active"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type ServiceResponse struct {
-	Id          string  `json:"id"`
-	Name        string  `json:"name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	Duration    int     `json:"duration"`
-	ClinicID    string  `json:"clinic_id"`
-	IsActive    bool    `json:"is_active"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type ServiceResponseWithName struct {

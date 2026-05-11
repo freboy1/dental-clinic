@@ -66,7 +66,9 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, errors.New("invalid serviceId")
 	}
 
-	service, err := s.serviceSrv.GetServiceByID(serviceId.String())
+	//todo after creating a link to change normal
+	//service, err := s.serviceSrv.GetServiceByID(serviceId.String())
+	_, err = s.serviceSrv.GetServiceByID(serviceId.String())
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +88,8 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, err
 	}
 
-	requiredSlots := s.scheduleSrv.HowManySlots(service.Duration)
-
+	//requiredSlots := s.scheduleSrv.HowManySlots(service.Duration)
+	requiredSlots := 1
 	rawSlots, err := s.scheduleSrv.GetAvailableSlotsByDateAndDoctorAndClinic(doctorId, clinic_addressId, date)
 	if err != nil {
 		return nil, err

@@ -129,8 +129,9 @@ func (s *ScheduleService) GenerateSlots(req dto.GenerateSlotsRequest) error {
 }
 
 func (s *ScheduleService) GetAvailableSlots(doctorID, serviceID, clinic_addressID uuid.UUID, date time.Time) ([]models.Slot, error) {
-
-	service, err := s.serviceSrv.GetServiceByID(serviceID.String())
+	//todo after creating a link to change normal
+	//service, err := s.serviceSrv.GetServiceByID(serviceID.String())
+	_, err := s.serviceSrv.GetServiceByID(serviceID.String())
 
 	if err != nil {
 		return nil, err
@@ -141,8 +142,8 @@ func (s *ScheduleService) GetAvailableSlots(doctorID, serviceID, clinic_addressI
 		return nil, err
 	}
 
-	required_slots := s.HowManySlots(service.Duration)
-
+	//required_slots := s.HowManySlots(service.Duration)
+	required_slots := 1
 	slots := FindAvailableSlots(raw_slots, required_slots)
 
 	return slots, nil

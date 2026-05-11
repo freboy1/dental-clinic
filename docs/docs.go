@@ -685,52 +685,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/clinics/{clinic_id}/services": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns all services for a specific clinic",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Services"
-                ],
-                "summary": "Get services by clinic",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Clinic ID",
-                        "name": "clinic_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.ServiceResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/clinics/{id}": {
             "get": {
                 "security": [
@@ -1836,41 +1790,6 @@ const docTemplate = `{
             }
         },
         "/api/services": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns a list of all dental services",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Services"
-                ],
-                "summary": "Get all services",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.ServiceResponseWithName"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -2312,23 +2231,11 @@ const docTemplate = `{
         "dto.CreateServiceRequest": {
             "type": "object",
             "properties": {
-                "clinic_id": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
-                "duration": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
                 "name": {
                     "type": "string"
-                },
-                "price": {
-                    "type": "number"
                 }
             }
         },
@@ -2630,55 +2537,14 @@ const docTemplate = `{
         "dto.ServiceResponse": {
             "type": "object",
             "properties": {
-                "clinic_id": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
-                },
-                "duration": {
-                    "type": "integer"
                 },
                 "id": {
                     "type": "string"
                 },
-                "is_active": {
-                    "type": "boolean"
-                },
                 "name": {
                     "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                }
-            }
-        },
-        "dto.ServiceResponseWithName": {
-            "type": "object",
-            "properties": {
-                "clinic_id": {
-                    "type": "string"
-                },
-                "clinic_name": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "duration": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
                 }
             }
         },
@@ -2791,23 +2657,11 @@ const docTemplate = `{
         "dto.UpdateServiceRequest": {
             "type": "object",
             "properties": {
-                "clinic_id": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
-                "duration": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
                 "name": {
                     "type": "string"
-                },
-                "price": {
-                    "type": "number"
                 }
             }
         },
