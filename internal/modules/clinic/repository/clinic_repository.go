@@ -260,7 +260,7 @@ func (r *clinicRepo) GetClinicByAddressId(id uuid.UUID) (string, error) {
 	var clinic_id string
 	query := `SELECT clinic_id
             FROM clinic_addresses
-            WHERE address_id = $1
+            WHERE id = $1
             `
 	err := r.db.QueryRow(context.Background(), query, id).Scan(
 		&clinic_id,

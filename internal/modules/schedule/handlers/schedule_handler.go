@@ -133,8 +133,7 @@ func (h *ScheduleHandler) GenerateSlots(w http.ResponseWriter, r *http.Request) 
 // @Param service_id query string true "Service ID (UUID)"
 // @Param clinic_address_id query string true "Clinic Address ID (UUID)"
 // @Param date query string true "Date (YYYY-MM-DD)"
-// @Success 200 {array} dto.SlotResponse
-// @Failure 400 {array} dto.SlotResponse
+
 // @Router /api/schedule/available-slots [get]
 func (h *ScheduleHandler) GetAvailableSlots(w http.ResponseWriter, r *http.Request) {
 

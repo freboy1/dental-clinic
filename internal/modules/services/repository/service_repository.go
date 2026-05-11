@@ -176,7 +176,7 @@ func (r *serviceRepo) DeleteServiceToClinic(clinicID, serviceID string) error {
 }
 
 func (r *serviceRepo) GetByClinicIDAndServiceID(clinicID, serviceID string) (*models.Clinic_Service, error) {
-	query := `SELECT id, clinic_id, service_id, price, duration_minutes, is_active FROM services WHERE clinic_id = $1 AND service_id = $2`
+	query := `SELECT id, clinic_id, service_id, price, duration_minutes, is_active FROM clinic_services WHERE clinic_id = $1 AND service_id = $2`
 	var s models.Clinic_Service
 	err := r.db.QueryRow(context.Background(), query, clinicID, serviceID).
 		Scan(&s.Id, &s.ClinicID, &s.ServiceID, &s.Price, &s.Duration, &s.IsActive)

@@ -7,13 +7,15 @@ import (
 )
 
 type Config struct {
-	Port      string
-	DB_DSN    string
-	JWTSecret string
-	SMTPUser  string
-	SMTPPass  string
-	SMTPHost  string
-	SMTPPort  string
+	Port         string
+	DB_DSN       string
+	JWTSecret    string
+	SMTPUser     string
+	SMTPPass     string
+	SMTPHost     string
+	SMTPPort     string
+	OpenAIAPIKey string
+	OpenAIModel  string
 }
 
 func LoadConfig() *Config {
@@ -23,13 +25,15 @@ func LoadConfig() *Config {
 	_ = godotenv.Load()
 
 	cfg := &Config{
-		Port:      getEnv("APP_PORT", "8080"),
-		DB_DSN:    getEnv("DB_DSN", ""),
-		JWTSecret: getEnv("JWT_SECRET", "secret_key"),
-		SMTPUser:  getEnv("SMTP_USER", ""),
-		SMTPPass:  getEnv("SMTP_PASS", ""),
-		SMTPHost:  getEnv("SMTP_HOST", ""),
-		SMTPPort:  getEnv("SMTP_PORT", ""),
+		Port:         getEnv("APP_PORT", "8080"),
+		DB_DSN:       getEnv("DB_DSN", ""),
+		JWTSecret:    getEnv("JWT_SECRET", "secret_key"),
+		SMTPUser:     getEnv("SMTP_USER", ""),
+		SMTPPass:     getEnv("SMTP_PASS", ""),
+		SMTPHost:     getEnv("SMTP_HOST", ""),
+		SMTPPort:     getEnv("SMTP_PORT", ""),
+		OpenAIAPIKey: getEnv("OPENAI_API_KEY", ""),
+		OpenAIModel:  getEnv("OPENAI_MODEL", "gpt-4o-mini"),
 	}
 
 	return cfg

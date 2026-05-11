@@ -358,6 +358,63 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/ai/chat": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Processes a user chat message, updates booking state, and creates an appointment when state is complete",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI Assistant"
+                ],
+                "summary": "AI assistant chat",
+                "parameters": [
+                    {
+                        "description": "Chat message",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChatResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/appointment": {
             "get": {
                 "security": [
@@ -1643,67 +1700,7 @@ const docTemplate = `{
         },
         "/api/schedule/available-slots": {
             "get": {
-                "description": "Get available slots",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Schedule"
-                ],
-                "summary": "Get available slots",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Doctor ID (UUID)",
-                        "name": "doctor_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Service ID (UUID)",
-                        "name": "service_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Clinic Address ID (UUID)",
-                        "name": "clinic_address_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Date (YYYY-MM-DD)",
-                        "name": "date",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.SlotResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.SlotResponse"
-                            }
-                        }
-                    }
-                }
+                "responses": {}
             }
         },
         "/api/schedule/doctors/{doctorId}/working-hours": {
@@ -2279,6 +2276,67 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ChatRequest": {
+            "type": "object",
+            "properties": {
+                "choice_id": {
+                    "type": "string"
+                },
+                "choice_type": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ChatResponse": {
+            "type": "object",
+            "properties": {
+                "appointment_id": {
+                    "type": "string"
+                },
+                "available_slots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_ai_assistant_dto.SlotResponse"
+                    }
+                },
+                "choice_required": {
+                    "type": "boolean"
+                },
+                "choice_type": {
+                    "type": "string"
+                },
+                "clinics": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ClinicOption"
+                    }
+                },
+                "doctors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DoctorOption"
+                    }
+                },
+                "reply": {
+                    "type": "string"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ServiceOption"
+                    }
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "state": {
+                    "$ref": "#/definitions/models.BookingState"
+                }
+            }
+        },
         "dto.ClinicResponse": {
             "type": "object",
             "properties": {
@@ -2780,23 +2838,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.SlotResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "slot_end": {
-                    "type": "string"
-                },
-                "slot_start": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.UpdateAppointmentRequest": {
             "type": "object",
             "properties": {
@@ -2937,6 +2978,49 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_modules_ai_assistant_dto.SlotResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "slot_end": {
+                    "type": "string"
+                },
+                "slot_start": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BookingState": {
+            "type": "object",
+            "properties": {
+                "clinic_address_id": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "doctor_id": {
+                    "type": "string"
+                },
+                "service_id": {
+                    "type": "string"
+                },
+                "step": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Clinic": {
             "type": "object",
             "properties": {
@@ -2962,6 +3046,57 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "website": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ClinicOption": {
+            "type": "object",
+            "properties": {
+                "clinic_address_id": {
+                    "type": "string"
+                },
+                "clinic_id": {
+                    "type": "string"
+                },
+                "clinic_name": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.DoctorOption": {
+            "type": "object",
+            "properties": {
+                "experience": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "specialization": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ServiceOption": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

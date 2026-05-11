@@ -41,6 +41,46 @@ definitions:
       success:
         type: string
     type: object
+  dto.ChatRequest:
+    properties:
+      choice_id:
+        type: string
+      choice_type:
+        type: string
+      message:
+        type: string
+    type: object
+  dto.ChatResponse:
+    properties:
+      appointment_id:
+        type: string
+      available_slots:
+        items:
+          $ref: '#/definitions/internal_modules_ai_assistant_dto.SlotResponse'
+        type: array
+      choice_required:
+        type: boolean
+      choice_type:
+        type: string
+      clinics:
+        items:
+          $ref: '#/definitions/models.ClinicOption'
+        type: array
+      doctors:
+        items:
+          $ref: '#/definitions/models.DoctorOption'
+        type: array
+      reply:
+        type: string
+      services:
+        items:
+          $ref: '#/definitions/models.ServiceOption'
+        type: array
+      session_id:
+        type: string
+      state:
+        $ref: '#/definitions/models.BookingState'
+    type: object
   dto.ClinicResponse:
     properties:
       message:
@@ -366,17 +406,6 @@ definitions:
       price:
         type: number
     type: object
-  dto.SlotResponse:
-    properties:
-      id:
-        type: string
-      slot_end:
-        type: string
-      slot_start:
-        type: string
-      status:
-        type: string
-    type: object
   dto.UpdateAppointmentRequest:
     properties:
       clinic_address_id:
@@ -468,6 +497,34 @@ definitions:
       message:
         type: string
     type: object
+  internal_modules_ai_assistant_dto.SlotResponse:
+    properties:
+      id:
+        type: string
+      slot_end:
+        type: string
+      slot_start:
+        type: string
+      status:
+        type: string
+    type: object
+  models.BookingState:
+    properties:
+      clinic_address_id:
+        type: string
+      date:
+        type: string
+      doctor_id:
+        type: string
+      service_id:
+        type: string
+      step:
+        type: string
+      time:
+        type: string
+      user_id:
+        type: string
+    type: object
   models.Clinic:
     properties:
       created_at:
@@ -485,6 +542,39 @@ definitions:
       phone:
         type: string
       website:
+        type: string
+    type: object
+  models.ClinicOption:
+    properties:
+      clinic_address_id:
+        type: string
+      clinic_id:
+        type: string
+      clinic_name:
+        type: string
+      duration:
+        type: integer
+      price:
+        type: number
+    type: object
+  models.DoctorOption:
+    properties:
+      experience:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      specialization:
+        type: string
+    type: object
+  models.ServiceOption:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
         type: string
     type: object
 info:
@@ -711,6 +801,43 @@ paths:
       summary: Update addresss
       tags:
       - Addresss
+  /api/ai/chat:
+    post:
+      consumes:
+      - application/json
+      description: Processes a user chat message, updates booking state, and creates
+        an appointment when state is complete
+      parameters:
+      - description: Chat message
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ChatResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: AI assistant chat
+      tags:
+      - AI Assistant
   /api/appointment:
     get:
       consumes:
@@ -1531,48 +1658,7 @@ paths:
       - Users
   /api/schedule/available-slots:
     get:
-      consumes:
-      - application/json
-      description: Get available slots
-      parameters:
-      - description: Doctor ID (UUID)
-        in: query
-        name: doctor_id
-        required: true
-        type: string
-      - description: Service ID (UUID)
-        in: query
-        name: service_id
-        required: true
-        type: string
-      - description: Clinic Address ID (UUID)
-        in: query
-        name: clinic_address_id
-        required: true
-        type: string
-      - description: Date (YYYY-MM-DD)
-        in: query
-        name: date
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/dto.SlotResponse'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            items:
-              $ref: '#/definitions/dto.SlotResponse'
-            type: array
-      summary: Get available slots
-      tags:
-      - Schedule
+      responses: {}
   /api/schedule/doctors/{doctorId}/working-hours:
     get:
       description: Returns a doctor schedule
