@@ -407,6 +407,40 @@
                 }
             }
         },
+        "/api/ai/chat/reset": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Clears the current booking state and starts a new chat session",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI Assistant"
+                ],
+                "summary": "Reset AI assistant booking flow",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChatResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/appointment": {
             "get": {
                 "security": [

@@ -60,3 +60,30 @@ func (h *AIAssistantHandler) Chat(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(response)
 }
+
+// Reset godoc
+// @Summary Reset AI assistant booking flow
+// @Description Clears the current booking state and starts a new chat session
+// @Tags AI Assistant
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} dto.ChatResponse
+// @Failure 401 {object} map[string]string
+// @Router /api/ai/chat/reset [post]
+func (h *AIAssistantHandler) Reset(w http.ResponseWriter, r *http.Request) {
+	userID, err := middleware.GetUserID(r, h.cfg.JWTSecret)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	response, err := h.service.ResetBooking(userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(response)
+}

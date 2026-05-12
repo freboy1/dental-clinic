@@ -838,6 +838,27 @@ paths:
       summary: AI assistant chat
       tags:
       - AI Assistant
+  /api/ai/chat/reset:
+    post:
+      description: Clears the current booking state and starts a new chat session
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ChatResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reset AI assistant booking flow
+      tags:
+      - AI Assistant
   /api/appointment:
     get:
       consumes:

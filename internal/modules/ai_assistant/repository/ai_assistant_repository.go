@@ -11,6 +11,7 @@ import (
 )
 
 type AIAssistantRepository interface {
+	CreateSession(userID uuid.UUID) (*models.ChatSession, error)
 	GetOrCreateSession(userID uuid.UUID) (*models.ChatSession, error)
 	SaveMessage(sessionID uuid.UUID, role, content string) error
 	GetRecentMessages(sessionID uuid.UUID, limit int) ([]models.ChatMessage, error)
@@ -30,6 +31,16 @@ func NewAIAssistantRepository(db *pgxpool.Pool) AIAssistantRepository {
 	return &aiAssistantRepo{db: db}
 }
 
+func (r *aiAssistantRepo) CreateSession(userID uuid.UUID) (*models.ChatSession, error) {
+	session := &models.ChatSession{
+		Id:     uuid.New(),
+		UserID: userID,
+	}
+	insertQuery := `INSERT INTO chat_sessions (id, user_id) VALUES ($1, $2)`
+	_, err := r.db.Exec(context.Background(), insertQuery, session.Id, session.UserID)
+	return session, err
+}
+
 func (r *aiAssistantRepo) GetOrCreateSession(userID uuid.UUID) (*models.ChatSession, error) {
 	session := &models.ChatSession{}
 	query := `
@@ -47,11 +58,7 @@ func (r *aiAssistantRepo) GetOrCreateSession(userID uuid.UUID) (*models.ChatSess
 		return nil, err
 	}
 
-	session.Id = uuid.New()
-	session.UserID = userID
-	insertQuery := `INSERT INTO chat_sessions (id, user_id) VALUES ($1, $2)`
-	_, err = r.db.Exec(context.Background(), insertQuery, session.Id, session.UserID)
-	return session, err
+	return r.CreateSession(userID)
 }
 
 func (r *aiAssistantRepo) SaveMessage(sessionID uuid.UUID, role, content string) error {

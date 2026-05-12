@@ -48,6 +48,10 @@ func NewAIAssistantService(
 }
 
 func (s *AIAssistantService) ProcessMessage(userID uuid.UUID, tokenStr string, req aiDto.ChatRequest) (aiDto.ChatResponse, error) {
+	if req.ChoiceID == "" && isResetCommand(req.Message) {
+		return s.ResetBooking(userID)
+	}
+
 	session, err := s.repo.GetOrCreateSession(userID)
 	if err != nil {
 		return aiDto.ChatResponse{}, err
@@ -100,6 +104,42 @@ func (s *AIAssistantService) ProcessMessage(userID uuid.UUID, tokenStr string, r
 
 	_ = s.repo.SaveMessage(session.Id, "assistant", response.Reply)
 	return response, nil
+}
+
+func (s *AIAssistantService) ResetBooking(userID uuid.UUID) (aiDto.ChatResponse, error) {
+	if err := s.repo.ClearState(userID); err != nil {
+		return aiDto.ChatResponse{}, err
+	}
+
+	session, err := s.repo.CreateSession(userID)
+	if err != nil {
+		return aiDto.ChatResponse{}, err
+	}
+
+	state := &models.BookingState{
+		UserID: userID.String(),
+		Step:   "collect_service",
+	}
+	if err := s.repo.SaveState(state); err != nil {
+		return aiDto.ChatResponse{}, err
+	}
+
+	response := aiDto.ChatResponse{
+		Reply:     "Booking flow reset. Which dental service do you want?",
+		SessionID: session.Id.String(),
+		State:     *state,
+	}
+	_ = s.repo.SaveMessage(session.Id, "assistant", response.Reply)
+	return response, nil
+}
+
+func isResetCommand(message string) bool {
+	switch strings.ToLower(strings.TrimSpace(message)) {
+	case "reset", "start over", "restart", "begin again", "new appointment", "начать заново", "сброс", "сбросить", "заново", "новая запись":
+		return true
+	default:
+		return false
+	}
 }
 
 func mergeState(state *models.BookingState, extraction BookingExtraction) {

@@ -53,4 +53,5 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	handler := handlers.NewAIAssistantHandler(assistantService, *cfg)
 
 	r.HandleFunc("/ai/chat", handler.Chat).Methods("POST")
+	r.HandleFunc("/ai/chat/reset", handler.Reset).Methods("POST")
 }
