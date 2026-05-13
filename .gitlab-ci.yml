@@ -1,0 +1,90 @@
+stages:
+  - lint
+  - build
+  - test
+  - docker
+  - deploy
+
+variables:
+  GITLAB_DEPENDENCY_PROXY_DISABLED: "true"
+  GOPATH: $CI_PROJECT_DIR/.go
+  IMAGE_NAME: $CI_REGISTRY_IMAGE
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+
+# ─── LINT ────────────────────────────────────────────────────────────────────
+
+vet:
+  stage: lint
+  image: golang:1.24-alpine
+  script:
+    - go vet ./...
+  cache:
+    key: go-mod-$CI_COMMIT_REF_SLUG
+    paths:
+      - .go/pkg/mod/
+
+# ─── BUILD ───────────────────────────────────────────────────────────────────
+
+build:
+  stage: build
+  image: golang:1.24-alpine
+  script:
+    - apk add --no-cache git
+    - go mod download
+    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app ./cmd/main.go
+  artifacts:
+    paths:
+      - app
+    expire_in: 1 hour
+  cache:
+    key: go-mod-$CI_COMMIT_REF_SLUG
+    paths:
+      - .go/pkg/mod/
+
+# ─── TEST ────────────────────────────────────────────────────────────────────
+
+test:
+  stage: test
+  image: golang:1.24-alpine
+  script:
+    - go test ./... -v -count=1
+  cache:
+    key: go-mod-$CI_COMMIT_REF_SLUG
+    paths:
+      - .go/pkg/mod/
+
+# ─── DOCKER BUILD & PUSH ─────────────────────────────────────────────────────
+
+docker-build:
+  stage: docker
+  tags:
+    - build
+  image: docker:25.0
+  services:
+    - docker:25.0-dind
+  only:
+    - main
+  before_script:
+    - docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+  script:
+    - export FULL_IMAGE="$CI_REGISTRY/$CI_PROJECT_PATH:latest"
+    - docker build -f docker/Dockerfile.deploy -t "$FULL_IMAGE" .
+    - docker push "$FULL_IMAGE"
+
+deploy:
+  image: docker:stable
+  stage: deploy
+  tags:
+    - prod
+  only:
+    - main
+  before_script:
+    - docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+  script:
+    - echo "$SSH_PRIVATE_KEY" > /tmp/id_rsa
+    - chmod 600 /tmp/id_rsa
+    - |
+      ssh -o StrictHostKeyChecking=no -i /tmp/id_rsa $SSH_USER@$SSH_HOST "
+        cd /home/vm/Projects/dental-clinic &&
+        docker compose up -d --pull always --no-deps --force-recreate backend
+      "

@@ -189,7 +189,7 @@ func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Re
 		return
 	}
 	response.Success, response.Message = "1", "Successfully deleted"
-	w.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(response)
 }
 
@@ -218,4 +218,30 @@ func (h *AppointmentHandler) GetMyAppointments(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(services.ToAppointmentResponseList(appointments))
 
+}
+
+// GetMedicalRecord godoc
+// @Summary get my medical record
+// @Description Get my medical record
+// @Tags Appointment
+// @Security BearerAuth
+// @Param id path string true "Appointment ID"
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} dto.GetMedicalRecordAppointmentResponse
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/appointment/medical-record/{id} [get]
+func (h *AppointmentHandler) GetMedicalRecord(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	medical_record, err := h.service.GetMedicalRecord(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(medical_record)
 }

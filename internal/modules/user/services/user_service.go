@@ -66,6 +66,39 @@ func (s *UserService) Register(req dto.RegisterRequest) (*models.User, error) {
 	return created_user, err
 }
 
+func (s *UserService) CreateUser(email, password, name, role string, is_active bool) (*models.User, error) {
+	if !isValidEmail(email) {
+		return nil, errors.New("invalid email format")
+	}
+	if !isValidPassword(password) {
+		return nil, errors.New("weak password")
+	}
+	if !isValidName(name) {
+		return nil, errors.New("invalid name")
+	}
+
+	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	user := &models.User{
+		Role:         role,
+		Email:        email,
+		Password:     string(hash),
+		Name:         name,
+		Gender:       "",
+		Age:          0,
+		Push_consent: false,
+	}
+	created_user, err := s.repo.Create(user)
+	if err != nil {
+		return created_user, err
+	}
+
+	if is_active {
+		s.repo.MarkUserAsVerified(created_user.Id.String())
+	}
+
+	return created_user, err
+}
+
 func (s *UserService) GetAllUsers(tokenStr string) ([]models.User, error) {
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
 	if claims["role"] == "admin" {
@@ -172,9 +205,6 @@ func (s *UserService) Login(req dto.LoginRequest, ip string) (*models.User, erro
 		return nil, errors.New("user not found")
 	}
 
-	fmt.Println(user.Password)
-	fmt.Println(req.Password)
-
 	if !CheckPassword(user.Password, req.Password) {
 		_ = s.repo.LogLogin(user.Id.String(), ip, false)
 		return nil, errors.New("Invalid credentials")
@@ -192,11 +222,7 @@ func (s *UserService) UpdatePassword(tokenStr string, req dto.UpdatePasswordRequ
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
 	userIDAny := claims["user_id"]
 	userID, _ := userIDAny.(string)
-	fmt.Println("User id")
-	fmt.Println(userID)
-	fmt.Println(req.OldPassword)
 	user, err := s.repo.GetUserByID(userID)
-	fmt.Println(user.Password)
 	if err != nil {
 		return err
 	}
@@ -280,4 +306,34 @@ func ToUserResponseList(users []models.User) []dto.UserResponse {
 		result = append(result, ToUserResponse(u))
 	}
 	return result
+}
+
+func (s *UserService) UpdatePasswordWithUserId(user_id, password string) error {
+	user, err := s.repo.GetUserByID(user_id)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	if !isValidPassword(password) {
+		return errors.New("weak password")
+	}
+
+	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	err = s.repo.UpdatePassword(user_id, string(hash))
+	if err != nil {
+		return err
+	}
+	err = utils.SendEmail(&s.cfx, user.Email, "You have updated your Password", "You have updated your Password")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) UpdateUserVerification(user_id string, is_active bool) error {
+	return s.repo.UpdateUserVerification(user_id, is_active)
 }

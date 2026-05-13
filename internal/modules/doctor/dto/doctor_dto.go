@@ -8,6 +8,8 @@ type CreateDoctorRequest struct {
 	ClinicID       string `json:"clinic_id"`
 	Bio            string `json:"bio"`
 	IsAvailable    bool   `json:"is_available"`
+	Password       string `json:"password"`
+	Is_active      bool   `json:"is_active"`
 }
 
 type UpdateDoctorRequest struct {
@@ -16,6 +18,8 @@ type UpdateDoctorRequest struct {
 	ClinicID       string `json:"clinic_id"`
 	Bio            string `json:"bio"`
 	IsAvailable    bool   `json:"is_available"`
+	NewPassword    string `json:"new_password"`
+	Is_active      bool   `json:"is_active"`
 }
 
 type DoctorResponse struct {
@@ -33,4 +37,10 @@ type DoctorActionResponse struct {
 	Success  string `json:"success"`
 	Message  string `json:"message"`
 	DoctorID string `json:"doctor_id"`
+}
+
+type GetMedicalRecordDoctorResponse struct {
+	Diagnosis  string `json:"diagnosis"`
+	Notes      string `json:"notes"`
+	Is_checked bool   `json:"is_checked"`
 }

@@ -128,7 +128,7 @@ func (s *ClinicService) GetClinicAddressWithName(id uuid.UUID) ([]models.ClinicA
 
 		clinic_with_name := models.ClinicAddressWithNames{}
 
-		clinic_with_name.Id = clinic.ClinicId
+		clinic_with_name.Id = clinic.Id
 		clinic_with_name.ClinicId = clinic.ClinicId
 		clinic_with_name.AddressId = clinic.AddressId
 		clinic_with_name.IsMain = clinic.IsMain

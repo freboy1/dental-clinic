@@ -11,4 +11,5 @@ type Doctor struct {
 	ClinicID       uuid.UUID
 	Bio            string
 	IsAvailable    bool
+	UserId         uuid.UUID
 }
