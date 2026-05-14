@@ -73,6 +73,7 @@ func (r *scheduleRepo) CreateAvailableSlot(doctor_id, clinic_address_id uuid.UUI
 	slot_id := uuid.New()
 	query := `INSERT INTO doctor_time_slots (id, doctor_id, clinic_address_id, slot_start, slot_end, status, created_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7) 
+			ON CONFLICT DO NOTHING
             `
 	_, err := r.db.Exec(
 		context.Background(),
