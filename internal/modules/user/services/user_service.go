@@ -337,3 +337,7 @@ func (s *UserService) UpdatePasswordWithUserId(user_id, password string) error {
 func (s *UserService) UpdateUserVerification(user_id string, is_active bool) error {
 	return s.repo.UpdateUserVerification(user_id, is_active)
 }
+
+func (s *UserService) DeleteUserById(id string) error {
+	return s.repo.Delete(id)
+}

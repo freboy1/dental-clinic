@@ -134,7 +134,11 @@ func (s *DoctorService) DeleteDoctor(id string) error {
 	if doctor == nil {
 		return errors.New("doctor not found")
 	}
-	return s.repo.Delete(id)
+	err = s.repo.Delete(id)
+	if err != nil {
+		return err
+	}
+	return s.userSrv.DeleteUserById(doctor.UserId.String())
 }
 
 func ToDoctorResponse(d models.Doctor) dto.DoctorResponse {
