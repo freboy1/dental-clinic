@@ -111,7 +111,7 @@ func (r *medical_report_Repo) GetMedicalRecordByAppointmentId(id string) (*model
 func (r *medical_report_Repo) GetMedicalRecordsByDoctorId(id string) ([]models.MedicalRecord, error) {
 	query := `SELECT id, appointment_id, doctor_id, patient_id, diagnosis, notes, is_checked, created_at, updated_at FROM medical_records WHERE doctor_id = $1`
 
-	rows, err := r.db.Query(context.Background(), query)
+	rows, err := r.db.Query(context.Background(), query, id)
 	if err != nil {
 		return nil, err
 	}

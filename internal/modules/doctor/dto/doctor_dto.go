@@ -15,7 +15,7 @@ type CreateDoctorRequest struct {
 type UpdateDoctorRequest struct {
 	Specialization string `json:"specialization"`
 	Experience     int    `json:"experience"`
-	ClinicID       string `json:"clinic_id"`
+	// ClinicID       string `json:"clinic_id"`
 	Bio            string `json:"bio"`
 	IsAvailable    bool   `json:"is_available"`
 	NewPassword    string `json:"new_password"`

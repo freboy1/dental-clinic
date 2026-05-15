@@ -11,6 +11,7 @@ import (
 	userServices "dental_clinic/internal/modules/user/services"
 
 	"github.com/google/uuid"
+	// "fmt"
 )
 
 type DoctorService struct {
@@ -102,10 +103,10 @@ func (s *DoctorService) UpdateDoctor(id string, req dto.UpdateDoctorRequest) (*m
 		return nil, errors.New("experience cannot be negative")
 	}
 
-	clinicID, err := uuid.Parse(req.ClinicID)
-	if err != nil {
-		return nil, errors.New("invalid clinic_id")
-	}
+	// clinicID, err := uuid.Parse(req.ClinicID)
+	// if err != nil {
+	// 	return nil, errors.New("invalid clinic_id")
+	// }
 
 	err = s.userSrv.UpdatePasswordWithUserId(doctor.UserId.String(), req.NewPassword)
 	if err != nil {
@@ -119,7 +120,7 @@ func (s *DoctorService) UpdateDoctor(id string, req dto.UpdateDoctorRequest) (*m
 
 	doctor.Specialization = req.Specialization
 	doctor.Experience = req.Experience
-	doctor.ClinicID = clinicID
+	// doctor.ClinicID = clinicID
 	doctor.Bio = req.Bio
 	doctor.IsAvailable = req.IsAvailable
 
@@ -195,7 +196,7 @@ func (s *DoctorService) GetDoctorByUserIdMedicalRecords(id string) ([]dto.GetMed
 	if doctor == nil {
 		return nil, errors.New("doctor not found")
 	}
-	medical_records, err := s.medical_recordSrv.GetMedicalRecordsByDoctorId(id)
+	medical_records, err := s.medical_recordSrv.GetMedicalRecordsByDoctorId(doctor.Id.String())
 	if err != nil {
 		return nil, err
 	}

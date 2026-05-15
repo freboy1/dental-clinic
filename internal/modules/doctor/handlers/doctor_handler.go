@@ -12,6 +12,7 @@ import (
 	"dental_clinic/internal/modules/doctor/services"
 
 	"github.com/gorilla/mux"
+	// "fmt"
 )
 
 type DoctorHandler struct {
@@ -201,10 +202,12 @@ func (h *DoctorHandler) GetDoctorByIdMedicalRecords(w http.ResponseWriter, r *ht
 // @Security BearerAuth
 // @Success 200 {array} dto.GetMedicalRecordDoctorResponse
 // @Failure 404 {object} map[string]string
-// @Router /api/doctors/my-medical-records [get]
+// @Router /api/doctors-test/my-medical-records [get]
 func (h *DoctorHandler) GetDoctorMedicalRecords(w http.ResponseWriter, r *http.Request) {
 
 	user_id, err := middleware.GetUserID(r, h.cfg.JWTSecret)
+
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
