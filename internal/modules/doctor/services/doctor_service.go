@@ -180,6 +180,7 @@ func (s *DoctorService) GetDoctorByIdMedicalRecords(id string) ([]dto.GetMedical
 	for _, medical_record := range medical_records {
 
 		response := dto.GetMedicalRecordDoctorResponse{
+			Id:         medical_record.Id.String(),
 			Diagnosis:  medical_record.Diagnosis,
 			Notes:      medical_record.Notes,
 			Is_checked: medical_record.Is_checked,
@@ -205,6 +206,7 @@ func (s *DoctorService) GetDoctorByUserIdMedicalRecords(id string) ([]dto.GetMed
 	for _, medical_record := range medical_records {
 
 		response := dto.GetMedicalRecordDoctorResponse{
+			Id:         medical_record.Id.String(),
 			Diagnosis:  medical_record.Diagnosis,
 			Notes:      medical_record.Notes,
 			Is_checked: medical_record.Is_checked,
