@@ -1,7 +1,11 @@
 package services
 
 import (
+	"dental_clinic/internal/config"
+	"dental_clinic/internal/utils"
 	"errors"
+	"fmt"
+	"math/rand"
 
 	"dental_clinic/internal/modules/doctor/dto"
 	"dental_clinic/internal/modules/doctor/models"
@@ -17,17 +21,27 @@ type DoctorService struct {
 	repo              repository.DoctorRepository
 	userSrv           userServices.UserService
 	medical_recordSrv medical_recordServices.MedicalRecordService
+	cfg               config.Config
 }
 
-func NewDoctorService(r repository.DoctorRepository, userSrv userServices.UserService, medical_recordSrv medical_recordServices.MedicalRecordService) *DoctorService {
+func NewDoctorService(r repository.DoctorRepository, userSrv userServices.UserService, medical_recordSrv medical_recordServices.MedicalRecordService, cfg config.Config) *DoctorService {
 	return &DoctorService{
 		repo:              r,
 		userSrv:           userSrv,
 		medical_recordSrv: medical_recordSrv,
+		cfg:               cfg,
 	}
 }
+func generateConfirmationCode() string {
+	return fmt.Sprintf("%06d", rand.Intn(1000000))
+}
 
-func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Doctor, error) {
+type CreateDoctorResult struct {
+	Doctor           *models.Doctor
+	ConfirmationCode string
+}
+
+func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*CreateDoctorResult, error) {
 	if req.Specialization == "" {
 		return nil, errors.New("specialization is required")
 	}
@@ -68,7 +82,13 @@ func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Docto
 		return nil, err
 	}
 
-	return doctor, nil
+	confirmationCode := generateConfirmationCode()
+	_ = utils.SendDoctorWelcomeEmail(&s.cfg, doctor.Email, doctor.Name, confirmationCode)
+
+	return &CreateDoctorResult{
+		Doctor:           doctor,
+		ConfirmationCode: confirmationCode,
+	}, nil
 }
 
 func (s *DoctorService) GetAllDoctors() ([]models.Doctor, error) {

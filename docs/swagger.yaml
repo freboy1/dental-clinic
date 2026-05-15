@@ -189,6 +189,8 @@ definitions:
     type: object
   dto.DoctorActionResponse:
     properties:
+      confirmation_code:
+        type: string
       doctor_id:
         type: string
       message:
@@ -1409,6 +1411,27 @@ paths:
       summary: Create a new doctor
       tags:
       - Doctors
+  /api/doctors-test/my-medical-records:
+    get:
+      description: Get doctor medical records
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.GetMedicalRecordDoctorResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get doctor medical records
+      tags:
+      - Doctors
   /api/doctors/{id}:
     delete:
       description: Deletes a doctor by ID
@@ -1511,27 +1534,6 @@ paths:
         name: id
         required: true
         type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/dto.GetMedicalRecordDoctorResponse'
-            type: array
-        "404":
-          description: Not Found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get doctor medical records
-      tags:
-      - Doctors
-  /api/doctors/my-medical-records:
-    get:
-      description: Get doctor medical records
       responses:
         "200":
           description: OK
