@@ -53,7 +53,7 @@ func (h *DoctorHandler) CreateDoctor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	doctor, err := h.service.CreateDoctor(req)
+	result, err := h.service.CreateDoctor(req)
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)
@@ -63,7 +63,8 @@ func (h *DoctorHandler) CreateDoctor(w http.ResponseWriter, r *http.Request) {
 
 	response.Success = "1"
 	response.Message = "doctor created successfully"
-	response.DoctorID = doctor.Id.String()
+	response.DoctorID = result.Doctor.Id.String()
+	response.ConfirmationCode = result.ConfirmationCode
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

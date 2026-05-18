@@ -1312,27 +1312,18 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/doctors/medical-records/{id}": {
+        "/api/doctors-test/my-medical-records": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get doctor medical records by ID",
+                "description": "Get doctor medical records",
                 "tags": [
                     "Doctors"
                 ],
                 "summary": "Get doctor medical records",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Doctor ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1355,18 +1346,27 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/doctors/my-medical-records": {
+        "/api/doctors/medical-records/{id}": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get doctor medical records",
+                "description": "Get doctor medical records by ID",
                 "tags": [
                     "Doctors"
                 ],
                 "summary": "Get doctor medical records",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Doctor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -2537,6 +2537,9 @@ const docTemplate = `{
         "dto.DoctorActionResponse": {
             "type": "object",
             "properties": {
+                "confirmation_code": {
+                    "type": "string"
+                },
                 "doctor_id": {
                     "type": "string"
                 },

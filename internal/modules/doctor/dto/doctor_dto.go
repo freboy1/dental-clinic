@@ -34,9 +34,10 @@ type DoctorResponse struct {
 }
 
 type DoctorActionResponse struct {
-	Success  string `json:"success"`
-	Message  string `json:"message"`
-	DoctorID string `json:"doctor_id"`
+	Success          string `json:"success"`
+	Message          string `json:"message"`
+	DoctorID         string `json:"doctor_id"`
+	ConfirmationCode string `json:"confirmation_code,omitempty"`
 }
 
 type GetMedicalRecordDoctorResponse struct {

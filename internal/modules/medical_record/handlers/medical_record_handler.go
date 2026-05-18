@@ -4,7 +4,11 @@ import (
 	"dental_clinic/internal/modules/medical_record/dto"
 	"dental_clinic/internal/modules/medical_record/services"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"time"
 
 	//"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -39,15 +43,45 @@ func (h *MedicalRecordHandler) UpdateMedicalRecord(w http.ResponseWriter, r *htt
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	var req dto.UpdateMedicalRecordRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	// парсим multipart form (макс 10MB)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		response.Message = "Invalid request body"
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	_, err := h.service.UpdateMedicalRecord(id, req)
+	req := dto.UpdateMedicalRecordRequest{
+		Diagnosis:  r.FormValue("diagnosis"),
+		Notes:      r.FormValue("notes"),
+		Is_checked: r.FormValue("is_checked") == "true",
+	}
+
+	// сохраняем файлы локально
+	files := r.MultipartForm.File["files"]
+	var fileURLs []string
+	for _, fileHeader := range files {
+		file, err := fileHeader.Open()
+		if err != nil {
+			continue
+		}
+		defer file.Close()
+
+		// создаём папку если нет
+		os.MkdirAll("./uploads/medical_records", os.ModePerm)
+
+		fileName := fmt.Sprintf("./uploads/medical_records/%d_%s", time.Now().UnixNano(), fileHeader.Filename)
+		dst, err := os.Create(fileName)
+		if err != nil {
+			continue
+		}
+		defer dst.Close()
+		io.Copy(dst, file)
+
+		fileURLs = append(fileURLs, fileName)
+	}
+
+	_, err := h.service.UpdateMedicalRecord(id, req, fileURLs)
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)
@@ -57,7 +91,6 @@ func (h *MedicalRecordHandler) UpdateMedicalRecord(w http.ResponseWriter, r *htt
 
 	response.Success = "1"
 	response.Message = "successfully updated"
-
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(response)
 }
