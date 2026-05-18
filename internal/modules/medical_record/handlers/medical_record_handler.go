@@ -27,10 +27,13 @@ func NewMedicalRecordHandler(s *services.MedicalRecordService) *MedicalRecordHan
 // @Description Updates an existing MedicalRecord's information
 // @Tags MedicalRecord
 // @Security BearerAuth
-// @Accept  json
+// @Accept multipart/form-data
 // @Produce  json
 // @Param id path string true "MedicalRecord ID"
-// @Param request body dto.UpdateMedicalRecordRequest true "Medical record update data"
+// @Param diagnosis formData string false "Diagnosis"
+// @Param notes formData string false "Notes"
+// @Param is_checked formData bool false "Is checked"
+// @Param files formData file false "Files"
 // @Success 200 {object} dto.MedicalRecordResponse
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string

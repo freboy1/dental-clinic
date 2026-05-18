@@ -1637,7 +1637,7 @@ const docTemplate = `{
                 ],
                 "description": "Updates an existing MedicalRecord's information",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -1655,13 +1655,28 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Medical record update data",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UpdateMedicalRecordRequest"
-                        }
+                        "type": "string",
+                        "description": "Diagnosis",
+                        "name": "diagnosis",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Notes",
+                        "name": "notes",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is checked",
+                        "name": "is_checked",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Files",
+                        "name": "files",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -2672,6 +2687,9 @@ const docTemplate = `{
                 "diagnosis": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "string"
+                },
                 "is_checked": {
                     "type": "boolean"
                 },
@@ -2908,9 +2926,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "bio": {
-                    "type": "string"
-                },
-                "clinic_id": {
+                    "description": "ClinicID       string ` + "`" + `json:\"clinic_id\"` + "`" + `",
                     "type": "string"
                 },
                 "experience": {
@@ -2926,20 +2942,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "specialization": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.UpdateMedicalRecordRequest": {
-            "type": "object",
-            "properties": {
-                "diagnosis": {
-                    "type": "string"
-                },
-                "is_checked": {
-                    "type": "boolean"
-                },
-                "notes": {
                     "type": "string"
                 }
             }

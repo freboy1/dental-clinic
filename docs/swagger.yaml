@@ -277,6 +277,8 @@ definitions:
     properties:
       diagnosis:
         type: string
+      id:
+        type: string
       is_checked:
         type: boolean
       notes:
@@ -430,8 +432,7 @@ definitions:
   dto.UpdateDoctorRequest:
     properties:
       bio:
-        type: string
-      clinic_id:
+        description: ClinicID       string `json:"clinic_id"`
         type: string
       experience:
         type: integer
@@ -442,15 +443,6 @@ definitions:
       new_password:
         type: string
       specialization:
-        type: string
-    type: object
-  dto.UpdateMedicalRecordRequest:
-    properties:
-      diagnosis:
-        type: string
-      is_checked:
-        type: boolean
-      notes:
         type: string
     type: object
   dto.UpdateScheduleRequest:
@@ -1615,7 +1607,7 @@ paths:
       - MedicalRecord
     put:
       consumes:
-      - application/json
+      - multipart/form-data
       description: Updates an existing MedicalRecord's information
       parameters:
       - description: MedicalRecord ID
@@ -1623,12 +1615,22 @@ paths:
         name: id
         required: true
         type: string
-      - description: Medical record update data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.UpdateMedicalRecordRequest'
+      - description: Diagnosis
+        in: formData
+        name: diagnosis
+        type: string
+      - description: Notes
+        in: formData
+        name: notes
+        type: string
+      - description: Is checked
+        in: formData
+        name: is_checked
+        type: boolean
+      - description: Files
+        in: formData
+        name: files
+        type: file
       produces:
       - application/json
       responses:

@@ -190,9 +190,16 @@ func (h *DoctorHandler) GetDoctorByIdMedicalRecords(w http.ResponseWriter, r *ht
 
 	responses, err := h.service.GetDoctorByIdMedicalRecords(id)
 	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(responses)
 }
 
@@ -207,7 +214,6 @@ func (h *DoctorHandler) GetDoctorByIdMedicalRecords(w http.ResponseWriter, r *ht
 func (h *DoctorHandler) GetDoctorMedicalRecords(w http.ResponseWriter, r *http.Request) {
 
 	user_id, err := middleware.GetUserID(r, h.cfg.JWTSecret)
-
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)

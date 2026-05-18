@@ -3,9 +3,9 @@ package dto
 import "mime/multipart"
 
 type UpdateMedicalRecordRequest struct {
-	Diagnosis  string                  `json:"diagnosis"`
-	Notes      string                  `json:"notes"`
-	Is_checked bool                    `json:"is_checked"`
+	Diagnosis  string                  `form:"diagnosis"`
+	Notes      string                  `form:"notes"`
+	Is_checked bool                    `form:"is_checked"`
 	Files      []*multipart.FileHeader `form:"files"`
 }
 
