@@ -199,3 +199,37 @@ func (h *MedicalRecordHandler) GetPreviewMedicalRecordFile(w http.ResponseWriter
 
 	http.ServeFile(w, r, file.FilePath)
 }
+
+// DownloadMedicalFile godoc
+// @Summary Download medical file
+// @Description Download medical file
+// @Tags MedicalRecord
+// @Security BearerAuth
+// @Produce octet-stream
+// @Param id path string true "File ID"
+// @Success 200 {file} file
+// @Failure 404 {object} map[string]string
+// @Router /api/files/medical-records/{id}/download [get]
+func (h *MedicalRecordHandler) DownloadMedicalRecordFile(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+
+	file, err := h.service.GetFileByID(id)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": "file not found",
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", file.MimeType)
+
+	w.Header().Set(
+		"Content-Disposition",
+		fmt.Sprintf(`attachment; filename="%s"`, file.Filename),
+	)
+
+	http.ServeFile(w, r, file.FilePath)
+}
