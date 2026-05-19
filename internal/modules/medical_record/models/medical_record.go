@@ -18,3 +18,8 @@ type MedicalRecord struct {
 	Created_at time.Time
 	Updated_at time.Time
 }
+
+type MedicalFile struct {
+	Filename string
+	FilePath string
+}

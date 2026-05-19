@@ -40,7 +40,7 @@ func (s *MedicalRecordService) CreateMedicalRecord(appointment_id, doctor_id, pa
 	return s.repo.Create(medical_record)
 }
 
-func (s *MedicalRecordService) UpdateMedicalRecord(id string, req dto.UpdateMedicalRecordRequest, fileURLs []string) (*models.MedicalRecord, error) {
+func (s *MedicalRecordService) UpdateMedicalRecord(id string, req dto.UpdateMedicalRecordRequest, medicalFiles []models.MedicalFile) (*models.MedicalRecord, error) {
 	medical_record, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, err
@@ -60,8 +60,8 @@ func (s *MedicalRecordService) UpdateMedicalRecord(id string, req dto.UpdateMedi
 	}
 
 	// сохраняем пути файлов в БД
-	for _, url := range fileURLs {
-		_ = s.repo.SaveMedicalFile(id, url)
+	for _, medicalFile := range medicalFiles {
+		_ = s.repo.SaveMedicalFile(id, medicalFile.FilePath, medicalFile.Filename)
 	}
 
 	return updated, nil

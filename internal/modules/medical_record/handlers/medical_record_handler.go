@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"dental_clinic/internal/modules/medical_record/dto"
+	"dental_clinic/internal/modules/medical_record/models"
 	"dental_clinic/internal/modules/medical_record/services"
 	"encoding/json"
 	"fmt"
@@ -62,7 +63,7 @@ func (h *MedicalRecordHandler) UpdateMedicalRecord(w http.ResponseWriter, r *htt
 
 	// сохраняем файлы локально
 	files := r.MultipartForm.File["files"]
-	var fileURLs []string
+	var medicalFiles []models.MedicalFile
 	for _, fileHeader := range files {
 		file, err := fileHeader.Open()
 		if err != nil {
@@ -73,18 +74,23 @@ func (h *MedicalRecordHandler) UpdateMedicalRecord(w http.ResponseWriter, r *htt
 		// создаём папку если нет
 		os.MkdirAll("./uploads/medical_records", os.ModePerm)
 
-		fileName := fmt.Sprintf("./uploads/medical_records/%d_%s", time.Now().UnixNano(), fileHeader.Filename)
-		dst, err := os.Create(fileName)
+		filePath := fmt.Sprintf("./uploads/medical_records/%d_%s", time.Now().UnixNano(), fileHeader.Filename)
+		dst, err := os.Create(filePath)
 		if err != nil {
 			continue
 		}
 		defer dst.Close()
 		io.Copy(dst, file)
 
-		fileURLs = append(fileURLs, fileName)
+		medicalFile := models.MedicalFile{
+			Filename: fileHeader.Filename,
+			FilePath: filePath,
+		}
+
+		medicalFiles = append(medicalFiles, medicalFile)
 	}
 
-	_, err := h.service.UpdateMedicalRecord(id, req, fileURLs)
+	_, err := h.service.UpdateMedicalRecord(id, req, medicalFiles)
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)
