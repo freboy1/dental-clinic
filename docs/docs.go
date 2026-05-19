@@ -2704,6 +2704,12 @@ const docTemplate = `{
                 "diagnosis": {
                     "type": "string"
                 },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MedicalFileResponse"
+                    }
+                },
                 "is_checked": {
                     "type": "boolean"
                 },
@@ -2739,6 +2745,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MedicalFileResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "mime_type": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

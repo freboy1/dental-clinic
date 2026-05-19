@@ -147,11 +147,20 @@ func (h *MedicalRecordHandler) GetMedicalRecord(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	medical_files, err := h.service.GetMedicalRecordFiles(id)
+	if err != nil {
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	response.Status = "1"
 	response.Message = "successfully retrieved"
 	response.Diagnosis = medical_record.Diagnosis
 	response.Notes = medical_record.Notes
 	response.Is_checked = medical_record.Is_checked
+	response.Files = medical_files
 
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(response)

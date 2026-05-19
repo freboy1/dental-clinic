@@ -53,6 +53,7 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	schedule.RegisterPrivateRoutes(private, db, cfg)
 	appointment.RegisterPrivateRoutes(private, db, cfg)
 	ai_assistant.RegisterPrivateRoutes(private, db, cfg)
+	medical_record.RegisterPrivateRoutes(private, db)
 
 	doctor_subrouter := api.NewRoute().Subrouter()
 	doctor_subrouter.Use(middleware.JWTAuth(cfg.JWTSecret))

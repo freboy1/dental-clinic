@@ -288,6 +288,10 @@ definitions:
     properties:
       diagnosis:
         type: string
+      files:
+        items:
+          $ref: '#/definitions/dto.MedicalFileResponse'
+        type: array
       is_checked:
         type: boolean
       message:
@@ -311,6 +315,15 @@ definitions:
       success:
         type: string
       token:
+        type: string
+    type: object
+  dto.MedicalFileResponse:
+    properties:
+      id:
+        type: string
+      mime_type:
+        type: string
+      name:
         type: string
     type: object
   dto.MedicalRecordResponse:

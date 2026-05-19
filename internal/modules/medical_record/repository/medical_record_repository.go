@@ -17,6 +17,7 @@ type MedicalRecordRepository interface {
 	Update(id string, doctor *models.MedicalRecord) (*models.MedicalRecord, error)
 	//Delete(id string) error
 	SaveMedicalFile(medicalRecordID, fileURL, fileName, mimeType string) error
+	GetMedicalFiles(id string) ([]models.MedicalFile, error)
 }
 
 type medical_report_Repo struct {
@@ -139,4 +140,29 @@ func (r *medical_report_Repo) SaveMedicalFile(medicalRecordID, fileURL, fileName
               VALUES (gen_random_uuid(), $1, $2, NOW(), $3, $4)`
 	_, err := r.db.Exec(context.Background(), query, medicalRecordID, fileURL, fileName, mimeType)
 	return err
+}
+
+func (r *medical_report_Repo) GetMedicalFiles(id string) ([]models.MedicalFile, error) {
+	query := `SELECT id, file_name, mime_type FROM medical_files WHERE medical_record_id = $1`
+
+	rows, err := r.db.Query(context.Background(), query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var medical_files []models.MedicalFile
+	for rows.Next() {
+		var medical_file models.MedicalFile
+		if err := rows.Scan(&medical_file.Id, &medical_file.Filename, &medical_file.MimeType); err != nil {
+			return nil, err
+		}
+		medical_files = append(medical_files, medical_file)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return medical_files, nil
 }

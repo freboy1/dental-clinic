@@ -77,3 +77,29 @@ func (s *MedicalRecordService) GetMedicalRecordByAppointmentId(id string) (*mode
 func (s *MedicalRecordService) GetMedicalRecordsByDoctorId(id string) ([]models.MedicalRecord, error) {
 	return s.repo.GetMedicalRecordsByDoctorId(id)
 }
+
+func (s *MedicalRecordService) GetMedicalRecordFiles(id string) ([]dto.MedicalFileResponse, error) {
+	medical_files, err := s.repo.GetMedicalFiles(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return ToMedicalFileResponseList(medical_files), nil
+}
+
+func ToMedicalFileResponse(s models.MedicalFile) dto.MedicalFileResponse {
+	return dto.MedicalFileResponse{
+		ID:       s.Id.String(),
+		Name:     s.Filename,
+		MimeType: s.MimeType,
+		// ClinicName: ,
+	}
+}
+
+func ToMedicalFileResponseList(services []models.MedicalFile) []dto.MedicalFileResponse {
+	result := make([]dto.MedicalFileResponse, 0, len(services))
+	for _, s := range services {
+		result = append(result, ToMedicalFileResponse(s))
+	}
+	return result
+}

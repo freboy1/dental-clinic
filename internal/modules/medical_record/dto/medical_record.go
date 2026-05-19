@@ -15,11 +15,18 @@ type MedicalRecordResponse struct {
 }
 
 type GetMedicalRecordResponse struct {
-	Status     string `json:"status"`
-	Message    string `json:"message"`
-	Diagnosis  string `json:"diagnosis"`
-	Notes      string `json:"notes"`
-	Is_checked bool   `json:"is_checked"`
+	Status     string                `json:"status"`
+	Message    string                `json:"message"`
+	Diagnosis  string                `json:"diagnosis"`
+	Notes      string                `json:"notes"`
+	Is_checked bool                  `json:"is_checked"`
+	Files      []MedicalFileResponse `json:"files"`
+}
+
+type MedicalFileResponse struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	MimeType string `json:"mime_type"`
 }
 
 type UpdateMedicalRecordResponse struct {
