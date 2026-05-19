@@ -71,6 +71,20 @@ func (h *MedicalRecordHandler) UpdateMedicalRecord(w http.ResponseWriter, r *htt
 		}
 		defer file.Close()
 
+		buffer := make([]byte, 512)
+
+		_, err = file.Read(buffer)
+		if err != nil {
+			continue
+		}
+
+		mimeType := http.DetectContentType(buffer)
+
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			continue
+		}
+
 		// создаём папку если нет
 		os.MkdirAll("./uploads/medical_records", os.ModePerm)
 
@@ -85,6 +99,7 @@ func (h *MedicalRecordHandler) UpdateMedicalRecord(w http.ResponseWriter, r *htt
 		medicalFile := models.MedicalFile{
 			Filename: fileHeader.Filename,
 			FilePath: filePath,
+			MimeType: mimeType,
 		}
 
 		medicalFiles = append(medicalFiles, medicalFile)

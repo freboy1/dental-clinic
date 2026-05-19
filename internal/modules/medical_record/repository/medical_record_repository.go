@@ -16,7 +16,7 @@ type MedicalRecordRepository interface {
 	//GetAll() ([]models.Doctor, error)
 	Update(id string, doctor *models.MedicalRecord) (*models.MedicalRecord, error)
 	//Delete(id string) error
-	SaveMedicalFile(medicalRecordID, fileURL, fileName string) error
+	SaveMedicalFile(medicalRecordID, fileURL, fileName, mimeType string) error
 }
 
 type medical_report_Repo struct {
@@ -134,9 +134,9 @@ func (r *medical_report_Repo) GetMedicalRecordsByDoctorId(id string) ([]models.M
 	return medical_records, nil
 }
 
-func (r *medical_report_Repo) SaveMedicalFile(medicalRecordID, fileURL, fileName string) error {
-	query := `INSERT INTO medical_files (id, medical_record_id, file_url, created_at, file_name) 
-              VALUES (gen_random_uuid(), $1, $2, NOW(), $3)`
-	_, err := r.db.Exec(context.Background(), query, medicalRecordID, fileURL, fileName)
+func (r *medical_report_Repo) SaveMedicalFile(medicalRecordID, fileURL, fileName, mimeType string) error {
+	query := `INSERT INTO medical_files (id, medical_record_id, file_url, created_at, file_name, mime_type) 
+              VALUES (gen_random_uuid(), $1, $2, NOW(), $3, $4)`
+	_, err := r.db.Exec(context.Background(), query, medicalRecordID, fileURL, fileName, mimeType)
 	return err
 }

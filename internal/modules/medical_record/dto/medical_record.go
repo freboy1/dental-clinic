@@ -21,3 +21,8 @@ type GetMedicalRecordResponse struct {
 	Notes      string `json:"notes"`
 	Is_checked bool   `json:"is_checked"`
 }
+
+type UpdateMedicalRecordResponse struct {
+	Success string `json:"success"`
+	Message string `json:"message"`
+}

@@ -20,6 +20,10 @@ type MedicalRecord struct {
 }
 
 type MedicalFile struct {
-	Filename string
-	FilePath string
+	Id              uuid.UUID
+	MedicalRecordId uuid.UUID
+	Filename        string
+	FilePath        string
+	MimeType        string
+	Created_at      time.Time
 }

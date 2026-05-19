@@ -61,7 +61,7 @@ func (s *MedicalRecordService) UpdateMedicalRecord(id string, req dto.UpdateMedi
 
 	// сохраняем пути файлов в БД
 	for _, medicalFile := range medicalFiles {
-		_ = s.repo.SaveMedicalFile(id, medicalFile.FilePath, medicalFile.Filename)
+		_ = s.repo.SaveMedicalFile(id, medicalFile.FilePath, medicalFile.Filename, medicalFile.MimeType)
 	}
 
 	return updated, nil
