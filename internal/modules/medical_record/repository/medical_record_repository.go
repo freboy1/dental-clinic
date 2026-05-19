@@ -18,8 +18,8 @@ type MedicalRecordRepository interface {
 	//Delete(id string) error
 	SaveMedicalFile(medicalRecordID, fileURL, fileName, mimeType string) error
 	GetMedicalFiles(id string) ([]models.MedicalFile, error)
+	GetFileByID(id string) (*models.MedicalFile, error)
 }
-
 type medical_report_Repo struct {
 	db *pgxpool.Pool
 }
@@ -165,4 +165,17 @@ func (r *medical_report_Repo) GetMedicalFiles(id string) ([]models.MedicalFile, 
 	}
 
 	return medical_files, nil
+}
+
+func (r *medical_report_Repo) GetFileByID(id string) (*models.MedicalFile, error) {
+	query := `SELECT id, medical_record_id, file_url, created_at, file_name, mime_type FROM medical_files WHERE id = $1`
+	var medical_file models.MedicalFile
+	err := r.db.QueryRow(context.Background(), query, id).Scan(&medical_file.Id, &medical_file.MedicalRecordId, &medical_file.FilePath, &medical_file.Created_at, &medical_file.Filename, &medical_file.MimeType)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &medical_file, nil
 }

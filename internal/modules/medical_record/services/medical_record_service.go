@@ -103,3 +103,7 @@ func ToMedicalFileResponseList(services []models.MedicalFile) []dto.MedicalFileR
 	}
 	return result
 }
+
+func (s *MedicalRecordService) GetFileByID(id string) (*models.MedicalFile, error) {
+	return s.repo.GetFileByID(id)
+}

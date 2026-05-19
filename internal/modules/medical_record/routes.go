@@ -25,6 +25,7 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool) {
 	handler := handlers.NewMedicalRecordHandler(service)
 
 	r.HandleFunc("/medical-records/{id}", handler.GetMedicalRecord).Methods("GET")
+	r.HandleFunc("/files/medical-records/{id}", handler.GetPreviewMedicalRecordFile).Methods("GET")
 }
 
 func RegisterDoctorRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
