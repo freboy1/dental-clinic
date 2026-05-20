@@ -107,3 +107,7 @@ func ToMedicalFileResponseList(services []models.MedicalFile) []dto.MedicalFileR
 func (s *MedicalRecordService) GetFileByID(id string) (*models.MedicalFile, error) {
 	return s.repo.GetFileByID(id)
 }
+
+func (s *MedicalRecordService) DeleteFile(id string) error {
+	return s.repo.DeleteFileByID(id)
+}

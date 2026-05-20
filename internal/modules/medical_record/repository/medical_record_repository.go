@@ -19,6 +19,7 @@ type MedicalRecordRepository interface {
 	SaveMedicalFile(medicalRecordID, fileURL, fileName, mimeType string) error
 	GetMedicalFiles(id string) ([]models.MedicalFile, error)
 	GetFileByID(id string) (*models.MedicalFile, error)
+	DeleteFileByID(id string) error
 }
 type medical_report_Repo struct {
 	db *pgxpool.Pool
@@ -178,4 +179,20 @@ func (r *medical_report_Repo) GetFileByID(id string) (*models.MedicalFile, error
 		return nil, err
 	}
 	return &medical_file, nil
+}
+
+func (r *medical_report_Repo) DeleteFileByID(id string) error {
+	query := `DELETE FROM medical_files WHERE id=$1`
+	result, err := r.db.Exec(context.Background(), query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected := result.RowsAffected()
+
+	if rowsAffected == 0 {
+		return pgx.ErrNoRows
+	}
+
+	return nil
 }

@@ -36,5 +36,6 @@ func RegisterDoctorRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 
 	//r.HandleFunc("/doctors", handler.CreateDoctor).Methods("POST")
 	r.HandleFunc("/medical-records/{id}", handler.UpdateMedicalRecord).Methods("PUT")
+	r.HandleFunc("/files/medical-records/{id}", handler.DeleteRecordFile).Methods("DELETE")
 	//r.HandleFunc("/doctors/{id}", handler.DeleteDoctor).Methods("DELETE")
 }

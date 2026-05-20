@@ -93,8 +93,15 @@ func (h *MedicalRecordHandler) UpdateMedicalRecord(w http.ResponseWriter, r *htt
 		if err != nil {
 			continue
 		}
-		defer dst.Close()
-		io.Copy(dst, file)
+
+		_, err = io.Copy(dst, file)
+
+		dst.Close()
+		file.Close()
+
+		if err != nil {
+			continue
+		}
 
 		medicalFile := models.MedicalFile{
 			Filename: fileHeader.Filename,
@@ -232,4 +239,53 @@ func (h *MedicalRecordHandler) DownloadMedicalRecordFile(w http.ResponseWriter, 
 	)
 
 	http.ServeFile(w, r, file.FilePath)
+}
+
+// DeleteMedicalFile godoc
+// @Summary Delete medical file
+// @Description Delete medical file by ID
+// @Tags MedicalRecord
+// @Security BearerAuth
+// @Produce octet-stream
+// @Param id path string true "File ID"
+// @Success 200 {file} file
+// @Failure 404 {object} map[string]string
+// @Router /api/files/medical-records/{id} [delete]
+func (h *MedicalRecordHandler) DeleteRecordFile(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+
+	file, err := h.service.GetFileByID(id)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": "file not found",
+		})
+		return
+	}
+
+	err = os.Remove(file.FilePath)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": "failed to delete file from storage",
+		})
+		return
+	}
+
+	err = h.service.DeleteFile(id)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": "failed to delete file record",
+		})
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
