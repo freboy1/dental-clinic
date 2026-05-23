@@ -172,6 +172,7 @@ func ToDoctorResponse(d models.Doctor) dto.DoctorResponse {
 		IsAvailable:    d.IsAvailable,
 		Name:           d.Name,
 		Email:          d.Email,
+		Rating:         d.Rating,
 	}
 }
 

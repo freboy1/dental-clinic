@@ -48,7 +48,23 @@ func (r *doctorRepo) Create(doctor *models.Doctor) (*models.Doctor, error) {
 }
 
 func (r *doctorRepo) GetAll() ([]models.Doctor, error) {
-	query := `SELECT id, specialization, experience, clinic_id, bio, is_available, name, email FROM doctors WHERE is_deleted=0`
+	query := `
+		SELECT
+			d.id,
+			d.specialization,
+			d.experience,
+			d.clinic_id,
+			d.bio,
+			d.is_available,
+			d.name,
+			d.email,
+			COALESCE(ROUND(AVG(dr.rating)::numeric, 2), 0)::float8 AS rating
+		FROM doctors d
+		LEFT JOIN doctor_ratings dr ON dr.doctor_id = d.id
+		WHERE d.is_deleted=0
+		GROUP BY d.id, d.specialization, d.experience, d.clinic_id, d.bio, d.is_available, d.name, d.email
+		ORDER BY rating DESC, d.name
+	`
 
 	rows, err := r.db.Query(context.Background(), query)
 	if err != nil {
@@ -59,7 +75,7 @@ func (r *doctorRepo) GetAll() ([]models.Doctor, error) {
 	var doctors []models.Doctor
 	for rows.Next() {
 		var d models.Doctor
-		if err := rows.Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable, &d.Name, &d.Email); err != nil {
+		if err := rows.Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable, &d.Name, &d.Email, &d.Rating); err != nil {
 			return nil, err
 		}
 		doctors = append(doctors, d)
@@ -73,10 +89,26 @@ func (r *doctorRepo) GetAll() ([]models.Doctor, error) {
 }
 
 func (r *doctorRepo) GetByID(id string) (*models.Doctor, error) {
-	query := `SELECT id, specialization, experience, clinic_id, bio, is_available FROM doctors WHERE id = $1 AND is_deleted=0`
+	query := `
+		SELECT
+			d.id,
+			d.specialization,
+			d.experience,
+			d.clinic_id,
+			d.bio,
+			d.is_available,
+			d.name,
+			d.email,
+			d.user_id,
+			COALESCE(ROUND(AVG(dr.rating)::numeric, 2), 0)::float8 AS rating
+		FROM doctors d
+		LEFT JOIN doctor_ratings dr ON dr.doctor_id = d.id
+		WHERE d.id = $1 AND d.is_deleted=0
+		GROUP BY d.id, d.specialization, d.experience, d.clinic_id, d.bio, d.is_available, d.name, d.email, d.user_id
+	`
 	var d models.Doctor
 	err := r.db.QueryRow(context.Background(), query, id).
-		Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable)
+		Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable, &d.Name, &d.Email, &d.UserId, &d.Rating)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, nil
@@ -130,10 +162,26 @@ func (r *doctorRepo) Delete(id string) error {
 }
 
 func (r *doctorRepo) GetByUserID(id string) (*models.Doctor, error) {
-	query := `SELECT id, specialization, experience, clinic_id, bio, is_available FROM doctors WHERE user_id = $1 AND is_deleted=0`
+	query := `
+		SELECT
+			d.id,
+			d.specialization,
+			d.experience,
+			d.clinic_id,
+			d.bio,
+			d.is_available,
+			d.name,
+			d.email,
+			d.user_id,
+			COALESCE(ROUND(AVG(dr.rating)::numeric, 2), 0)::float8 AS rating
+		FROM doctors d
+		LEFT JOIN doctor_ratings dr ON dr.doctor_id = d.id
+		WHERE d.user_id = $1 AND d.is_deleted=0
+		GROUP BY d.id, d.specialization, d.experience, d.clinic_id, d.bio, d.is_available, d.name, d.email, d.user_id
+	`
 	var d models.Doctor
 	err := r.db.QueryRow(context.Background(), query, id).
-		Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable)
+		Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable, &d.Name, &d.Email, &d.UserId, &d.Rating)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, nil

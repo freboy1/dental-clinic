@@ -12,4 +12,5 @@ type Doctor struct {
 	Bio            string
 	IsAvailable    bool
 	UserId         uuid.UUID
+	Rating         float64
 }

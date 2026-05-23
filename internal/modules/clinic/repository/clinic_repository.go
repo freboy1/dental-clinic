@@ -59,10 +59,23 @@ func (r *clinicRepo) Create(clinic *models.Clinic) (*models.Clinic, error) {
 }
 
 func (r *clinicRepo) GetAll() ([]*models.Clinic, error) {
-	query := `SELECT id, name, description, phone, email, website, is_active, created_at
-            FROM clinics
-            WHERE is_active = true
-            ORDER BY created_at DESC`
+	query := `
+		SELECT
+			c.id,
+			c.name,
+			c.description,
+			c.phone,
+			c.email,
+			c.website,
+			c.is_active,
+			c.created_at,
+			COALESCE(ROUND(AVG(cr.rating)::numeric, 2), 0)::float8 AS rating
+		FROM clinics c
+		LEFT JOIN clinic_reviews cr ON cr.clinic_id = c.id
+		WHERE c.is_active = true
+		GROUP BY c.id, c.name, c.description, c.phone, c.email, c.website, c.is_active, c.created_at
+		ORDER BY rating DESC, c.created_at DESC
+	`
 
 	rows, err := r.db.Query(context.Background(), query)
 	if err != nil {
@@ -82,6 +95,7 @@ func (r *clinicRepo) GetAll() ([]*models.Clinic, error) {
 			&clinic.Website,
 			&clinic.IsActive,
 			&clinic.CreatedAt,
+			&clinic.Rating,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan clinic: %w", err)
@@ -97,9 +111,22 @@ func (r *clinicRepo) GetAll() ([]*models.Clinic, error) {
 }
 
 func (r *clinicRepo) GetByID(id uuid.UUID) (*models.Clinic, error) {
-	query := `SELECT id, name, description, phone, email, website, is_active, created_at
-            FROM clinics
-            WHERE id = $1`
+	query := `
+		SELECT
+			c.id,
+			c.name,
+			c.description,
+			c.phone,
+			c.email,
+			c.website,
+			c.is_active,
+			c.created_at,
+			COALESCE(ROUND(AVG(cr.rating)::numeric, 2), 0)::float8 AS rating
+		FROM clinics c
+		LEFT JOIN clinic_reviews cr ON cr.clinic_id = c.id
+		WHERE c.id = $1
+		GROUP BY c.id, c.name, c.description, c.phone, c.email, c.website, c.is_active, c.created_at
+	`
 
 	clinic := &models.Clinic{}
 	err := r.db.QueryRow(context.Background(), query, id).Scan(
@@ -111,6 +138,7 @@ func (r *clinicRepo) GetByID(id uuid.UUID) (*models.Clinic, error) {
 		&clinic.Website,
 		&clinic.IsActive,
 		&clinic.CreatedAt,
+		&clinic.Rating,
 	)
 
 	if err != nil {

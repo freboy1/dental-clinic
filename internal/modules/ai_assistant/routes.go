@@ -14,6 +14,8 @@ import (
 	clinicServices "dental_clinic/internal/modules/clinic/services"
 	medicalRecordRepository "dental_clinic/internal/modules/medical_record/repository"
 	medicalRecordServices "dental_clinic/internal/modules/medical_record/services"
+	reviewRepository "dental_clinic/internal/modules/reviews/repository"
+	reviewServices "dental_clinic/internal/modules/reviews/services"
 	scheduleRepository "dental_clinic/internal/modules/schedule/repository"
 	scheduleServices "dental_clinic/internal/modules/schedule/services"
 	serviceRepository "dental_clinic/internal/modules/services/repository"
@@ -41,8 +43,11 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	medicalRecordRepo := medicalRecordRepository.NewMedicalRecordRepository(db)
 	medicalRecordService := medicalRecordServices.NewMedicalRecordService(medicalRecordRepo)
 
+	reviewRepo := reviewRepository.NewReviewRepository(db)
+	reviewService := reviewServices.NewReviewService(reviewRepo)
+
 	appointmentRepo := appointmentRepository.NewAppointmentRepository(db)
-	appointmentService := appointmentServices.NewAppointmentService(appointmentRepo, db, *cfg, *scheduleService, *serviceService, *medicalRecordService, *clinicService)
+	appointmentService := appointmentServices.NewAppointmentService(appointmentRepo, db, *cfg, *scheduleService, *serviceService, *medicalRecordService, *clinicService, reviewService)
 
 	userRepo := userRepository.NewUserRepository(db)
 	userService := userServices.NewUserService(userRepo, *cfg)

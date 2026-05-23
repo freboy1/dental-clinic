@@ -196,14 +196,17 @@ func (r *aiAssistantRepo) GetClinicOptions(serviceID string) ([]models.ClinicOpt
 			ca.id::text,
 			c.name,
 			cs.price,
-			cs.duration_minutes
+			cs.duration_minutes,
+			COALESCE(ROUND(AVG(cr.rating)::numeric, 2), 0)::float8 AS rating
 		FROM clinic_services cs
 		JOIN clinics c ON c.id = cs.clinic_id
 		JOIN clinic_addresses ca ON ca.clinic_id = cs.clinic_id
+		LEFT JOIN clinic_reviews cr ON cr.clinic_id = c.id
 		WHERE cs.service_id = $1
 			AND cs.is_active = true
 			AND c.is_active = true
-		ORDER BY c.name
+		GROUP BY cs.clinic_id, ca.id, c.name, cs.price, cs.duration_minutes
+		ORDER BY rating DESC, c.name
 	`
 	rows, err := r.db.Query(context.Background(), query, serviceID)
 	if err != nil {
@@ -214,7 +217,7 @@ func (r *aiAssistantRepo) GetClinicOptions(serviceID string) ([]models.ClinicOpt
 	options := make([]models.ClinicOption, 0)
 	for rows.Next() {
 		var option models.ClinicOption
-		if err := rows.Scan(&option.ClinicID, &option.ClinicAddressID, &option.ClinicName, &option.Price, &option.Duration); err != nil {
+		if err := rows.Scan(&option.ClinicID, &option.ClinicAddressID, &option.ClinicName, &option.Price, &option.Duration, &option.Rating); err != nil {
 			return nil, err
 		}
 		options = append(options, option)
@@ -224,15 +227,22 @@ func (r *aiAssistantRepo) GetClinicOptions(serviceID string) ([]models.ClinicOpt
 
 func (r *aiAssistantRepo) GetDoctorOptions(serviceID, clinicAddressID string) ([]models.DoctorOption, error) {
 	query := `
-		SELECT DISTINCT d.id::text, d.name, d.specialization, d.experience
+		SELECT
+			d.id::text,
+			d.name,
+			d.specialization,
+			d.experience,
+			COALESCE(ROUND(AVG(dr.rating)::numeric, 2), 0)::float8 AS rating
 		FROM doctors d
 		JOIN clinic_addresses ca ON ca.clinic_id = d.clinic_id
 		JOIN clinic_services cs ON cs.clinic_id = d.clinic_id
+		LEFT JOIN doctor_ratings dr ON dr.doctor_id = d.id
 		WHERE ca.id = $1
 			AND cs.service_id = $2
 			AND d.is_available = true
 			AND d.is_deleted = 0
-		ORDER BY d.name
+		GROUP BY d.id, d.name, d.specialization, d.experience
+		ORDER BY rating DESC, d.name
 	`
 	rows, err := r.db.Query(context.Background(), query, clinicAddressID, serviceID)
 	if err != nil {
@@ -243,7 +253,7 @@ func (r *aiAssistantRepo) GetDoctorOptions(serviceID, clinicAddressID string) ([
 	options := make([]models.DoctorOption, 0)
 	for rows.Next() {
 		var option models.DoctorOption
-		if err := rows.Scan(&option.Id, &option.Name, &option.Specialization, &option.Experience); err != nil {
+		if err := rows.Scan(&option.Id, &option.Name, &option.Specialization, &option.Experience, &option.Rating); err != nil {
 			return nil, err
 		}
 		options = append(options, option)

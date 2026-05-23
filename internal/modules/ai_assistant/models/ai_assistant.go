@@ -44,11 +44,13 @@ type ClinicOption struct {
 	ClinicName      string  `json:"clinic_name"`
 	Price           float64 `json:"price"`
 	Duration        int     `json:"duration"`
+	Rating          float64 `json:"rating"`
 }
 
 type DoctorOption struct {
-	Id             string `json:"id"`
-	Name           string `json:"name"`
-	Specialization string `json:"specialization"`
-	Experience     int    `json:"experience"`
+	Id             string  `json:"id"`
+	Name           string  `json:"name"`
+	Specialization string  `json:"specialization"`
+	Experience     int     `json:"experience"`
+	Rating         float64 `json:"rating"`
 }
