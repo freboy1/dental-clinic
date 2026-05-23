@@ -11,6 +11,7 @@ import (
 
 	"time"
 
+	clinicServices "dental_clinic/internal/modules/clinic/services"
 	medical_recordServices "dental_clinic/internal/modules/medical_record/services"
 	scheduleServices "dental_clinic/internal/modules/schedule/services"
 	serviceServices "dental_clinic/internal/modules/services/services"
@@ -27,15 +28,17 @@ type AppointmentService struct {
 	scheduleSrv       scheduleServices.ScheduleService
 	serviceSrv        serviceServices.ServiceService
 	medical_recordSrv medical_recordServices.MedicalRecordService
+	clinicSrv         clinicServices.ClinicService
 }
 
-func NewAppointmentService(r repository.AppointmentRepository, cfx config.Config, scheduleSrv scheduleServices.ScheduleService, serviceSrv serviceServices.ServiceService, medical_recordSrv medical_recordServices.MedicalRecordService) *AppointmentService {
+func NewAppointmentService(r repository.AppointmentRepository, cfx config.Config, scheduleSrv scheduleServices.ScheduleService, serviceSrv serviceServices.ServiceService, medical_recordSrv medical_recordServices.MedicalRecordService, clinicSrv clinicServices.ClinicService) *AppointmentService {
 	return &AppointmentService{
 		repo:              r,
 		cfx:               cfx,
 		scheduleSrv:       scheduleSrv,
 		serviceSrv:        serviceSrv,
 		medical_recordSrv: medical_recordSrv,
+		clinicSrv:         clinicSrv,
 	}
 }
 
@@ -66,7 +69,19 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, errors.New("invalid serviceId")
 	}
 
+	clinic_id, err := s.clinicSrv.GetClinicByAddressId(clinic_addressId)
+	if err != nil {
+		return nil, err
+	}
 	service, err := s.serviceSrv.GetServiceByID(serviceId.String())
+
+	serviceInfo, err := s.serviceSrv.GetByClinicIDAndServiceID(clinic_id, service.Id.String())
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.serviceSrv.GetServiceByID(serviceId.String())
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +101,8 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, err
 	}
 
-	requiredSlots := s.scheduleSrv.HowManySlots(service.Duration)
-
+	requiredSlots := s.scheduleSrv.HowManySlots(serviceInfo.Duration)
+	//requiredSlots := 1
 	rawSlots, err := s.scheduleSrv.GetAvailableSlotsByDateAndDoctorAndClinic(doctorId, clinic_addressId, date)
 	if err != nil {
 		return nil, err

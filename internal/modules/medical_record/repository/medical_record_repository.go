@@ -16,8 +16,11 @@ type MedicalRecordRepository interface {
 	//GetAll() ([]models.Doctor, error)
 	Update(id string, doctor *models.MedicalRecord) (*models.MedicalRecord, error)
 	//Delete(id string) error
+	SaveMedicalFile(medicalRecordID, fileURL, fileName, mimeType string) error
+	GetMedicalFiles(id string) ([]models.MedicalFile, error)
+	GetFileByID(id string) (*models.MedicalFile, error)
+	DeleteFileByID(id string) error
 }
-
 type medical_report_Repo struct {
 	db *pgxpool.Pool
 }
@@ -111,7 +114,7 @@ func (r *medical_report_Repo) GetMedicalRecordByAppointmentId(id string) (*model
 func (r *medical_report_Repo) GetMedicalRecordsByDoctorId(id string) ([]models.MedicalRecord, error) {
 	query := `SELECT id, appointment_id, doctor_id, patient_id, diagnosis, notes, is_checked, created_at, updated_at FROM medical_records WHERE doctor_id = $1`
 
-	rows, err := r.db.Query(context.Background(), query)
+	rows, err := r.db.Query(context.Background(), query, id)
 	if err != nil {
 		return nil, err
 	}
@@ -131,4 +134,65 @@ func (r *medical_report_Repo) GetMedicalRecordsByDoctorId(id string) ([]models.M
 	}
 
 	return medical_records, nil
+}
+
+func (r *medical_report_Repo) SaveMedicalFile(medicalRecordID, fileURL, fileName, mimeType string) error {
+	query := `INSERT INTO medical_files (id, medical_record_id, file_url, created_at, file_name, mime_type) 
+              VALUES (gen_random_uuid(), $1, $2, NOW(), $3, $4)`
+	_, err := r.db.Exec(context.Background(), query, medicalRecordID, fileURL, fileName, mimeType)
+	return err
+}
+
+func (r *medical_report_Repo) GetMedicalFiles(id string) ([]models.MedicalFile, error) {
+	query := `SELECT id, file_name, mime_type FROM medical_files WHERE medical_record_id = $1`
+
+	rows, err := r.db.Query(context.Background(), query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var medical_files []models.MedicalFile
+	for rows.Next() {
+		var medical_file models.MedicalFile
+		if err := rows.Scan(&medical_file.Id, &medical_file.Filename, &medical_file.MimeType); err != nil {
+			return nil, err
+		}
+		medical_files = append(medical_files, medical_file)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return medical_files, nil
+}
+
+func (r *medical_report_Repo) GetFileByID(id string) (*models.MedicalFile, error) {
+	query := `SELECT id, medical_record_id, file_url, created_at, file_name, mime_type FROM medical_files WHERE id = $1`
+	var medical_file models.MedicalFile
+	err := r.db.QueryRow(context.Background(), query, id).Scan(&medical_file.Id, &medical_file.MedicalRecordId, &medical_file.FilePath, &medical_file.Created_at, &medical_file.Filename, &medical_file.MimeType)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &medical_file, nil
+}
+
+func (r *medical_report_Repo) DeleteFileByID(id string) error {
+	query := `DELETE FROM medical_files WHERE id=$1`
+	result, err := r.db.Exec(context.Background(), query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected := result.RowsAffected()
+
+	if rowsAffected == 0 {
+		return pgx.ErrNoRows
+	}
+
+	return nil
 }

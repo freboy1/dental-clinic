@@ -12,6 +12,7 @@ import (
 	"dental_clinic/internal/modules/doctor/services"
 
 	"github.com/gorilla/mux"
+	// "fmt"
 )
 
 type DoctorHandler struct {
@@ -52,7 +53,7 @@ func (h *DoctorHandler) CreateDoctor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	doctor, err := h.service.CreateDoctor(req)
+	result, err := h.service.CreateDoctor(req)
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)
@@ -62,7 +63,8 @@ func (h *DoctorHandler) CreateDoctor(w http.ResponseWriter, r *http.Request) {
 
 	response.Success = "1"
 	response.Message = "doctor created successfully"
-	response.DoctorID = doctor.Id.String()
+	response.DoctorID = result.Doctor.Id.String()
+	response.ConfirmationCode = result.ConfirmationCode
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -188,9 +190,16 @@ func (h *DoctorHandler) GetDoctorByIdMedicalRecords(w http.ResponseWriter, r *ht
 
 	responses, err := h.service.GetDoctorByIdMedicalRecords(id)
 	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(responses)
 }
 
@@ -201,10 +210,11 @@ func (h *DoctorHandler) GetDoctorByIdMedicalRecords(w http.ResponseWriter, r *ht
 // @Security BearerAuth
 // @Success 200 {array} dto.GetMedicalRecordDoctorResponse
 // @Failure 404 {object} map[string]string
-// @Router /api/doctors/my-medical-records [get]
+// @Router /api/doctors-test/my-medical-records [get]
 func (h *DoctorHandler) GetDoctorMedicalRecords(w http.ResponseWriter, r *http.Request) {
 
 	user_id, err := middleware.GetUserID(r, h.cfg.JWTSecret)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

@@ -1,7 +1,11 @@
 package services
 
 import (
+	"dental_clinic/internal/config"
+	"dental_clinic/internal/utils"
 	"errors"
+	"fmt"
+	"math/rand"
 
 	"dental_clinic/internal/modules/doctor/dto"
 	"dental_clinic/internal/modules/doctor/models"
@@ -11,23 +15,34 @@ import (
 	userServices "dental_clinic/internal/modules/user/services"
 
 	"github.com/google/uuid"
+	// "fmt"
 )
 
 type DoctorService struct {
 	repo              repository.DoctorRepository
 	userSrv           userServices.UserService
 	medical_recordSrv medical_recordServices.MedicalRecordService
+	cfg               config.Config
 }
 
-func NewDoctorService(r repository.DoctorRepository, userSrv userServices.UserService, medical_recordSrv medical_recordServices.MedicalRecordService) *DoctorService {
+func NewDoctorService(r repository.DoctorRepository, userSrv userServices.UserService, medical_recordSrv medical_recordServices.MedicalRecordService, cfg config.Config) *DoctorService {
 	return &DoctorService{
 		repo:              r,
 		userSrv:           userSrv,
 		medical_recordSrv: medical_recordSrv,
+		cfg:               cfg,
 	}
 }
+func generateConfirmationCode() string {
+	return fmt.Sprintf("%06d", rand.Intn(1000000))
+}
 
-func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Doctor, error) {
+type CreateDoctorResult struct {
+	Doctor           *models.Doctor
+	ConfirmationCode string
+}
+
+func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*CreateDoctorResult, error) {
 	if req.Specialization == "" {
 		return nil, errors.New("specialization is required")
 	}
@@ -68,7 +83,13 @@ func (s *DoctorService) CreateDoctor(req dto.CreateDoctorRequest) (*models.Docto
 		return nil, err
 	}
 
-	return doctor, nil
+	confirmationCode := generateConfirmationCode()
+	_ = utils.SendDoctorWelcomeEmail(&s.cfg, doctor.Email, doctor.Name, confirmationCode)
+
+	return &CreateDoctorResult{
+		Doctor:           doctor,
+		ConfirmationCode: confirmationCode,
+	}, nil
 }
 
 func (s *DoctorService) GetAllDoctors() ([]models.Doctor, error) {
@@ -102,10 +123,10 @@ func (s *DoctorService) UpdateDoctor(id string, req dto.UpdateDoctorRequest) (*m
 		return nil, errors.New("experience cannot be negative")
 	}
 
-	clinicID, err := uuid.Parse(req.ClinicID)
-	if err != nil {
-		return nil, errors.New("invalid clinic_id")
-	}
+	// clinicID, err := uuid.Parse(req.ClinicID)
+	// if err != nil {
+	// 	return nil, errors.New("invalid clinic_id")
+	// }
 
 	err = s.userSrv.UpdatePasswordWithUserId(doctor.UserId.String(), req.NewPassword)
 	if err != nil {
@@ -119,7 +140,7 @@ func (s *DoctorService) UpdateDoctor(id string, req dto.UpdateDoctorRequest) (*m
 
 	doctor.Specialization = req.Specialization
 	doctor.Experience = req.Experience
-	doctor.ClinicID = clinicID
+	// doctor.ClinicID = clinicID
 	doctor.Bio = req.Bio
 	doctor.IsAvailable = req.IsAvailable
 
@@ -134,7 +155,11 @@ func (s *DoctorService) DeleteDoctor(id string) error {
 	if doctor == nil {
 		return errors.New("doctor not found")
 	}
-	return s.repo.Delete(id)
+	err = s.repo.Delete(id)
+	if err != nil {
+		return err
+	}
+	return s.userSrv.DeleteUserById(doctor.UserId.String())
 }
 
 func ToDoctorResponse(d models.Doctor) dto.DoctorResponse {
@@ -175,6 +200,7 @@ func (s *DoctorService) GetDoctorByIdMedicalRecords(id string) ([]dto.GetMedical
 	for _, medical_record := range medical_records {
 
 		response := dto.GetMedicalRecordDoctorResponse{
+			Id:         medical_record.Id.String(),
 			Diagnosis:  medical_record.Diagnosis,
 			Notes:      medical_record.Notes,
 			Is_checked: medical_record.Is_checked,
@@ -191,7 +217,7 @@ func (s *DoctorService) GetDoctorByUserIdMedicalRecords(id string) ([]dto.GetMed
 	if doctor == nil {
 		return nil, errors.New("doctor not found")
 	}
-	medical_records, err := s.medical_recordSrv.GetMedicalRecordsByDoctorId(id)
+	medical_records, err := s.medical_recordSrv.GetMedicalRecordsByDoctorId(doctor.Id.String())
 	if err != nil {
 		return nil, err
 	}
@@ -200,6 +226,7 @@ func (s *DoctorService) GetDoctorByUserIdMedicalRecords(id string) ([]dto.GetMed
 	for _, medical_record := range medical_records {
 
 		response := dto.GetMedicalRecordDoctorResponse{
+			Id:         medical_record.Id.String(),
 			Diagnosis:  medical_record.Diagnosis,
 			Notes:      medical_record.Notes,
 			Is_checked: medical_record.Is_checked,

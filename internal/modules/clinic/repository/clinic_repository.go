@@ -21,6 +21,7 @@ type ClinicRepository interface {
 	Delete(id uuid.UUID) error
 	AddAddress(id, clinic_id uuid.UUID, address_id string, is_main bool) error
 	GetClinicAddress(id uuid.UUID) ([]models.ClinicAddress, error)
+	GetClinicByAddressId(id uuid.UUID) (string, error)
 	DeleteAddress(id, address_id uuid.UUID) error
 }
 
@@ -253,4 +254,21 @@ func (r *clinicRepo) DeleteAddress(id, address_id uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (r *clinicRepo) GetClinicByAddressId(id uuid.UUID) (string, error) {
+	var clinic_id string
+	query := `SELECT clinic_id
+            FROM clinic_addresses
+            WHERE id = $1
+            `
+	err := r.db.QueryRow(context.Background(), query, id).Scan(
+		&clinic_id,
+	)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to get clinic: %w", err)
+	}
+
+	return clinic_id, nil
 }

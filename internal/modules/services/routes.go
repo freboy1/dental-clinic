@@ -30,7 +30,7 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 
 	handler := handlers.NewServiceHandler(service)
 
-	r.HandleFunc("/services", handler.GetAllServices).Methods("GET")
+	//r.HandleFunc("/services", handler.GetAllServices).Methods("GET")
 	r.HandleFunc("/services/{id}", handler.GetServiceByID).Methods("GET")
 	r.HandleFunc("/clinics/{clinic_id}/services", handler.GetServicesByClinic).Methods("GET")
 }
@@ -48,6 +48,11 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	handler := handlers.NewServiceHandler(service)
 
 	r.HandleFunc("/services", handler.CreateService).Methods("POST")
+	r.HandleFunc("/services", handler.GetServices).Methods("GET")
 	r.HandleFunc("/services/{id}", handler.UpdateService).Methods("PUT")
 	r.HandleFunc("/services/{id}", handler.DeleteService).Methods("DELETE")
+
+	r.HandleFunc("/add-clinics/{id}/services", handler.AddServiceToClinic).Methods("POST")
+	r.HandleFunc("/clinics/{clinic_id}/services/{service_id}", handler.DeleteServicesByClinic).Methods("DELETE")
+
 }

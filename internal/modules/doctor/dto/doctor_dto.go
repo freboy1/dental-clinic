@@ -15,11 +15,11 @@ type CreateDoctorRequest struct {
 type UpdateDoctorRequest struct {
 	Specialization string `json:"specialization"`
 	Experience     int    `json:"experience"`
-	ClinicID       string `json:"clinic_id"`
-	Bio            string `json:"bio"`
-	IsAvailable    bool   `json:"is_available"`
-	NewPassword    string `json:"new_password"`
-	Is_active      bool   `json:"is_active"`
+	// ClinicID       string `json:"clinic_id"`
+	Bio         string `json:"bio"`
+	IsAvailable bool   `json:"is_available"`
+	NewPassword string `json:"new_password"`
+	Is_active   bool   `json:"is_active"`
 }
 
 type DoctorResponse struct {
@@ -34,12 +34,14 @@ type DoctorResponse struct {
 }
 
 type DoctorActionResponse struct {
-	Success  string `json:"success"`
-	Message  string `json:"message"`
-	DoctorID string `json:"doctor_id"`
+	Success          string `json:"success"`
+	Message          string `json:"message"`
+	DoctorID         string `json:"doctor_id"`
+	ConfirmationCode string `json:"confirmation_code,omitempty"`
 }
 
 type GetMedicalRecordDoctorResponse struct {
+	Id         string `json:"id"`
 	Diagnosis  string `json:"diagnosis"`
 	Notes      string `json:"notes"`
 	Is_checked bool   `json:"is_checked"`

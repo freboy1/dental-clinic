@@ -18,3 +18,12 @@ type MedicalRecord struct {
 	Created_at time.Time
 	Updated_at time.Time
 }
+
+type MedicalFile struct {
+	Id              uuid.UUID
+	MedicalRecordId uuid.UUID
+	Filename        string
+	FilePath        string
+	MimeType        string
+	Created_at      time.Time
+}

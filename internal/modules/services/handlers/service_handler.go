@@ -72,45 +72,21 @@ func (h *ServiceHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {array} dto.ServiceResponseWithName
 // @Failure 500 {object} map[string]string
 // @Router /api/services [get]
-func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) {
-	servicesList, err := h.service.GetAllServices()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	servicesListWithClinicNames, err := h.service.GetClinicNames(servicesList)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(services.ToServiceNameResponseList(servicesListWithClinicNames))
-}
-
-// GetServicesByClinic godoc
-// @Summary Get services by clinic
-// @Description Returns all services for a specific clinic
-// @Tags Services
-// @Security BearerAuth
-// @Produce json
-// @Param clinic_id path string true "Clinic ID"
-// @Success 200 {array} dto.ServiceResponse
-// @Failure 400 {object} map[string]string
-// @Router /api/clinics/{clinic_id}/services [get]
-func (h *ServiceHandler) GetServicesByClinic(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	clinicID := vars["clinic_id"]
-
-	servicesList, err := h.service.GetServicesByClinic(clinicID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(services.ToServiceResponseList(servicesList))
-}
+//func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) {
+//	servicesList, err := h.service.GetAllServices()
+//	if err != nil {
+//		http.Error(w, err.Error(), http.StatusInternalServerError)
+//		return
+//	}
+//	servicesListWithClinicNames, err := h.service.GetClinicNames(servicesList)
+//	if err != nil {
+//		http.Error(w, err.Error(), http.StatusInternalServerError)
+//		return
+//	}
+//
+//	w.Header().Set("Content-Type", "application/json")
+//	_ = json.NewEncoder(w).Encode(services.ToServiceNameResponseList(servicesListWithClinicNames))
+//}
 
 // GetServiceByID godoc
 // @Summary Get service by ID
@@ -194,4 +170,25 @@ func (h *ServiceHandler) DeleteService(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Service deleted successfully"})
+}
+
+// GetServices godoc
+// @Summary Get services
+// @Description Returns services
+// @Tags Services
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} dto.ServiceResponse
+// @Failure 404 {object} map[string]string
+// @Router /api/services [get]
+func (h *ServiceHandler) GetServices(w http.ResponseWriter, r *http.Request) {
+
+	all_services, err := h.service.GetAllServices()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(services.ToServiceResponseList(all_services))
 }

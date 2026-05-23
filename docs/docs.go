@@ -15,6 +15,111 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api//clinics/{clinic_id}/services/{service_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete service for a specific clinic",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Delete services by clinic",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic ID",
+                        "name": "clinic_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Service ID",
+                        "name": "service_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ServiceActionResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/add-clinics/{id}/services": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add a new dental service (e.g. teeth cleaning, tooth extraction)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Add a new service",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Service creation data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AddServiceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ServiceActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ServiceActionResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/address": {
             "get": {
                 "security": [
@@ -247,6 +352,97 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/dto.Response"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ai/chat": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Processes a user chat message, updates booking state, and creates an appointment when state is complete",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI Assistant"
+                ],
+                "summary": "AI assistant chat",
+                "parameters": [
+                    {
+                        "description": "Chat message",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChatResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ai/chat/reset": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Clears the current booking state and starts a new chat session",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI Assistant"
+                ],
+                "summary": "Reset AI assistant booking flow",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChatResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
@@ -715,7 +911,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.ServiceResponse"
+                                "$ref": "#/definitions/dto.ServiceResponseWithName"
                             }
                         }
                     },
@@ -1116,27 +1312,18 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/doctors/medical-records/{id}": {
+        "/api/doctors-test/my-medical-records": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get doctor medical records by ID",
+                "description": "Get doctor medical records",
                 "tags": [
                     "Doctors"
                 ],
                 "summary": "Get doctor medical records",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Doctor ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1159,18 +1346,27 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/doctors/my-medical-records": {
+        "/api/doctors/medical-records/{id}": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get doctor medical records",
+                "description": "Get doctor medical records by ID",
                 "tags": [
                     "Doctors"
                 ],
                 "summary": "Get doctor medical records",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Doctor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -1339,6 +1535,133 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/files/medical-records/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Preview medical file in browser",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "MedicalRecord"
+                ],
+                "summary": "Preview medical file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete medical file by ID",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "MedicalRecord"
+                ],
+                "summary": "Delete medical file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/files/medical-records/{id}/download": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Download medical file",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "MedicalRecord"
+                ],
+                "summary": "Download medical file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/login": {
             "post": {
                 "description": "to login",
@@ -1441,7 +1764,7 @@ const docTemplate = `{
                 ],
                 "description": "Updates an existing MedicalRecord's information",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -1459,13 +1782,28 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Medical record update data",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UpdateMedicalRecordRequest"
-                        }
+                        "type": "string",
+                        "description": "Diagnosis",
+                        "name": "diagnosis",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Notes",
+                        "name": "notes",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is checked",
+                        "name": "is_checked",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Files",
+                        "name": "files",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -1538,67 +1876,7 @@ const docTemplate = `{
         },
         "/api/schedule/available-slots": {
             "get": {
-                "description": "Get available slots",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Schedule"
-                ],
-                "summary": "Get available slots",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Doctor ID (UUID)",
-                        "name": "doctor_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Service ID (UUID)",
-                        "name": "service_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Clinic Address ID (UUID)",
-                        "name": "clinic_address_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Date (YYYY-MM-DD)",
-                        "name": "date",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.SlotResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.SlotResponse"
-                            }
-                        }
-                    }
-                }
+                "responses": {}
             }
         },
         "/api/schedule/doctors/{doctorId}/working-hours": {
@@ -1842,26 +2120,26 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns a list of all dental services",
+                "description": "Returns services",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Services"
                 ],
-                "summary": "Get all services",
+                "summary": "Get services",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.ServiceResponseWithName"
+                                "$ref": "#/definitions/dto.ServiceResponse"
                             }
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2120,6 +2398,23 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.AddServiceRequest": {
+            "type": "object",
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "service_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.AddressResponse": {
             "type": "object",
             "properties": {
@@ -2154,6 +2449,67 @@ const docTemplate = `{
                 },
                 "success": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.ChatRequest": {
+            "type": "object",
+            "properties": {
+                "choice_id": {
+                    "type": "string"
+                },
+                "choice_type": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ChatResponse": {
+            "type": "object",
+            "properties": {
+                "appointment_id": {
+                    "type": "string"
+                },
+                "available_slots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_modules_ai_assistant_dto.SlotResponse"
+                    }
+                },
+                "choice_required": {
+                    "type": "boolean"
+                },
+                "choice_type": {
+                    "type": "string"
+                },
+                "clinics": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ClinicOption"
+                    }
+                },
+                "doctors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DoctorOption"
+                    }
+                },
+                "reply": {
+                    "type": "string"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ServiceOption"
+                    }
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "state": {
+                    "$ref": "#/definitions/models.BookingState"
                 }
             }
         },
@@ -2312,29 +2668,20 @@ const docTemplate = `{
         "dto.CreateServiceRequest": {
             "type": "object",
             "properties": {
-                "clinic_id": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
-                "duration": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
                 "name": {
                     "type": "string"
-                },
-                "price": {
-                    "type": "number"
                 }
             }
         },
         "dto.DoctorActionResponse": {
             "type": "object",
             "properties": {
+                "confirmation_code": {
+                    "type": "string"
+                },
                 "doctor_id": {
                     "type": "string"
                 },
@@ -2467,6 +2814,9 @@ const docTemplate = `{
                 "diagnosis": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "string"
+                },
                 "is_checked": {
                     "type": "boolean"
                 },
@@ -2480,6 +2830,12 @@ const docTemplate = `{
             "properties": {
                 "diagnosis": {
                     "type": "string"
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MedicalFileResponse"
+                    }
                 },
                 "is_checked": {
                     "type": "boolean"
@@ -2516,6 +2872,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MedicalFileResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "mime_type": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -2630,26 +3000,14 @@ const docTemplate = `{
         "dto.ServiceResponse": {
             "type": "object",
             "properties": {
-                "clinic_id": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
-                },
-                "duration": {
-                    "type": "integer"
                 },
                 "id": {
                     "type": "string"
                 },
-                "is_active": {
-                    "type": "boolean"
-                },
                 "name": {
                     "type": "string"
-                },
-                "price": {
-                    "type": "number"
                 }
             }
         },
@@ -2679,23 +3037,6 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
-                }
-            }
-        },
-        "dto.SlotResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "slot_end": {
-                    "type": "string"
-                },
-                "slot_start": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
                 }
             }
         },
@@ -2732,9 +3073,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "bio": {
-                    "type": "string"
-                },
-                "clinic_id": {
+                    "description": "ClinicID       string ` + "`" + `json:\"clinic_id\"` + "`" + `",
                     "type": "string"
                 },
                 "experience": {
@@ -2750,20 +3089,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "specialization": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.UpdateMedicalRecordRequest": {
-            "type": "object",
-            "properties": {
-                "diagnosis": {
-                    "type": "string"
-                },
-                "is_checked": {
-                    "type": "boolean"
-                },
-                "notes": {
                     "type": "string"
                 }
             }
@@ -2791,23 +3116,11 @@ const docTemplate = `{
         "dto.UpdateServiceRequest": {
             "type": "object",
             "properties": {
-                "clinic_id": {
-                    "type": "string"
-                },
                 "description": {
                     "type": "string"
                 },
-                "duration": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
                 "name": {
                     "type": "string"
-                },
-                "price": {
-                    "type": "number"
                 }
             }
         },
@@ -2851,6 +3164,49 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_modules_ai_assistant_dto.SlotResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "slot_end": {
+                    "type": "string"
+                },
+                "slot_start": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BookingState": {
+            "type": "object",
+            "properties": {
+                "clinic_address_id": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "doctor_id": {
+                    "type": "string"
+                },
+                "service_id": {
+                    "type": "string"
+                },
+                "step": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Clinic": {
             "type": "object",
             "properties": {
@@ -2876,6 +3232,57 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "website": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ClinicOption": {
+            "type": "object",
+            "properties": {
+                "clinic_address_id": {
+                    "type": "string"
+                },
+                "clinic_id": {
+                    "type": "string"
+                },
+                "clinic_name": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
+        "models.DoctorOption": {
+            "type": "object",
+            "properties": {
+                "experience": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "specialization": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ServiceOption": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
