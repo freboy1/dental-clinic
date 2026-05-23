@@ -801,6 +801,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/appointments/{appointmentId}/review": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates doctor rating and clinic review for an appointment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Appointment"
+                ],
+                "summary": "Create appointment review",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Appointment ID",
+                        "name": "appointmentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Appointment review data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateAppointmentReviewRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AppointmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AppointmentResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/clinics": {
             "get": {
                 "security": [
@@ -2564,6 +2616,20 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateAppointmentReviewRequest": {
+            "type": "object",
+            "properties": {
+                "clinic_comment": {
+                    "type": "string"
+                },
+                "clinic_rating": {
+                    "type": "integer"
+                },
+                "doctor_rating": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.CreateDoctorRequest": {
             "type": "object",
             "properties": {
@@ -2717,6 +2783,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "rating": {
+                    "type": "number"
+                },
                 "specialization": {
                     "type": "string"
                 }
@@ -2739,8 +2808,17 @@ const docTemplate = `{
                 "clinic_address_id": {
                     "type": "string"
                 },
+                "clinic_comment": {
+                    "type": "string"
+                },
+                "clinic_rating": {
+                    "type": "integer"
+                },
                 "doctor_id": {
                     "type": "string"
+                },
+                "doctor_rating": {
+                    "type": "integer"
                 },
                 "email": {
                     "type": "string"
@@ -2750,6 +2828,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_reviewed": {
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
@@ -3231,6 +3312,9 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
+                "rating": {
+                    "type": "number"
+                },
                 "website": {
                     "type": "string"
                 }
@@ -3253,6 +3337,9 @@ const docTemplate = `{
                 },
                 "price": {
                     "type": "number"
+                },
+                "rating": {
+                    "type": "number"
                 }
             }
         },
@@ -3267,6 +3354,9 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                },
+                "rating": {
+                    "type": "number"
                 },
                 "specialization": {
                     "type": "string"

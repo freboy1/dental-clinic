@@ -14,6 +14,7 @@ import (
 
 	clinicServices "dental_clinic/internal/modules/clinic/services"
 	medical_recordServices "dental_clinic/internal/modules/medical_record/services"
+	reviewServices "dental_clinic/internal/modules/reviews/services"
 	scheduleServices "dental_clinic/internal/modules/schedule/services"
 	serviceServices "dental_clinic/internal/modules/services/services"
 
@@ -33,9 +34,10 @@ type AppointmentService struct {
 	serviceSrv        serviceServices.ServiceService
 	medical_recordSrv medical_recordServices.MedicalRecordService
 	clinicSrv         clinicServices.ClinicService
+	reviewSrv         *reviewServices.ReviewService
 }
 
-func NewAppointmentService(r repository.AppointmentRepository, db *pgxpool.Pool, cfx config.Config, scheduleSrv scheduleServices.ScheduleService, serviceSrv serviceServices.ServiceService, medical_recordSrv medical_recordServices.MedicalRecordService, clinicSrv clinicServices.ClinicService) *AppointmentService {
+func NewAppointmentService(r repository.AppointmentRepository, db *pgxpool.Pool, cfx config.Config, scheduleSrv scheduleServices.ScheduleService, serviceSrv serviceServices.ServiceService, medical_recordSrv medical_recordServices.MedicalRecordService, clinicSrv clinicServices.ClinicService, reviewSrv *reviewServices.ReviewService) *AppointmentService {
 	return &AppointmentService{
 		repo:              r,
 		db:                db,
@@ -44,6 +46,7 @@ func NewAppointmentService(r repository.AppointmentRepository, db *pgxpool.Pool,
 		serviceSrv:        serviceSrv,
 		medical_recordSrv: medical_recordSrv,
 		clinicSrv:         clinicSrv,
+		reviewSrv:         reviewSrv,
 	}
 }
 
@@ -270,6 +273,10 @@ func ToAppointmentResponse(appointment models.Appointment) dto.GetAppointmentsRe
 		Status:            appointment.Status,
 		Name:              appointment.Name,
 		Email:             appointment.Email,
+		IsReviewed:        appointment.IsReviewed,
+		DoctorRating:      appointment.DoctorRating,
+		ClinicRating:      appointment.ClinicRating,
+		ClinicComment:     appointment.ClinicComment,
 	}
 }
 
@@ -329,4 +336,77 @@ func (s *AppointmentService) GetMedicalRecord(id string) (dto.GetMedicalRecordAp
 	response.Is_checked = medical_record.Is_checked
 
 	return response, nil
+}
+
+func (s *AppointmentService) CreateAppointmentReview(tokenStr, appointmentId string, req dto.CreateAppointmentReviewRequest, ctx context.Context) error {
+	appointmentUUID, err := uuid.Parse(appointmentId)
+	if err != nil {
+		return errors.New("invalid appointmentId")
+	}
+
+	claims, err := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
+	if err != nil {
+		return err
+	}
+
+	userIDStr, _ := claims["user_id"].(string)
+	if userIDStr == "" {
+		return errors.New("No user Id")
+	}
+
+	userId, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return errors.New("invalid UserID")
+	}
+
+	appointment, err := s.repo.GetByID(appointmentId)
+	if err != nil {
+		return err
+	}
+	if appointment == nil {
+		return errors.New("appointment not found")
+	}
+	if appointment.Id != appointmentUUID {
+		return errors.New("appointment not found")
+	}
+	if appointment.User_id != uuid.Nil && appointment.User_id != userId {
+		return errors.New("appointment does not belong to user")
+	}
+	if appointment.IsReviewed {
+		return errors.New("appointment already reviewed")
+	}
+
+	clinicIDStr, err := s.clinicSrv.GetClinicByAddressId(appointment.Clinic_address_id)
+	if err != nil {
+		return err
+	}
+	clinicId, err := uuid.Parse(clinicIDStr)
+	if err != nil {
+		return errors.New("invalid clinicId")
+	}
+
+	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	if err := s.reviewSrv.CreateAppointmentReviewTx(
+		appointment.Id,
+		appointment.Doctor_id,
+		clinicId,
+		userId,
+		req.DoctorRating,
+		req.ClinicRating,
+		req.ClinicComment,
+		tx,
+	); err != nil {
+		return err
+	}
+
+	if err := s.repo.MarkReviewedTx(appointmentId, tx); err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }

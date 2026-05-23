@@ -29,6 +29,10 @@ type GetAppointmentsResponse struct {
 	Status            string `json:"status"`
 	Name              string `json:"name"`
 	Email             string `json:"email"`
+	IsReviewed        bool   `json:"is_reviewed"`
+	DoctorRating      int    `json:"doctor_rating"`
+	ClinicRating      int    `json:"clinic_rating"`
+	ClinicComment     string `json:"clinic_comment"`
 }
 
 type AppointmentResponse struct {
@@ -53,4 +57,10 @@ type GetMedicalRecordAppointmentResponse struct {
 	Diagnosis  string `json:"diagnosis"`
 	Notes      string `json:"notes"`
 	Is_checked bool   `json:"is_checked"`
+}
+
+type CreateAppointmentReviewRequest struct {
+	DoctorRating  int    `json:"doctor_rating"`
+	ClinicRating  int    `json:"clinic_rating"`
+	ClinicComment string `json:"clinic_comment"`
 }

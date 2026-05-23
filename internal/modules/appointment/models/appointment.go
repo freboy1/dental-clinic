@@ -20,4 +20,9 @@ type Appointment struct {
 	Created_at time.Time
 	Name       string
 	Email      string
+	IsReviewed bool
+
+	DoctorRating  int
+	ClinicRating  int
+	ClinicComment string
 }

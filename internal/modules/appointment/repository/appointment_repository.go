@@ -20,6 +20,7 @@ type AppointmentRepository interface {
 	Update(appointment *models.Appointment) (*models.Appointment, error)
 	Delete(id string) error
 	GetMyAppointments(userId string) ([]models.Appointment, error)
+	MarkReviewedTx(id string, tx pgx.Tx) error
 }
 
 type appointmentRepo struct {
@@ -52,7 +53,26 @@ func (r *appointmentRepo) CreateTx(appointment *models.Appointment, tx pgx.Tx) (
 }
 
 func (r *appointmentRepo) GetAll() ([]models.Appointment, error) {
-	query := `SELECT id, doctor_id, clinic_address_id, service_id, user_id, start_time, end_time, status, name, email FROM appointments`
+	query := `
+		SELECT
+			a.id,
+			a.doctor_id,
+			a.clinic_address_id,
+			a.service_id,
+			a.user_id,
+			a.start_time,
+			a.end_time,
+			a.status,
+			a.name,
+			a.email,
+			a.is_reviewed,
+			COALESCE(dr.rating, 0),
+			COALESCE(cr.rating, 0),
+			COALESCE(cr.comment, '')
+		FROM appointments a
+		LEFT JOIN doctor_ratings dr ON dr.appointment_id = a.id
+		LEFT JOIN clinic_reviews cr ON cr.appointment_id = a.id
+	`
 
 	rows, err := r.db.Query(context.Background(), query)
 	if err != nil {
@@ -63,7 +83,7 @@ func (r *appointmentRepo) GetAll() ([]models.Appointment, error) {
 	var appointments []models.Appointment
 	for rows.Next() {
 		var appointment models.Appointment
-		if err := rows.Scan(&appointment.Id, &appointment.Doctor_id, &appointment.Clinic_address_id, &appointment.Service_id, &appointment.User_id, &appointment.Start_time, &appointment.End_time, &appointment.Status, &appointment.Name, &appointment.Email); err != nil {
+		if err := rows.Scan(&appointment.Id, &appointment.Doctor_id, &appointment.Clinic_address_id, &appointment.Service_id, &appointment.User_id, &appointment.Start_time, &appointment.End_time, &appointment.Status, &appointment.Name, &appointment.Email, &appointment.IsReviewed, &appointment.DoctorRating, &appointment.ClinicRating, &appointment.ClinicComment); err != nil {
 			return nil, err
 		}
 		appointments = append(appointments, appointment)
@@ -77,13 +97,34 @@ func (r *appointmentRepo) GetAll() ([]models.Appointment, error) {
 }
 
 func (r *appointmentRepo) GetByID(id string) (*models.Appointment, error) {
-	query := `SELECT id, doctor_id, clinic_address_id, service_id, user_id, start_time, end_time, status, name, email FROM appointments WHERE id = $1`
+	query := `
+		SELECT
+			a.id,
+			a.doctor_id,
+			a.clinic_address_id,
+			a.service_id,
+			a.user_id,
+			a.start_time,
+			a.end_time,
+			a.status,
+			a.name,
+			a.email,
+			a.is_reviewed,
+			COALESCE(dr.rating, 0),
+			COALESCE(cr.rating, 0),
+			COALESCE(cr.comment, '')
+		FROM appointments a
+		LEFT JOIN doctor_ratings dr ON dr.appointment_id = a.id
+		LEFT JOIN clinic_reviews cr ON cr.appointment_id = a.id
+		WHERE a.id = $1
+	`
 
 	var appointment models.Appointment
 	err := r.db.QueryRow(context.Background(), query, id).Scan(
 		&appointment.Id, &appointment.Doctor_id, &appointment.Clinic_address_id, &appointment.Service_id,
 		&appointment.User_id, &appointment.Start_time, &appointment.End_time, &appointment.Status,
-		&appointment.Name, &appointment.Email,
+		&appointment.Name, &appointment.Email, &appointment.IsReviewed,
+		&appointment.DoctorRating, &appointment.ClinicRating, &appointment.ClinicComment,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -99,7 +140,7 @@ func (r *appointmentRepo) Update(appointment *models.Appointment) (*models.Appoi
 		UPDATE appointments
 		SET doctor_id=$1, clinic_address_id=$2, service_id=$3, start_time=$4, end_time=$5, status=$6, name=$7, email=$8
 		WHERE id=$9
-		RETURNING id, doctor_id, clinic_address_id, service_id, user_id, start_time, end_time, status, name, email
+		RETURNING id, doctor_id, clinic_address_id, service_id, user_id, start_time, end_time, status, name, email, is_reviewed
 	`
 	err := r.db.QueryRow(context.Background(), query,
 		appointment.Doctor_id, appointment.Clinic_address_id, appointment.Service_id,
@@ -108,7 +149,7 @@ func (r *appointmentRepo) Update(appointment *models.Appointment) (*models.Appoi
 	).Scan(
 		&appointment.Id, &appointment.Doctor_id, &appointment.Clinic_address_id, &appointment.Service_id,
 		&appointment.User_id, &appointment.Start_time, &appointment.End_time, &appointment.Status,
-		&appointment.Name, &appointment.Email,
+		&appointment.Name, &appointment.Email, &appointment.IsReviewed,
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -133,9 +174,25 @@ func (r *appointmentRepo) Delete(id string) error {
 
 func (r *appointmentRepo) GetMyAppointments(userId string) ([]models.Appointment, error) {
 	query := `
-			SELECT id, doctor_id, clinic_address_id, service_id, user_id, start_time, end_time, status, name, email 
-			FROM appointments
-			WHERE user_id = $1
+			SELECT
+				a.id,
+				a.doctor_id,
+				a.clinic_address_id,
+				a.service_id,
+				a.user_id,
+				a.start_time,
+				a.end_time,
+				a.status,
+				a.name,
+				a.email,
+				a.is_reviewed,
+				COALESCE(dr.rating, 0),
+				COALESCE(cr.rating, 0),
+				COALESCE(cr.comment, '')
+			FROM appointments a
+			LEFT JOIN doctor_ratings dr ON dr.appointment_id = a.id
+			LEFT JOIN clinic_reviews cr ON cr.appointment_id = a.id
+			WHERE a.user_id = $1
 			`
 
 	rows, err := r.db.Query(context.Background(), query, userId)
@@ -147,7 +204,7 @@ func (r *appointmentRepo) GetMyAppointments(userId string) ([]models.Appointment
 	var appointments []models.Appointment
 	for rows.Next() {
 		var appointment models.Appointment
-		if err := rows.Scan(&appointment.Id, &appointment.Doctor_id, &appointment.Clinic_address_id, &appointment.Service_id, &appointment.User_id, &appointment.Start_time, &appointment.End_time, &appointment.Status, &appointment.Name, &appointment.Email); err != nil {
+		if err := rows.Scan(&appointment.Id, &appointment.Doctor_id, &appointment.Clinic_address_id, &appointment.Service_id, &appointment.User_id, &appointment.Start_time, &appointment.End_time, &appointment.Status, &appointment.Name, &appointment.Email, &appointment.IsReviewed, &appointment.DoctorRating, &appointment.ClinicRating, &appointment.ClinicComment); err != nil {
 			return nil, err
 		}
 		appointments = append(appointments, appointment)
@@ -158,4 +215,16 @@ func (r *appointmentRepo) GetMyAppointments(userId string) ([]models.Appointment
 	}
 
 	return appointments, nil
+}
+
+func (r *appointmentRepo) MarkReviewedTx(id string, tx pgx.Tx) error {
+	query := `UPDATE appointments SET is_reviewed = true WHERE id = $1`
+	result, err := tx.Exec(context.Background(), query, id)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
 }

@@ -114,6 +114,15 @@ definitions:
       success:
         type: string
     type: object
+  dto.CreateAppointmentReviewRequest:
+    properties:
+      clinic_comment:
+        type: string
+      clinic_rating:
+        type: integer
+      doctor_rating:
+        type: integer
+    type: object
   dto.CreateDoctorRequest:
     properties:
       bio:
@@ -214,6 +223,8 @@ definitions:
         type: boolean
       name:
         type: string
+      rating:
+        type: number
       specialization:
         type: string
     type: object
@@ -228,14 +239,22 @@ definitions:
     properties:
       clinic_address_id:
         type: string
+      clinic_comment:
+        type: string
+      clinic_rating:
+        type: integer
       doctor_id:
         type: string
+      doctor_rating:
+        type: integer
       email:
         type: string
       end_time:
         type: string
       id:
         type: string
+      is_reviewed:
+        type: boolean
       name:
         type: string
       service_id:
@@ -548,6 +567,8 @@ definitions:
         type: string
       phone:
         type: string
+      rating:
+        type: number
       website:
         type: string
     type: object
@@ -563,6 +584,8 @@ definitions:
         type: integer
       price:
         type: number
+      rating:
+        type: number
     type: object
   models.DoctorOption:
     properties:
@@ -572,6 +595,8 @@ definitions:
         type: string
       name:
         type: string
+      rating:
+        type: number
       specialization:
         type: string
     type: object
@@ -1089,6 +1114,39 @@ paths:
       security:
       - BearerAuth: []
       summary: get my appointments
+      tags:
+      - Appointment
+  /api/appointments/{appointmentId}/review:
+    post:
+      consumes:
+      - application/json
+      description: Creates doctor rating and clinic review for an appointment
+      parameters:
+      - description: Appointment ID
+        in: path
+        name: appointmentId
+        required: true
+        type: string
+      - description: Appointment review data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAppointmentReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AppointmentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.AppointmentResponse'
+      security:
+      - BearerAuth: []
+      summary: Create appointment review
       tags:
       - Appointment
   /api/clinics:

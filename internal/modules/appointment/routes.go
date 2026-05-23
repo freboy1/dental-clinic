@@ -23,6 +23,9 @@ import (
 	medical_recordRepository "dental_clinic/internal/modules/medical_record/repository"
 	medical_recordServices "dental_clinic/internal/modules/medical_record/services"
 
+	reviewRepository "dental_clinic/internal/modules/reviews/repository"
+	reviewServices "dental_clinic/internal/modules/reviews/services"
+
 	"github.com/gorilla/mux"
 )
 
@@ -44,7 +47,10 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	medical_recordRepo := medical_recordRepository.NewMedicalRecordRepository(db)
 	medical_recordService := medical_recordServices.NewMedicalRecordService(medical_recordRepo)
 
-	service := services.NewAppointmentService(repo, db, *cfg, *scheduleService, *serviceService, *medical_recordService, *clinicService)
+	reviewRepo := reviewRepository.NewReviewRepository(db)
+	reviewService := reviewServices.NewReviewService(reviewRepo)
+
+	service := services.NewAppointmentService(repo, db, *cfg, *scheduleService, *serviceService, *medical_recordService, *clinicService, reviewService)
 	handler := handlers.NewAppointmentHandler(service, *cfg)
 
 	r.HandleFunc("/appointment", handler.CreateAppointment).Methods("POST")
@@ -68,7 +74,10 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	medical_recordRepo := medical_recordRepository.NewMedicalRecordRepository(db)
 	medical_recordService := medical_recordServices.NewMedicalRecordService(medical_recordRepo)
 
-	service := services.NewAppointmentService(repo, db, *cfg, *scheduleService, *serviceService, *medical_recordService, *clinicService)
+	reviewRepo := reviewRepository.NewReviewRepository(db)
+	reviewService := reviewServices.NewReviewService(reviewRepo)
+
+	service := services.NewAppointmentService(repo, db, *cfg, *scheduleService, *serviceService, *medical_recordService, *clinicService, reviewService)
 
 	handler := handlers.NewAppointmentHandler(service, *cfg)
 
@@ -80,5 +89,6 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	r.HandleFunc("/appointment/{id}", handler.GetAppointmentByID).Methods("GET")
 	r.HandleFunc("/appointment/{id}", handler.UpdateAppointment).Methods("PUT")
 	r.HandleFunc("/appointment/{id}", handler.DeleteAppointment).Methods("DELETE")
+	r.HandleFunc("/appointments/{appointmentId}/review", handler.CreateAppointmentReview).Methods("POST")
 
 }

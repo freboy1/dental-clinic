@@ -245,3 +245,47 @@ func (h *AppointmentHandler) GetMedicalRecord(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(medical_record)
 }
+
+// CreateAppointmentReview godoc
+// @Summary Create appointment review
+// @Description Creates doctor rating and clinic review for an appointment
+// @Tags Appointment
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param appointmentId path string true "Appointment ID"
+// @Param request body dto.CreateAppointmentReviewRequest true "Appointment review data"
+// @Success 200 {object} dto.AppointmentResponse
+// @Failure 400 {object} dto.AppointmentResponse
+// @Router /api/appointments/{appointmentId}/review [post]
+func (h *AppointmentHandler) CreateAppointmentReview(w http.ResponseWriter, r *http.Request) {
+	response := dto.AppointmentResponse{
+		Success: "0",
+		Message: "",
+	}
+
+	vars := mux.Vars(r)
+	appointmentId := vars["appointmentId"]
+
+	var req dto.CreateAppointmentReviewRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Message = "Invalid request body"
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+	defer r.Body.Close()
+
+	tokenStr := utils.GetToken(r)
+	if err := h.service.CreateAppointmentReview(tokenStr, appointmentId, req, r.Context()); err != nil {
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	response.Success = "1"
+	response.Message = "successfully created"
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(response)
+}
