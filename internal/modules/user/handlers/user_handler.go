@@ -222,6 +222,9 @@ func (h *UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 func getToken(r *http.Request) string {
 	authHeader := r.Header.Get("Authorization")
 	parts := strings.Split(authHeader, " ")
+	if len(parts) < 2 {
+		return ""
+	}
 	tokenStr := parts[1]
 	return tokenStr
 }
