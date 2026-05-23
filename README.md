@@ -25,6 +25,7 @@ SMTP_USER=dautovalisher33@gmail.com
 SMTP_PASS=ppzv hnga kzhl xdlz
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
+OPENAI_API_KEY=sk-22c0691832294091bfbd9265546844c1
 ```
 
 ---
