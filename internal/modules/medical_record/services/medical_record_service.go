@@ -14,6 +14,7 @@ import (
 	//"github.com/google/uuid"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type MedicalRecordService struct {
@@ -38,6 +39,22 @@ func (s *MedicalRecordService) CreateMedicalRecord(appointment_id, doctor_id, pa
 	}
 
 	return s.repo.Create(medical_record)
+}
+
+func (s *MedicalRecordService) CreateMedicalRecordTx(appointment_id, doctor_id, patient_id uuid.UUID, tx pgx.Tx) (*models.MedicalRecord, error) {
+	medical_record := &models.MedicalRecord{
+		Id:             uuid.New(),
+		Appointment_id: appointment_id,
+		Doctor_id:      doctor_id,
+		Patient_id:     patient_id,
+		Diagnosis:      "",
+		Notes:          "",
+		Is_checked:     false,
+		Created_at:     time.Now(),
+		Updated_at:     time.Now(),
+	}
+
+	return s.repo.CreateTx(medical_record, tx)
 }
 
 func (s *MedicalRecordService) UpdateMedicalRecord(id string, req dto.UpdateMedicalRecordRequest, medicalFiles []models.MedicalFile) (*models.MedicalRecord, error) {

@@ -42,7 +42,7 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	medicalRecordService := medicalRecordServices.NewMedicalRecordService(medicalRecordRepo)
 
 	appointmentRepo := appointmentRepository.NewAppointmentRepository(db)
-	appointmentService := appointmentServices.NewAppointmentService(appointmentRepo, *cfg, *scheduleService, *serviceService, *medicalRecordService, *clinicService)
+	appointmentService := appointmentServices.NewAppointmentService(appointmentRepo, db, *cfg, *scheduleService, *serviceService, *medicalRecordService, *clinicService)
 
 	userRepo := userRepository.NewUserRepository(db)
 	userService := userServices.NewUserService(userRepo, *cfg)

@@ -10,6 +10,7 @@ import (
 
 type MedicalRecordRepository interface {
 	Create(medical_record *models.MedicalRecord) (*models.MedicalRecord, error)
+	CreateTx(medical_record *models.MedicalRecord, tx pgx.Tx) (*models.MedicalRecord, error)
 	GetByID(id string) (*models.MedicalRecord, error)
 	GetMedicalRecordByAppointmentId(id string) (*models.MedicalRecord, error)
 	GetMedicalRecordsByDoctorId(id string) ([]models.MedicalRecord, error)
@@ -49,6 +50,32 @@ func (r *medical_report_Repo) Create(medical_record *models.MedicalRecord) (*mod
 		medical_record.Updated_at,
 	).Scan(&medical_record.Id)
 	return medical_record, err
+}
+
+func (r *medical_report_Repo) CreateTx(medical_record *models.MedicalRecord, tx pgx.Tx) (*models.MedicalRecord, error) {
+	query := `
+		INSERT INTO medical_records (id, appointment_id, doctor_id, patient_id, diagnosis, notes, is_checked, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING id
+	`
+	err := tx.QueryRow(
+		context.Background(),
+		query,
+		medical_record.Id,
+		medical_record.Appointment_id,
+		medical_record.Doctor_id,
+		medical_record.Patient_id,
+		medical_record.Diagnosis,
+		medical_record.Notes,
+		medical_record.Is_checked,
+		medical_record.Created_at,
+		medical_record.Updated_at,
+	).Scan(&medical_record.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return medical_record, nil
 }
 
 func (r *medical_report_Repo) GetByID(id string) (*models.MedicalRecord, error) {

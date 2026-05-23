@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"dental_clinic/internal/config"
 	"dental_clinic/internal/modules/appointment/dto"
 	"dental_clinic/internal/modules/appointment/models"
@@ -20,10 +21,13 @@ import (
 	// "fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AppointmentService struct {
 	repo              repository.AppointmentRepository
+	db                *pgxpool.Pool
 	cfx               config.Config
 	scheduleSrv       scheduleServices.ScheduleService
 	serviceSrv        serviceServices.ServiceService
@@ -31,9 +35,10 @@ type AppointmentService struct {
 	clinicSrv         clinicServices.ClinicService
 }
 
-func NewAppointmentService(r repository.AppointmentRepository, cfx config.Config, scheduleSrv scheduleServices.ScheduleService, serviceSrv serviceServices.ServiceService, medical_recordSrv medical_recordServices.MedicalRecordService, clinicSrv clinicServices.ClinicService) *AppointmentService {
+func NewAppointmentService(r repository.AppointmentRepository, db *pgxpool.Pool, cfx config.Config, scheduleSrv scheduleServices.ScheduleService, serviceSrv serviceServices.ServiceService, medical_recordSrv medical_recordServices.MedicalRecordService, clinicSrv clinicServices.ClinicService) *AppointmentService {
 	return &AppointmentService{
 		repo:              r,
+		db:                db,
 		cfx:               cfx,
 		scheduleSrv:       scheduleSrv,
 		serviceSrv:        serviceSrv,
@@ -42,7 +47,7 @@ func NewAppointmentService(r repository.AppointmentRepository, cfx config.Config
 	}
 }
 
-func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAppointmentRequest) (*models.Appointment, error) {
+func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAppointmentRequest, ctx context.Context) (*models.Appointment, error) {
 	var userId uuid.UUID
 	claims, _ := utils.GetClaims(tokenStr, s.cfx.JWTSecret)
 
@@ -74,7 +79,9 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, err
 	}
 	service, err := s.serviceSrv.GetServiceByID(serviceId.String())
-
+	if err != nil {
+		return nil, err
+	}
 	serviceInfo, err := s.serviceSrv.GetByClinicIDAndServiceID(clinic_id, service.Id.String())
 
 	if err != nil {
@@ -101,6 +108,12 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, err
 	}
 
+	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
 	requiredSlots := s.scheduleSrv.HowManySlots(serviceInfo.Duration)
 	//requiredSlots := 1
 	rawSlots, err := s.scheduleSrv.GetAvailableSlotsByDateAndDoctorAndClinic(doctorId, clinic_addressId, date)
@@ -113,9 +126,13 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		return nil, err
 	}
 
+	if len(slotsToBook) == 0 {
+		return nil, errors.New("no available slots")
+	}
+
 	for _, slot := range slotsToBook {
 
-		err := s.scheduleSrv.ChangeSlotStatus(slot, "booked")
+		err := s.scheduleSrv.ChangeSlotStatusTx(slot, "booked", tx)
 		if err != nil {
 			return nil, err
 		}
@@ -131,22 +148,28 @@ func (s *AppointmentService) CreateAppointment(tokenStr string, req dto.CreateAp
 		Start_time:        slotsToBook[0].Slot_start,
 		End_time:          slotsToBook[len(slotsToBook)-1].Slot_end,
 		Status:            "booked",
-		Created_at:        time.Time{},
+		Created_at:        time.Now(),
 		Name:              req.Name,
 		Email:             req.Email,
 	}
 
-	appointment, err = s.repo.Create(appointment)
+	appointment, err = s.repo.CreateTx(appointment, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = s.medical_recordSrv.CreateMedicalRecord(
+	_, err = s.medical_recordSrv.CreateMedicalRecordTx(
 		appointment.Id,
 		appointment.Doctor_id,
 		appointment.User_id,
+		tx,
 	)
 
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit(ctx)
 	if err != nil {
 		return nil, err
 	}

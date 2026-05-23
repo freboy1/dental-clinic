@@ -56,7 +56,7 @@ func (h *AppointmentHandler) CreateAppointment(w http.ResponseWriter, r *http.Re
 	_ = r
 	tokenStr := utils.GetToken(r)
 
-	appointment, err := h.service.CreateAppointment(tokenStr, req)
+	appointment, err := h.service.CreateAppointment(tokenStr, req, r.Context())
 	if err != nil {
 		response.Message = err.Error()
 		w.WriteHeader(http.StatusBadRequest)

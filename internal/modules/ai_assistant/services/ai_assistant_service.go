@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -47,7 +48,7 @@ func NewAIAssistantService(
 	}
 }
 
-func (s *AIAssistantService) ProcessMessage(userID uuid.UUID, tokenStr string, req aiDto.ChatRequest) (aiDto.ChatResponse, error) {
+func (s *AIAssistantService) ProcessMessage(userID uuid.UUID, tokenStr string, req aiDto.ChatRequest, ctx context.Context) (aiDto.ChatResponse, error) {
 	if req.ChoiceID == "" && isResetCommand(req.Message) {
 		return s.ResetBooking(userID)
 	}
@@ -97,7 +98,7 @@ func (s *AIAssistantService) ProcessMessage(userID uuid.UUID, tokenStr string, r
 		mergeState(state, extraction)
 	}
 
-	response, err = s.nextStep(userID, tokenStr, session.Id, state, extraction)
+	response, err = s.nextStep(userID, tokenStr, session.Id, state, extraction, ctx)
 	if err != nil {
 		return response, err
 	}
@@ -203,7 +204,7 @@ func (s *AIAssistantService) applyChoice(state *models.BookingState, choiceType,
 	return nil
 }
 
-func (s *AIAssistantService) nextStep(userID uuid.UUID, tokenStr string, sessionID uuid.UUID, state *models.BookingState, extraction BookingExtraction) (aiDto.ChatResponse, error) {
+func (s *AIAssistantService) nextStep(userID uuid.UUID, tokenStr string, sessionID uuid.UUID, state *models.BookingState, extraction BookingExtraction, ctx context.Context) (aiDto.ChatResponse, error) {
 	response := aiDto.ChatResponse{
 		SessionID: sessionID.String(),
 		State:     *state,
@@ -329,7 +330,7 @@ func (s *AIAssistantService) nextStep(userID uuid.UUID, tokenStr string, session
 		return response, s.repo.SaveState(state)
 	}
 
-	appointmentID, err := s.createAppointment(userID, tokenStr, *state, slotID)
+	appointmentID, err := s.createAppointment(userID, tokenStr, *state, slotID, ctx)
 	if err != nil {
 		return response, err
 	}
@@ -362,7 +363,7 @@ func (s *AIAssistantService) getAvailableSlots(state models.BookingState) ([]sch
 	return s.scheduleSrv.GetAvailableSlots(doctorID, serviceID, clinicAddressID, date)
 }
 
-func (s *AIAssistantService) createAppointment(userID uuid.UUID, tokenStr string, state models.BookingState, slotID string) (string, error) {
+func (s *AIAssistantService) createAppointment(userID uuid.UUID, tokenStr string, state models.BookingState, slotID string, ctx context.Context) (string, error) {
 	user, err := s.userSrv.GetUserByID(userID.String())
 	if err != nil {
 		return "", err
@@ -387,7 +388,7 @@ func (s *AIAssistantService) createAppointment(userID uuid.UUID, tokenStr string
 		Date:              state.Date,
 		Name:              name,
 		Email:             email,
-	})
+	}, ctx)
 	if err != nil {
 		return "", err
 	}

@@ -23,6 +23,7 @@ type ScheduleRepository interface {
 	GetScheduleByDoctor(doctor_id uuid.UUID) ([]models.Schedule, error)
 	GetSlotById(slotId uuid.UUID) (*models.Slot, error)
 	UpdateSlotStatus(slotId uuid.UUID, status string) error
+	UpdateSlotStatusTx(slotId uuid.UUID, status string, tx pgx.Tx) error
 	GetScheduleById(schedule_id uuid.UUID) (*models.Schedule, error)
 	DeleteScheduleById(schedule_id uuid.UUID) error
 	UpdateScheduleById(id string, doctor *models.Schedule) error
@@ -162,6 +163,21 @@ func (r *scheduleRepo) UpdateSlotStatus(slotId uuid.UUID, status string) error {
 	query := `UPDATE doctor_time_slots SET status = $1 WHERE id = $2 ;`
 
 	result, err := r.db.Exec(context.Background(), query, status, slotId)
+	if err != nil {
+		return fmt.Errorf("failed to update slot: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("slot not found")
+	}
+
+	return nil
+}
+
+func (r *scheduleRepo) UpdateSlotStatusTx(slotId uuid.UUID, status string, tx pgx.Tx) error {
+	query := `UPDATE doctor_time_slots SET status = $1 WHERE id = $2 ;`
+
+	result, err := tx.Exec(context.Background(), query, status, slotId)
 	if err != nil {
 		return fmt.Errorf("failed to update slot: %w", err)
 	}

@@ -50,7 +50,7 @@ func (h *AIAssistantHandler) Chat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tokenStr := utils.GetToken(r)
-	response, err := h.service.ProcessMessage(userID, tokenStr, req)
+	response, err := h.service.ProcessMessage(userID, tokenStr, req, r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

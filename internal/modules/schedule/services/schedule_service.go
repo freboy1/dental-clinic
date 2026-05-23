@@ -17,6 +17,7 @@ import (
 	"math"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type ScheduleService struct {
@@ -304,6 +305,21 @@ func (s *ScheduleService) ChangeSlotStatus(slot models.Slot, status string) erro
 	}
 
 	return s.repo.UpdateSlotStatus(slot.Id, status)
+}
+
+func (s *ScheduleService) ChangeSlotStatusTx(slot models.Slot, status string, tx pgx.Tx) error {
+
+	if status == "" {
+		return errors.New("status can not be empty")
+	}
+
+	_, err := s.repo.GetSlotById(slot.Id)
+
+	if err != nil {
+		return errors.New("slot does not exist")
+	}
+
+	return s.repo.UpdateSlotStatusTx(slot.Id, status, tx)
 }
 
 func (s *ScheduleService) GetSchedule(schedule_id uuid.UUID) (*models.Schedule, error) {
