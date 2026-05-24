@@ -1,5 +1,5 @@
 -- +goose Up
-CREATE TABLE CREATE TABLE address_inventory (
+CREATE TABLE address_inventory (
     id UUID PRIMARY KEY,
 
     clinic_address_id UUID REFERENCES clinic_addresses(id),

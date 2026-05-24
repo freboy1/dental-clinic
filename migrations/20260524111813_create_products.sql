@@ -1,5 +1,5 @@
 -- +goose Up
-CREATE TABLE CREATE TABLE products (
+CREATE TABLE products (
    id UUID PRIMARY KEY,
    name TEXT,
    unit TEXT,
