@@ -1,4 +1,11 @@
 definitions:
+  dto.ActionResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: string
+    type: object
   dto.AddAddressRequest:
     properties:
       address_id:
@@ -40,6 +47,13 @@ definitions:
         type: string
       success:
         type: string
+    type: object
+  dto.AttachMaterialRequest:
+    properties:
+      product_id:
+        type: string
+      quantity_required:
+        type: number
     type: object
   dto.ChatRequest:
     properties:
@@ -320,6 +334,49 @@ definitions:
       status:
         type: string
     type: object
+  dto.InventoryQuantityRequest:
+    properties:
+      product_id:
+        type: string
+      quantity:
+        type: number
+    type: object
+  dto.InventoryResponse:
+    properties:
+      clinic_address_id:
+        type: string
+      id:
+        type: string
+      product_id:
+        type: string
+      product_name:
+        type: string
+      product_unit:
+        type: string
+      quantity:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  dto.InventoryTransactionResponse:
+    properties:
+      appointment_id:
+        type: string
+      clinic_address_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      product_id:
+        type: string
+      product_name:
+        type: string
+      quantity:
+        type: number
+      transaction_type:
+        type: string
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -350,6 +407,24 @@ definitions:
       message:
         type: string
       success:
+        type: string
+    type: object
+  dto.ProductRequest:
+    properties:
+      name:
+        type: string
+      unit:
+        type: string
+    type: object
+  dto.ProductResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      unit:
         type: string
     type: object
   dto.RegisterRequest:
@@ -414,6 +489,21 @@ definitions:
       success:
         type: string
     type: object
+  dto.ServiceMaterialResponse:
+    properties:
+      clinic_service_id:
+        type: string
+      id:
+        type: string
+      product_id:
+        type: string
+      product_name:
+        type: string
+      product_unit:
+        type: string
+      quantity_required:
+        type: number
+    type: object
   dto.ServiceResponse:
     properties:
       description:
@@ -476,6 +566,11 @@ definitions:
         type: string
       specialization:
         type: string
+    type: object
+  dto.UpdateInventoryRequest:
+    properties:
+      quantity:
+        type: number
     type: object
   dto.UpdateScheduleRequest:
     properties:
@@ -1149,6 +1244,180 @@ paths:
       summary: Create appointment review
       tags:
       - Appointment
+  /api/clinic-addresses/{id}/inventory:
+    get:
+      description: Returns inventory for a clinic address
+      parameters:
+      - description: Clinic address ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.InventoryResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get clinic address inventory
+      tags:
+      - Inventory
+    post:
+      consumes:
+      - application/json
+      description: Adds product stock to a clinic address inventory and records a
+        restocked transaction
+      parameters:
+      - description: Clinic address ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Stock data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InventoryQuantityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InventoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add stock
+      tags:
+      - Inventory
+  /api/clinic-addresses/{id}/inventory-transactions:
+    get:
+      description: 'Returns inventory transactions for a clinic address. Optional
+        transaction_type values: restocked, used, manual_adjustment.'
+      parameters:
+      - description: Clinic address ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Transaction type
+        in: query
+        name: transaction_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.InventoryTransactionResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get inventory transactions
+      tags:
+      - Inventory
+  /api/clinic-addresses/{id}/inventory/{inventoryId}:
+    put:
+      consumes:
+      - application/json
+      description: Sets inventory quantity for a clinic address inventory item and
+        records a manual adjustment transaction
+      parameters:
+      - description: Clinic address ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Inventory item ID
+        in: path
+        name: inventoryId
+        required: true
+        type: string
+      - description: Inventory quantity
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateInventoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InventoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update inventory quantity
+      tags:
+      - Inventory
+  /api/clinic-services/{id}/materials:
+    post:
+      consumes:
+      - application/json
+      description: Attaches required product material to a clinic service
+      parameters:
+      - description: Clinic service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Service material data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AttachMaterialRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ServiceMaterialResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Attach material to clinic service
+      tags:
+      - Inventory
   /api/clinics:
     get:
       description: Returns a list of all clinics
@@ -1806,6 +2075,151 @@ paths:
       summary: Update MedicalRecord
       tags:
       - MedicalRecord
+  /api/products:
+    get:
+      description: Returns all inventory products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ProductResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get products
+      tags:
+      - Inventory
+    post:
+      consumes:
+      - application/json
+      description: Creates a new inventory product
+      parameters:
+      - description: Product data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create product
+      tags:
+      - Inventory
+  /api/products/{id}:
+    delete:
+      description: Deletes an inventory product by UUID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ActionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete product
+      tags:
+      - Inventory
+    get:
+      description: Returns one inventory product by UUID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ProductResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get product by ID
+      tags:
+      - Inventory
+    put:
+      consumes:
+      - application/json
+      description: Updates an inventory product by UUID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Product data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ProductResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update product
+      tags:
+      - Inventory
   /api/register:
     post:
       consumes:
