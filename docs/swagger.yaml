@@ -453,6 +453,18 @@ definitions:
       user_id:
         type: string
     type: object
+  dto.ReportResponse:
+    properties:
+      clinic_address_id:
+        type: string
+      clinic_id:
+        type: string
+      data: {}
+      from:
+        type: string
+      to:
+        type: string
+    type: object
   dto.Response:
     properties:
       message:
@@ -1497,6 +1509,190 @@ paths:
       summary: Get services by clinic
       tags:
       - Services
+  /api/clinics/{clinicId}/reports/appointments:
+    get:
+      description: Returns appointment counts by status. Use format=csv or format=pdf
+        to export.
+      parameters:
+      - description: Clinic ID
+        in: path
+        name: clinicId
+        required: true
+        type: string
+      - description: Start date YYYY-MM-DD
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: End date YYYY-MM-DD
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Clinic address ID
+        in: query
+        name: clinic_address_id
+        type: string
+      - description: 'Export format: csv or pdf'
+        in: query
+        name: format
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ReportResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get clinic appointment report
+      tags:
+      - Reports
+  /api/clinics/{clinicId}/reports/doctors:
+    get:
+      description: Returns doctor appointment, revenue, and rating performance. Use
+        format=csv or format=pdf to export.
+      parameters:
+      - description: Clinic ID
+        in: path
+        name: clinicId
+        required: true
+        type: string
+      - description: Start date YYYY-MM-DD
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: End date YYYY-MM-DD
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Clinic address ID
+        in: query
+        name: clinic_address_id
+        type: string
+      - description: 'Export format: csv or pdf'
+        in: query
+        name: format
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ReportResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get clinic doctor performance report
+      tags:
+      - Reports
+  /api/clinics/{clinicId}/reports/inventory:
+    get:
+      description: Returns current stock and transaction quantities by product. Use
+        format=csv or format=pdf to export.
+      parameters:
+      - description: Clinic ID
+        in: path
+        name: clinicId
+        required: true
+        type: string
+      - description: Start date YYYY-MM-DD
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: End date YYYY-MM-DD
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Clinic address ID
+        in: query
+        name: clinic_address_id
+        type: string
+      - description: 'Export format: csv or pdf'
+        in: query
+        name: format
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ReportResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get clinic inventory report
+      tags:
+      - Reports
+  /api/clinics/{clinicId}/reports/revenue:
+    get:
+      description: Returns clinic revenue report. Use format=csv or format=pdf to
+        export.
+      parameters:
+      - description: Clinic ID
+        in: path
+        name: clinicId
+        required: true
+        type: string
+      - description: Start date YYYY-MM-DD
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: End date YYYY-MM-DD
+        in: query
+        name: to
+        required: true
+        type: string
+      - description: Clinic address ID
+        in: query
+        name: clinic_address_id
+        type: string
+      - description: 'Export format: csv or pdf'
+        in: query
+        name: format
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ReportResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get clinic revenue report
+      tags:
+      - Reports
   /api/clinics/{id}:
     delete:
       description: Deletes a clinic by UUID
