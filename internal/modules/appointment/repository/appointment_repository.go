@@ -21,6 +21,7 @@ type AppointmentRepository interface {
 	Delete(id string) error
 	GetMyAppointments(userId string) ([]models.Appointment, error)
 	MarkReviewedTx(id string, tx pgx.Tx) error
+	MarkExpiredBookedCompleted(ctx context.Context) (int64, error)
 }
 
 type appointmentRepo struct {
@@ -227,4 +228,18 @@ func (r *appointmentRepo) MarkReviewedTx(id string, tx pgx.Tx) error {
 		return pgx.ErrNoRows
 	}
 	return nil
+}
+
+func (r *appointmentRepo) MarkExpiredBookedCompleted(ctx context.Context) (int64, error) {
+	query := `
+		UPDATE appointments
+		SET status = 'completed'
+		WHERE status = 'booked'
+			AND end_time <= NOW()
+	`
+	result, err := r.db.Exec(ctx, query)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
