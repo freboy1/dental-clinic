@@ -205,6 +205,7 @@ func (s *DoctorService) GetDoctorByIdMedicalRecords(id string) ([]dto.GetMedical
 			Diagnosis:  medical_record.Diagnosis,
 			Notes:      medical_record.Notes,
 			Is_checked: medical_record.Is_checked,
+			Created_at: medical_record.Created_at.Format("2006-01-02"),
 		}
 		responses = append(responses, response)
 	}
@@ -231,6 +232,7 @@ func (s *DoctorService) GetDoctorByUserIdMedicalRecords(id string) ([]dto.GetMed
 			Diagnosis:  medical_record.Diagnosis,
 			Notes:      medical_record.Notes,
 			Is_checked: medical_record.Is_checked,
+			Created_at: medical_record.Created_at.Format("2006-01-02"),
 		}
 		responses = append(responses, response)
 	}

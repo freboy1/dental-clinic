@@ -46,4 +46,5 @@ type GetMedicalRecordDoctorResponse struct {
 	Diagnosis  string `json:"diagnosis"`
 	Notes      string `json:"notes"`
 	Is_checked bool   `json:"is_checked"`
+	Created_at string `json:"created_at"`
 }
