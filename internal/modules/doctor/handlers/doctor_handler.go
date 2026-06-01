@@ -6,7 +6,13 @@ import (
 	"dental_clinic/internal/middleware"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"dental_clinic/internal/modules/doctor/dto"
 	"dental_clinic/internal/modules/doctor/services"
@@ -173,6 +179,163 @@ func (h *DoctorHandler) DeleteDoctor(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Doctor deleted successfully"})
+}
+
+// UpdateDoctorPhoto godoc
+// @Summary Update doctor photo
+// @Description Uploads and stores doctor photo locally
+// @Tags Doctors
+// @Security BearerAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path string true "Doctor ID"
+// @Param photo formData file true "Doctor photo"
+// @Success 200 {object} dto.DoctorActionResponse
+// @Failure 400 {object} dto.DoctorActionResponse
+// @Router /api/doctors/{id}/photo [post]
+func (h *DoctorHandler) UpdateDoctorPhoto(w http.ResponseWriter, r *http.Request) {
+	response := dto.DoctorActionResponse{
+		Success: "0",
+		Message: "",
+	}
+
+	doctorID := mux.Vars(r)["id"]
+	currentDoctor, err := h.service.GetDoctorByID(doctorID)
+	if err != nil {
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	if err := r.ParseMultipartForm(5 << 20); err != nil {
+		response.Message = "Invalid request body"
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("photo")
+	if err != nil {
+		response.Message = "photo is required"
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+	defer file.Close()
+
+	buffer := make([]byte, 512)
+	n, err := file.Read(buffer)
+	if err != nil {
+		response.Message = "failed to read photo"
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+	contentType := http.DetectContentType(buffer[:n])
+	if !strings.HasPrefix(contentType, "image/") {
+		response.Message = "photo must be an image"
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		response.Message = "failed to read photo"
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	if err := os.MkdirAll("./uploads/doctors", os.ModePerm); err != nil {
+		response.Message = "failed to create upload directory"
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	if ext == "" {
+		ext = ".jpg"
+	}
+	filename := fmt.Sprintf("%s_%d%s", doctorID, time.Now().UnixNano(), ext)
+	filePath := filepath.Join(".", "uploads", "doctors", filename)
+	dst, err := os.Create(filePath)
+	if err != nil {
+		response.Message = "failed to save photo"
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+	if _, err := io.Copy(dst, file); err != nil {
+		_ = dst.Close()
+		response.Message = "failed to save photo"
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+	_ = dst.Close()
+
+	photoURL := "/uploads/doctors/" + filename
+	if err := h.service.UpdateDoctorPhoto(doctorID, dto.DoctorPhotoRequest{PhotoURL: photoURL}); err != nil {
+		_ = os.Remove(filePath)
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	if currentDoctor.PhotoURL != "" {
+		_ = os.Remove(filepath.FromSlash("." + currentDoctor.PhotoURL))
+	}
+
+	response.Success = "1"
+	response.Message = "doctor photo updated successfully"
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(response)
+}
+
+// DeleteDoctorPhoto godoc
+// @Summary Delete doctor photo
+// @Description Clears doctor photo URL
+// @Tags Doctors
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Doctor ID"
+// @Success 200 {object} dto.DoctorActionResponse
+// @Failure 400 {object} dto.DoctorActionResponse
+// @Router /api/doctors/{id}/photo [delete]
+func (h *DoctorHandler) DeleteDoctorPhoto(w http.ResponseWriter, r *http.Request) {
+	response := dto.DoctorActionResponse{
+		Success: "0",
+		Message: "",
+	}
+
+	doctorID := mux.Vars(r)["id"]
+	doctor, err := h.service.GetDoctorByID(doctorID)
+	if err != nil {
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	if err := h.service.DeleteDoctorPhoto(doctorID); err != nil {
+		response.Message = err.Error()
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	if doctor.PhotoURL != "" {
+		_ = os.Remove(filepath.FromSlash("." + doctor.PhotoURL))
+	}
+
+	response.Success = "1"
+	response.Message = "doctor photo deleted successfully"
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 // GetDoctorByIdMedicalRecords godoc

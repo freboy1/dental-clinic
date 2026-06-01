@@ -13,4 +13,5 @@ type Doctor struct {
 	IsAvailable    bool
 	UserId         uuid.UUID
 	Rating         float64
+	PhotoURL       string
 }

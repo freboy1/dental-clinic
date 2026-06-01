@@ -16,6 +16,8 @@ type DoctorRepository interface {
 	GetAll() ([]models.Doctor, error)
 	Update(id string, doctor *models.Doctor) (*models.Doctor, error)
 	Delete(id string) error
+	UpdatePhoto(id, photoURL string) error
+	DeletePhoto(id string) error
 }
 
 type doctorRepo struct {
@@ -58,11 +60,12 @@ func (r *doctorRepo) GetAll() ([]models.Doctor, error) {
 			d.is_available,
 			d.name,
 			d.email,
+			COALESCE(d.photo_url, ''),
 			COALESCE(ROUND(AVG(dr.rating)::numeric, 2), 0)::float8 AS rating
 		FROM doctors d
 		LEFT JOIN doctor_ratings dr ON dr.doctor_id = d.id
 		WHERE d.is_deleted=0
-		GROUP BY d.id, d.specialization, d.experience, d.clinic_id, d.bio, d.is_available, d.name, d.email
+		GROUP BY d.id, d.specialization, d.experience, d.clinic_id, d.bio, d.is_available, d.name, d.email, d.photo_url
 		ORDER BY rating DESC, d.name
 	`
 
@@ -75,7 +78,7 @@ func (r *doctorRepo) GetAll() ([]models.Doctor, error) {
 	var doctors []models.Doctor
 	for rows.Next() {
 		var d models.Doctor
-		if err := rows.Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable, &d.Name, &d.Email, &d.Rating); err != nil {
+		if err := rows.Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable, &d.Name, &d.Email, &d.PhotoURL, &d.Rating); err != nil {
 			return nil, err
 		}
 		doctors = append(doctors, d)
@@ -100,15 +103,16 @@ func (r *doctorRepo) GetByID(id string) (*models.Doctor, error) {
 			d.name,
 			d.email,
 			d.user_id,
+			COALESCE(d.photo_url, ''),
 			COALESCE(ROUND(AVG(dr.rating)::numeric, 2), 0)::float8 AS rating
 		FROM doctors d
 		LEFT JOIN doctor_ratings dr ON dr.doctor_id = d.id
 		WHERE d.id = $1 AND d.is_deleted=0
-		GROUP BY d.id, d.specialization, d.experience, d.clinic_id, d.bio, d.is_available, d.name, d.email, d.user_id
+		GROUP BY d.id, d.specialization, d.experience, d.clinic_id, d.bio, d.is_available, d.name, d.email, d.user_id, d.photo_url
 	`
 	var d models.Doctor
 	err := r.db.QueryRow(context.Background(), query, id).
-		Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable, &d.Name, &d.Email, &d.UserId, &d.Rating)
+		Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable, &d.Name, &d.Email, &d.UserId, &d.PhotoURL, &d.Rating)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, nil
@@ -173,15 +177,16 @@ func (r *doctorRepo) GetByUserID(id string) (*models.Doctor, error) {
 			d.name,
 			d.email,
 			d.user_id,
+			COALESCE(d.photo_url, ''),
 			COALESCE(ROUND(AVG(dr.rating)::numeric, 2), 0)::float8 AS rating
 		FROM doctors d
 		LEFT JOIN doctor_ratings dr ON dr.doctor_id = d.id
 		WHERE d.user_id = $1 AND d.is_deleted=0
-		GROUP BY d.id, d.specialization, d.experience, d.clinic_id, d.bio, d.is_available, d.name, d.email, d.user_id
+		GROUP BY d.id, d.specialization, d.experience, d.clinic_id, d.bio, d.is_available, d.name, d.email, d.user_id, d.photo_url
 	`
 	var d models.Doctor
 	err := r.db.QueryRow(context.Background(), query, id).
-		Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable, &d.Name, &d.Email, &d.UserId, &d.Rating)
+		Scan(&d.Id, &d.Specialization, &d.Experience, &d.ClinicID, &d.Bio, &d.IsAvailable, &d.Name, &d.Email, &d.UserId, &d.PhotoURL, &d.Rating)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, nil
@@ -189,4 +194,26 @@ func (r *doctorRepo) GetByUserID(id string) (*models.Doctor, error) {
 		return nil, err
 	}
 	return &d, nil
+}
+
+func (r *doctorRepo) UpdatePhoto(id, photoURL string) error {
+	result, err := r.db.Exec(context.Background(), `UPDATE doctors SET photo_url = $2 WHERE id = $1 AND is_deleted = 0`, id, photoURL)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
+}
+
+func (r *doctorRepo) DeletePhoto(id string) error {
+	result, err := r.db.Exec(context.Background(), `UPDATE doctors SET photo_url = NULL WHERE id = $1 AND is_deleted = 0`, id)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
+	return nil
 }

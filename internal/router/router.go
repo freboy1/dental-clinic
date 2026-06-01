@@ -30,6 +30,8 @@ import (
 func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	router := mux.NewRouter()
 
+	router.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
+
 	// Swagger documentation
 	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 

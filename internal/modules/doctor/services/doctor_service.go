@@ -173,6 +173,7 @@ func ToDoctorResponse(d models.Doctor) dto.DoctorResponse {
 		Name:           d.Name,
 		Email:          d.Email,
 		Rating:         d.Rating,
+		PhotoURL:       d.PhotoURL,
 	}
 }
 
@@ -237,4 +238,35 @@ func (s *DoctorService) GetDoctorByUserIdMedicalRecords(id string) ([]dto.GetMed
 		responses = append(responses, response)
 	}
 	return responses, nil
+}
+
+func (s *DoctorService) UpdateDoctorPhoto(id string, req dto.DoctorPhotoRequest) error {
+	if _, err := uuid.Parse(id); err != nil {
+		return errors.New("invalid doctor id")
+	}
+	if req.PhotoURL == "" {
+		return errors.New("photo_url is required")
+	}
+	doctor, err := s.repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+	if doctor == nil {
+		return errors.New("doctor not found")
+	}
+	return s.repo.UpdatePhoto(id, req.PhotoURL)
+}
+
+func (s *DoctorService) DeleteDoctorPhoto(id string) error {
+	if _, err := uuid.Parse(id); err != nil {
+		return errors.New("invalid doctor id")
+	}
+	doctor, err := s.repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+	if doctor == nil {
+		return errors.New("doctor not found")
+	}
+	return s.repo.DeletePhoto(id)
 }

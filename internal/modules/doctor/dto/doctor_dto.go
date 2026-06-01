@@ -32,6 +32,7 @@ type DoctorResponse struct {
 	Bio            string  `json:"bio"`
 	IsAvailable    bool    `json:"is_available"`
 	Rating         float64 `json:"rating"`
+	PhotoURL       string  `json:"photo_url"`
 }
 
 type DoctorActionResponse struct {
@@ -47,4 +48,8 @@ type GetMedicalRecordDoctorResponse struct {
 	Notes      string `json:"notes"`
 	Is_checked bool   `json:"is_checked"`
 	Created_at string `json:"created_at"`
+}
+
+type DoctorPhotoRequest struct {
+	PhotoURL string `json:"photo_url"`
 }
