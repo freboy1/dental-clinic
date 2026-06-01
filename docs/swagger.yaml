@@ -95,6 +95,30 @@ definitions:
       state:
         $ref: '#/definitions/models.BookingState'
     type: object
+  dto.ClinicAdminActionResponse:
+    properties:
+      clinic_admin_id:
+        type: string
+      message:
+        type: string
+      success:
+        type: string
+    type: object
+  dto.ClinicAdminResponse:
+    properties:
+      clinic_id:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      user_id:
+        type: string
+    type: object
   dto.ClinicResponse:
     properties:
       message:
@@ -136,6 +160,19 @@ definitions:
         type: integer
       doctor_rating:
         type: integer
+    type: object
+  dto.CreateClinicAdminRequest:
+    properties:
+      clinic_id:
+        type: string
+      email:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      password:
+        type: string
     type: object
   dto.CreateDoctorRequest:
     properties:
@@ -308,6 +345,8 @@ definitions:
     type: object
   dto.GetMedicalRecordDoctorResponse:
     properties:
+      created_at:
+        type: string
       diagnosis:
         type: string
       id:
@@ -561,6 +600,19 @@ definitions:
       start_time:
         type: string
       status:
+        type: string
+    type: object
+  dto.UpdateClinicAdminRequest:
+    properties:
+      clinic_id:
+        type: string
+      email:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      new_password:
         type: string
     type: object
   dto.UpdateDoctorRequest:
@@ -1395,6 +1447,141 @@ paths:
       summary: Update inventory quantity
       tags:
       - Inventory
+  /api/clinic-admins:
+    get:
+      description: Returns all clinic admins
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClinicAdminResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get clinic admins
+      tags:
+      - Clinic Admins
+    post:
+      consumes:
+      - application/json
+      description: Creates a clinic admin profile and linked user with role clinic_admin
+      parameters:
+      - description: Clinic admin data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateClinicAdminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClinicAdminActionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ClinicAdminActionResponse'
+      security:
+      - BearerAuth: []
+      summary: Create clinic admin
+      tags:
+      - Clinic Admins
+  /api/clinic-admins/{id}:
+    delete:
+      description: Deletes clinic admin profile and linked user account
+      parameters:
+      - description: Clinic Admin ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClinicAdminActionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ClinicAdminActionResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete clinic admin
+      tags:
+      - Clinic Admins
+    get:
+      description: Returns one clinic admin by UUID
+      parameters:
+      - description: Clinic Admin ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClinicAdminResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get clinic admin by ID
+      tags:
+      - Clinic Admins
+    put:
+      consumes:
+      - application/json
+      description: Updates clinic admin profile and linked user account
+      parameters:
+      - description: Clinic Admin ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Clinic admin data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateClinicAdminRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClinicAdminResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update clinic admin
+      tags:
+      - Clinic Admins
   /api/clinic-services/{id}/materials:
     post:
       consumes:

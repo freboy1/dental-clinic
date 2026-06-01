@@ -1058,6 +1058,220 @@
                 }
             }
         },
+        "/api/clinic-admins": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns all clinic admins",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinic Admins"
+                ],
+                "summary": "Get clinic admins",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ClinicAdminResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a clinic admin profile and linked user with role clinic_admin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinic Admins"
+                ],
+                "summary": "Create clinic admin",
+                "parameters": [
+                    {
+                        "description": "Clinic admin data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateClinicAdminRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClinicAdminActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClinicAdminActionResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/clinic-admins/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns one clinic admin by UUID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinic Admins"
+                ],
+                "summary": "Get clinic admin by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic Admin ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClinicAdminResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates clinic admin profile and linked user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinic Admins"
+                ],
+                "summary": "Update clinic admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic Admin ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Clinic admin data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateClinicAdminRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClinicAdminResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes clinic admin profile and linked user account",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinic Admins"
+                ],
+                "summary": "Delete clinic admin",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic Admin ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClinicAdminActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ClinicAdminActionResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/clinic-services/{id}/materials": {
             "post": {
                 "security": [
@@ -3352,6 +3566,43 @@
                 }
             }
         },
+        "dto.ClinicAdminActionResponse": {
+            "type": "object",
+            "properties": {
+                "clinic_admin_id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ClinicAdminResponse": {
+            "type": "object",
+            "properties": {
+                "clinic_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ClinicResponse": {
             "type": "object",
             "properties": {
@@ -3414,6 +3665,26 @@
                 },
                 "doctor_rating": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.CreateClinicAdminRequest": {
+            "type": "object",
+            "properties": {
+                "clinic_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
                 }
             }
         },
@@ -3679,6 +3950,9 @@
         "dto.GetMedicalRecordDoctorResponse": {
             "type": "object",
             "properties": {
+                "created_at": {
+                    "type": "string"
+                },
                 "diagnosis": {
                     "type": "string"
                 },
@@ -4068,6 +4342,26 @@
                     "type": "string"
                 },
                 "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateClinicAdminRequest": {
+            "type": "object",
+            "properties": {
+                "clinic_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "new_password": {
                     "type": "string"
                 }
             }

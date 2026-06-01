@@ -11,6 +11,7 @@ import (
 	"dental_clinic/internal/modules/ai_assistant"
 	"dental_clinic/internal/modules/appointment"
 	"dental_clinic/internal/modules/clinic"
+	"dental_clinic/internal/modules/clinic_admin"
 	"dental_clinic/internal/modules/doctor"
 	"dental_clinic/internal/modules/inventory"
 	"dental_clinic/internal/modules/medical_record"
@@ -49,6 +50,7 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 	private.Use(middleware.JWTAuth(cfg.JWTSecret))
 	user.RegisterPrivateRoutes(private, db, cfg)
 	clinic.RegisterPrivateRoutes(private, db, cfg)
+	clinic_admin.RegisterPrivateRoutes(private, db, cfg)
 	address.RegisterPrivateRoutes(private, db, cfg)
 	doctor.RegisterPrivateRoutes(private, db, cfg)
 	dentalservices.RegisterPrivateRoutes(private, db, cfg)
