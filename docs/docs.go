@@ -853,6 +853,303 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/clinic-addresses/{id}/cover": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Uploads a cover image for a clinic address, stores it locally, and updates the cover image URL",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinics"
+                ],
+                "summary": "Update clinic address cover image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic address ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Clinic address cover image",
+                        "name": "cover",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Clinic address not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Clears the cover image URL for a clinic address and removes the local cover file when present",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinics"
+                ],
+                "summary": "Delete clinic address cover image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic address ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Clinic address not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/clinic-addresses/{id}/gallery": {
+            "get": {
+                "description": "Returns all gallery images for a clinic address",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinics"
+                ],
+                "summary": "Get clinic address gallery images",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic address ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Uploads an image, stores it locally, and creates a gallery image record for the clinic address",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinics"
+                ],
+                "summary": "Add clinic address gallery image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic address ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Gallery image",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/clinic-addresses/{id}/gallery/{imageId}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Replaces a gallery image file and updates the gallery image URL",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinics"
+                ],
+                "summary": "Update clinic address gallery image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic address ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Gallery image ID (UUID)",
+                        "name": "imageId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Gallery image",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Gallery image not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a gallery image record and removes the local image file",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinics"
+                ],
+                "summary": "Delete clinic address gallery image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic address ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Gallery image ID (UUID)",
+                        "name": "imageId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Gallery image not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/clinic-addresses/{id}/inventory": {
             "get": {
                 "security": [
@@ -2037,6 +2334,106 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/dto.ClinicResponse"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/clinics/{id}/logo": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Uploads a clinic logo image, stores it locally, and updates the clinic logo URL",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinics"
+                ],
+                "summary": "Update clinic logo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Clinic logo image",
+                        "name": "logo",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Clinic not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Clears the clinic logo URL and removes the local logo file when present",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Clinics"
+                ],
+                "summary": "Delete clinic logo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Clinic ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Clinic not found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
                         }
                     }
                 }
@@ -3662,6 +4059,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ClinicAddressImageResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "image_url": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ClinicAdminActionResponse": {
             "type": "object",
             "properties": {
@@ -4017,6 +4425,15 @@ const docTemplate = `{
                 },
                 "address_name": {
                     "type": "string"
+                },
+                "cover_image_url": {
+                    "type": "string"
+                },
+                "gallery": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ClinicAddressImageResponse"
+                    }
                 },
                 "id": {
                     "type": "string"
@@ -4628,6 +5045,9 @@ const docTemplate = `{
                 },
                 "is_active": {
                     "type": "boolean"
+                },
+                "logo_url": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"

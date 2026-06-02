@@ -28,6 +28,7 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 
 	r.HandleFunc("/clinics/{id}/address", handler.GetClinicAddress).Methods("GET")
 	r.HandleFunc("/clinics/{id}/address-names", handler.GetClinicAddress).Methods("GET")
+	r.HandleFunc("/clinic-addresses/{id}/gallery", handler.GetClinicAddressGallery).Methods("GET")
 
 }
 
@@ -43,7 +44,15 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	r.HandleFunc("/clinics", handler.CreateClinic).Methods("POST")
 	r.HandleFunc("/clinics/{id}", handler.UpdateClinic).Methods("PUT")
 	r.HandleFunc("/clinics/{id}", handler.DeleteClinic).Methods("DELETE")
+	r.HandleFunc("/clinics/{id}/logo", handler.UpdateClinicLogo).Methods("POST")
+	r.HandleFunc("/clinics/{id}/logo", handler.DeleteClinicLogo).Methods("DELETE")
 
 	r.HandleFunc("/clinics/{id}/address", handler.AddAddress).Methods("POST")
 	r.HandleFunc("/clinics/{id}/address/{addressId}", handler.DeleteAddress).Methods("DELETE")
+	r.HandleFunc("/clinic-addresses/{id}/cover", handler.UpdateClinicAddressCover).Methods("POST")
+	r.HandleFunc("/clinic-addresses/{id}/cover", handler.DeleteClinicAddressCover).Methods("DELETE")
+	r.HandleFunc("/clinic-addresses/{id}/gallery", handler.GetClinicAddressGallery).Methods("GET")
+	r.HandleFunc("/clinic-addresses/{id}/gallery", handler.AddClinicAddressGalleryImage).Methods("POST")
+	r.HandleFunc("/clinic-addresses/{id}/gallery/{imageId}", handler.UpdateClinicAddressGalleryImage).Methods("PUT")
+	r.HandleFunc("/clinic-addresses/{id}/gallery/{imageId}", handler.DeleteClinicAddressGalleryImage).Methods("DELETE")
 }

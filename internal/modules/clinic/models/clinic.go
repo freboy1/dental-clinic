@@ -16,4 +16,5 @@ type Clinic struct {
 	IsActive    bool      `json:"is_active"`
 	CreatedAt   time.Time `json:"created_at"`
 	Rating      float64   `json:"rating"`
+	LogoURL     string    `json:"logo_url"`
 }

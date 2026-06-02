@@ -95,6 +95,13 @@ definitions:
       state:
         $ref: '#/definitions/models.BookingState'
     type: object
+  dto.ClinicAddressImageResponse:
+    properties:
+      id:
+        type: string
+      image_url:
+        type: string
+    type: object
   dto.ClinicAdminActionResponse:
     properties:
       clinic_admin_id:
@@ -327,6 +334,12 @@ definitions:
         type: string
       address_name:
         type: string
+      cover_image_url:
+        type: string
+      gallery:
+        items:
+          $ref: '#/definitions/dto.ClinicAddressImageResponse'
+        type: array
       id:
         type: string
       is_main:
@@ -724,6 +737,8 @@ definitions:
         type: string
       is_active:
         type: boolean
+      logo_url:
+        type: string
       name:
         type: string
       phone:
@@ -1310,6 +1325,201 @@ paths:
       summary: Create appointment review
       tags:
       - Appointment
+  /api/clinic-addresses/{id}/cover:
+    delete:
+      description: Clears the cover image URL for a clinic address and removes the
+        local cover file when present
+      parameters:
+      - description: Clinic address ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Clinic address not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete clinic address cover image
+      tags:
+      - Clinics
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a cover image for a clinic address, stores it locally,
+        and updates the cover image URL
+      parameters:
+      - description: Clinic address ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Clinic address cover image
+        in: formData
+        name: cover
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Clinic address not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update clinic address cover image
+      tags:
+      - Clinics
+  /api/clinic-addresses/{id}/gallery:
+    get:
+      description: Returns all gallery images for a clinic address
+      parameters:
+      - description: Clinic address ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get clinic address gallery images
+      tags:
+      - Clinics
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads an image, stores it locally, and creates a gallery image
+        record for the clinic address
+      parameters:
+      - description: Clinic address ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Gallery image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add clinic address gallery image
+      tags:
+      - Clinics
+  /api/clinic-addresses/{id}/gallery/{imageId}:
+    delete:
+      description: Deletes a gallery image record and removes the local image file
+      parameters:
+      - description: Clinic address ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Gallery image ID (UUID)
+        in: path
+        name: imageId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Gallery image not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete clinic address gallery image
+      tags:
+      - Clinics
+    put:
+      consumes:
+      - multipart/form-data
+      description: Replaces a gallery image file and updates the gallery image URL
+      parameters:
+      - description: Clinic address ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Gallery image ID (UUID)
+        in: path
+        name: imageId
+        required: true
+        type: string
+      - description: Gallery image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Gallery image not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update clinic address gallery image
+      tags:
+      - Clinics
   /api/clinic-addresses/{id}/inventory:
     get:
       description: Returns inventory for a clinic address
@@ -2076,6 +2286,72 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete Address
+      tags:
+      - Clinics
+  /api/clinics/{id}/logo:
+    delete:
+      description: Clears the clinic logo URL and removes the local logo file when
+        present
+      parameters:
+      - description: Clinic ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Clinic not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete clinic logo
+      tags:
+      - Clinics
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a clinic logo image, stores it locally, and updates the
+        clinic logo URL
+      parameters:
+      - description: Clinic ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Clinic logo image
+        in: formData
+        name: logo
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Clinic not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update clinic logo
       tags:
       - Clinics
   /api/doctors:

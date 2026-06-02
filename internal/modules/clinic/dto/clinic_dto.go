@@ -20,9 +20,16 @@ type ClinicResponse struct {
 }
 
 type GetClinicAddressResponse struct {
-	Id         string `json:"id"`
-	Address_id string `json:"address_id"`
-	Address_name string `json:"address_name"`
-	Address_building string `json:"address_building"`
-	Is_main    bool   `json:"is_main"`
+	Id               string                       `json:"id"`
+	Address_id       string                       `json:"address_id"`
+	Address_name     string                       `json:"address_name"`
+	Address_building string                       `json:"address_building"`
+	CoverImageURL    string                       `json:"cover_image_url"`
+	Gallery          []ClinicAddressImageResponse `json:"gallery"`
+	Is_main          bool                         `json:"is_main"`
+}
+
+type ClinicAddressImageResponse struct {
+	Id       string `json:"id"`
+	ImageURL string `json:"image_url"`
 }
