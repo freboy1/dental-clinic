@@ -43,7 +43,7 @@ func (h *ReportsHandler) GetRevenueReport(w http.ResponseWriter, r *http.Request
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	h.respondReport(w, r, "Revenue Report", filters.ClinicID, filters.ClinicAddressID, filters.From, filters.To, data)
+	h.respondReport(w, r, "Revenue Report", filters, data)
 }
 
 // GetAppointmentReport godoc
@@ -70,7 +70,7 @@ func (h *ReportsHandler) GetAppointmentReport(w http.ResponseWriter, r *http.Req
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	h.respondReport(w, r, "Appointment Report", filters.ClinicID, filters.ClinicAddressID, filters.From, filters.To, data)
+	h.respondReport(w, r, "Appointment Report", filters, data)
 }
 
 // GetDoctorPerformanceReport godoc
@@ -97,7 +97,7 @@ func (h *ReportsHandler) GetDoctorPerformanceReport(w http.ResponseWriter, r *ht
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	h.respondReport(w, r, "Doctor Performance Report", filters.ClinicID, filters.ClinicAddressID, filters.From, filters.To, data)
+	h.respondReport(w, r, "Doctor Performance Report", filters, data)
 }
 
 // GetInventoryReport godoc
@@ -124,7 +124,7 @@ func (h *ReportsHandler) GetInventoryReport(w http.ResponseWriter, r *http.Reque
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	h.respondReport(w, r, "Inventory Report", filters.ClinicID, filters.ClinicAddressID, filters.From, filters.To, data)
+	h.respondReport(w, r, "Inventory Report", filters, data)
 }
 
 func (h *ReportsHandler) filters(w http.ResponseWriter, r *http.Request) (models.ReportFilters, bool) {
@@ -138,7 +138,9 @@ func (h *ReportsHandler) filters(w http.ResponseWriter, r *http.Request) (models
 	return filters, true
 }
 
-func (h *ReportsHandler) respondReport(w http.ResponseWriter, r *http.Request, title, clinicID, clinicAddressID, from, to string, data interface{}) {
+// respondReport dispatches to CSV, PDF, or JSON based on ?format=
+// filters is now passed so ToPDF can embed the date range in the report header.
+func (h *ReportsHandler) respondReport(w http.ResponseWriter, r *http.Request, title string, filters models.ReportFilters, data interface{}) {
 	switch r.URL.Query().Get("format") {
 	case "csv":
 		body, err := services.ToCSV(data)
@@ -150,8 +152,9 @@ func (h *ReportsHandler) respondReport(w http.ResponseWriter, r *http.Request, t
 		w.Header().Set("Content-Disposition", `attachment; filename="report.csv"`)
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(body)
+
 	case "pdf":
-		body, err := services.ToPDF(title, data)
+		body, err := services.ToPDF(title, filters.From, filters.To, data)
 		if err != nil {
 			respondError(w, http.StatusInternalServerError, err.Error())
 			return
@@ -160,12 +163,13 @@ func (h *ReportsHandler) respondReport(w http.ResponseWriter, r *http.Request, t
 		w.Header().Set("Content-Disposition", `attachment; filename="report.pdf"`)
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(body)
+
 	default:
 		respondJSON(w, http.StatusOK, dto.ReportResponse{
-			ClinicID:        clinicID,
-			ClinicAddressID: clinicAddressID,
-			From:            from,
-			To:              to,
+			ClinicID:        filters.ClinicID,
+			ClinicAddressID: filters.ClinicAddressID,
+			From:            filters.From,
+			To:              filters.To,
 			Data:            data,
 		})
 	}
