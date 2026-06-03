@@ -166,9 +166,11 @@ func (r *aiAssistantRepo) ClearState(userID uuid.UUID) error {
 
 func (r *aiAssistantRepo) SearchServices(query string) ([]models.ServiceOption, error) {
 	sql := `
-		SELECT id::text, name, COALESCE(description, '')
+		SELECT id::text, name, COALESCE(name_en, ''), COALESCE(name_kaz, ''), COALESCE(description, '')
 		FROM services
 		WHERE LOWER(name) LIKE LOWER('%' || $1 || '%')
+		   OR LOWER(COALESCE(name_en, '')) LIKE LOWER('%' || $1 || '%')
+		   OR LOWER(COALESCE(name_kaz, '')) LIKE LOWER('%' || $1 || '%')
 		ORDER BY name
 		LIMIT 5
 	`
@@ -181,7 +183,7 @@ func (r *aiAssistantRepo) SearchServices(query string) ([]models.ServiceOption, 
 	options := make([]models.ServiceOption, 0)
 	for rows.Next() {
 		var option models.ServiceOption
-		if err := rows.Scan(&option.Id, &option.Name, &option.Description); err != nil {
+		if err := rows.Scan(&option.Id, &option.Name, &option.NameEn, &option.NameKaz, &option.Description); err != nil {
 			return nil, err
 		}
 		options = append(options, option)
