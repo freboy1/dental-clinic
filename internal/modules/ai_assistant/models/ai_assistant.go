@@ -35,6 +35,8 @@ func (s BookingState) IsComplete() bool {
 type ServiceOption struct {
 	Id          string `json:"id"`
 	Name        string `json:"name"`
+	NameEn      string `json:"name_en,omitempty"`
+	NameKaz     string `json:"name_kaz,omitempty"`
 	Description string `json:"description"`
 }
 
