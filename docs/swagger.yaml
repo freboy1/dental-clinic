@@ -784,6 +784,10 @@ definitions:
         type: string
       name:
         type: string
+      name_en:
+        type: string
+      name_kaz:
+        type: string
     type: object
 info:
   contact: {}
@@ -1795,6 +1799,34 @@ paths:
       tags:
       - Clinic Admins
   /api/clinic-services/{id}/materials:
+    get:
+      description: Returns required product materials attached to a clinic service
+      parameters:
+      - description: Clinic service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ServiceMaterialResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get clinic service materials
+      tags:
+      - Inventory
     post:
       consumes:
       - application/json

@@ -28,4 +28,5 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	r.HandleFunc("/clinic-addresses/{id}/inventory-transactions", handler.GetTransactions).Methods("GET")
 
 	r.HandleFunc("/clinic-services/{id}/materials", handler.AttachMaterial).Methods("POST")
+	r.HandleFunc("/clinic-services/{id}/materials", handler.GetServiceMaterials).Methods("GET")
 }

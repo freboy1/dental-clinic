@@ -251,6 +251,14 @@ func (s *InventoryService) AttachMaterial(clinicServiceId string, req dto.Attach
 	return material, nil
 }
 
+func (s *InventoryService) GetServiceMaterials(clinicServiceId string) ([]models.ServiceMaterial, error) {
+	serviceId, err := uuid.Parse(clinicServiceId)
+	if err != nil {
+		return nil, errors.New("invalid clinic service id")
+	}
+	return s.repo.GetServiceMaterials(serviceId)
+}
+
 func (s *InventoryService) GetTransactions(clinicAddressId, transactionType string) ([]models.InventoryTransaction, error) {
 	addressId, err := uuid.Parse(clinicAddressId)
 	if err != nil {

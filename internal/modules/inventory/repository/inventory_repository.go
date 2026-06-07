@@ -27,6 +27,7 @@ type InventoryRepository interface {
 	GetTransactions(clinicAddressId uuid.UUID, transactionType string) ([]models.InventoryTransaction, error)
 
 	CreateServiceMaterial(material *models.ServiceMaterial) (*models.ServiceMaterial, error)
+	GetServiceMaterials(clinicServiceId uuid.UUID) ([]models.ServiceMaterial, error)
 }
 
 type inventoryRepo struct {
@@ -239,4 +240,29 @@ func (r *inventoryRepo) CreateServiceMaterial(material *models.ServiceMaterial) 
 	err := r.db.QueryRow(context.Background(), query, material.Id, material.ClinicServiceId, material.ProductId, material.QuantityRequired).
 		Scan(&material.Id, &material.ClinicServiceId, &material.ProductId, &material.QuantityRequired)
 	return material, err
+}
+
+func (r *inventoryRepo) GetServiceMaterials(clinicServiceId uuid.UUID) ([]models.ServiceMaterial, error) {
+	query := `
+		SELECT sm.id, sm.service_id, sm.product_id, p.name, p.unit, sm.quantity_required
+		FROM service_materials sm
+		JOIN products p ON p.id = sm.product_id
+		WHERE sm.service_id = $1
+		ORDER BY p.name
+	`
+	rows, err := r.db.Query(context.Background(), query, clinicServiceId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	materials := make([]models.ServiceMaterial, 0)
+	for rows.Next() {
+		var material models.ServiceMaterial
+		if err := rows.Scan(&material.Id, &material.ClinicServiceId, &material.ProductId, &material.ProductName, &material.ProductUnit, &material.QuantityRequired); err != nil {
+			return nil, err
+		}
+		materials = append(materials, material)
+	}
+	return materials, rows.Err()
 }

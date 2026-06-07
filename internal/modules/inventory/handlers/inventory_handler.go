@@ -244,6 +244,25 @@ func (h *InventoryHandler) AttachMaterial(w http.ResponseWriter, r *http.Request
 	respondJSON(w, http.StatusCreated, toServiceMaterialResponse(*material))
 }
 
+// GetServiceMaterials godoc
+// @Summary Get clinic service materials
+// @Description Returns required product materials attached to a clinic service
+// @Tags Inventory
+// @Security BearerAuth
+// @Produce json
+// @Param id path string true "Clinic service ID"
+// @Success 200 {array} dto.ServiceMaterialResponse
+// @Failure 400 {object} map[string]string
+// @Router /api/clinic-services/{id}/materials [get]
+func (h *InventoryHandler) GetServiceMaterials(w http.ResponseWriter, r *http.Request) {
+	materials, err := h.service.GetServiceMaterials(mux.Vars(r)["id"])
+	if err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	respondJSON(w, http.StatusOK, toServiceMaterialResponseList(materials))
+}
+
 // GetTransactions godoc
 // @Summary Get inventory transactions
 // @Description Returns inventory transactions for a clinic address. Optional transaction_type values: restocked, used, manual_adjustment.
@@ -320,6 +339,14 @@ func toServiceMaterialResponse(material models.ServiceMaterial) dto.ServiceMater
 		ProductUnit:      material.ProductUnit,
 		QuantityRequired: material.QuantityRequired,
 	}
+}
+
+func toServiceMaterialResponseList(materials []models.ServiceMaterial) []dto.ServiceMaterialResponse {
+	result := make([]dto.ServiceMaterialResponse, 0, len(materials))
+	for _, material := range materials {
+		result = append(result, toServiceMaterialResponse(material))
+	}
+	return result
 }
 
 func toTransactionResponse(transaction models.InventoryTransaction) dto.InventoryTransactionResponse {
