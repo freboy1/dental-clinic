@@ -18,14 +18,14 @@ Docker Compose version v2.30.3-desktop.1
 Создай файл `.env` в корне проекта:
 
 ```env
-APP_PORT=8080
-DB_DSN=postgres://postgres:1234@localhost:5432/dental_clinic?sslmode=disable
-JWT_SECRET=supersecretkey123
-SMTP_USER=dautovalisher33@gmail.com
-SMTP_PASS=ppzv hnga kzhl xdlz
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-OPENAI_API_KEY=sk-22c0691832294091bfbd9265546844c1
+APP_PORT=
+DB_DSN=
+JWT_SECRET=
+SMTP_USER=
+SMTP_PASS=
+SMTP_HOST=
+SMTP_PORT=
+OPENAI_API_KEY=
 ```
 
 ---
