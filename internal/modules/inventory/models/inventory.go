@@ -15,6 +15,7 @@ type Product struct {
 
 type AddressInventory struct {
 	Id              uuid.UUID
+	ClinicId        uuid.UUID
 	ClinicAddressId uuid.UUID
 	ProductId       uuid.UUID
 	ProductName     string

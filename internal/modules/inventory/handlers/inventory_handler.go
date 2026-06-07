@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"dental_clinic/internal/modules/inventory/dto"
 	"dental_clinic/internal/modules/inventory/models"
@@ -186,6 +187,38 @@ func (h *InventoryHandler) GetInventory(w http.ResponseWriter, r *http.Request) 
 	respondJSON(w, http.StatusOK, toInventoryResponseList(inventory))
 }
 
+// GetInventoryStatus godoc
+// @Summary Get inventory status notifications
+// @Description Returns inventory status notifications for a clinic address. Color values: red means finished, yellow means running low, green means available.
+// @Tags Inventory
+// @Security BearerAuth
+// @Produce json
+// @Param clinicId path string true "Clinic ID"
+// @Param addressId path string true "Clinic address ID"
+// @Param threshold query number false "Yellow threshold. Default is 5"
+// @Success 200 {array} dto.InventoryStatusResponse
+// @Failure 400 {object} map[string]string
+// @Router /api/clinics/{clinicId}/clinic-addresses/{addressId}/inventory-status [get]
+func (h *InventoryHandler) GetInventoryStatus(w http.ResponseWriter, r *http.Request) {
+	threshold := 5.0
+	if rawThreshold := r.URL.Query().Get("threshold"); rawThreshold != "" {
+		parsedThreshold, err := strconv.ParseFloat(rawThreshold, 64)
+		if err != nil || parsedThreshold < 0 {
+			respondError(w, http.StatusBadRequest, "invalid threshold")
+			return
+		}
+		threshold = parsedThreshold
+	}
+
+	vars := mux.Vars(r)
+	inventory, err := h.service.GetInventoryStatus(vars["clinicId"], vars["addressId"])
+	if err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	respondJSON(w, http.StatusOK, toInventoryStatusResponseList(inventory, threshold))
+}
+
 // UpdateInventory godoc
 // @Summary Update inventory quantity
 // @Description Sets inventory quantity for a clinic address inventory item and records a manual adjustment transaction
@@ -326,6 +359,38 @@ func toInventoryResponseList(inventory []models.AddressInventory) []dto.Inventor
 	result := make([]dto.InventoryResponse, 0, len(inventory))
 	for _, item := range inventory {
 		result = append(result, toInventoryResponse(item))
+	}
+	return result
+}
+
+func toInventoryStatusResponse(item models.AddressInventory, threshold float64) dto.InventoryStatusResponse {
+	color := "green"
+	message := "product is available"
+	if item.Quantity <= 0 {
+		color = "red"
+		message = "product is finished"
+	} else if item.Quantity <= threshold {
+		color = "yellow"
+		message = "product is running low"
+	}
+
+	return dto.InventoryStatusResponse{
+		Id:              item.Id.String(),
+		ClinicId:        item.ClinicId.String(),
+		ClinicAddressId: item.ClinicAddressId.String(),
+		ProductId:       item.ProductId.String(),
+		ProductName:     item.ProductName,
+		ProductUnit:     item.ProductUnit,
+		Quantity:        item.Quantity,
+		Color:           color,
+		Message:         message,
+	}
+}
+
+func toInventoryStatusResponseList(inventory []models.AddressInventory, threshold float64) []dto.InventoryStatusResponse {
+	result := make([]dto.InventoryStatusResponse, 0, len(inventory))
+	for _, item := range inventory {
+		result = append(result, toInventoryStatusResponse(item, threshold))
 	}
 	return result
 }

@@ -24,6 +24,7 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 
 	r.HandleFunc("/clinic-addresses/{id}/inventory", handler.AddStock).Methods("POST")
 	r.HandleFunc("/clinic-addresses/{id}/inventory", handler.GetInventory).Methods("GET")
+	r.HandleFunc("/clinics/{clinicId}/clinic-addresses/{addressId}/inventory-status", handler.GetInventoryStatus).Methods("GET")
 	r.HandleFunc("/clinic-addresses/{id}/inventory/{inventoryId}", handler.UpdateInventory).Methods("PUT")
 	r.HandleFunc("/clinic-addresses/{id}/inventory-transactions", handler.GetTransactions).Methods("GET")
 

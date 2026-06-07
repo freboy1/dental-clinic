@@ -31,6 +31,18 @@ type InventoryResponse struct {
 	UpdatedAt       string  `json:"updated_at"`
 }
 
+type InventoryStatusResponse struct {
+	Id              string  `json:"id"`
+	ClinicId        string  `json:"clinic_id"`
+	ClinicAddressId string  `json:"clinic_address_id"`
+	ProductId       string  `json:"product_id"`
+	ProductName     string  `json:"product_name"`
+	ProductUnit     string  `json:"product_unit"`
+	Quantity        float64 `json:"quantity"`
+	Color           string  `json:"color"`
+	Message         string  `json:"message"`
+}
+
 type AttachMaterialRequest struct {
 	ProductId        string  `json:"product_id"`
 	QuantityRequired float64 `json:"quantity_required"`

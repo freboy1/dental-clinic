@@ -19,6 +19,7 @@ type InventoryRepository interface {
 	DeleteProduct(id uuid.UUID) error
 
 	GetInventoryByAddress(clinicAddressId uuid.UUID) ([]models.AddressInventory, error)
+	GetInventoryStatus(clinicId, clinicAddressId uuid.UUID) ([]models.AddressInventory, error)
 	GetInventoryByID(id uuid.UUID) (*models.AddressInventory, error)
 	GetInventoryByAddressAndProduct(clinicAddressId, productId uuid.UUID, tx pgx.Tx) (*models.AddressInventory, error)
 	CreateInventoryTx(inventory *models.AddressInventory, tx pgx.Tx) (*models.AddressInventory, error)
@@ -119,6 +120,32 @@ func (r *inventoryRepo) GetInventoryByAddress(clinicAddressId uuid.UUID) ([]mode
 	for rows.Next() {
 		var item models.AddressInventory
 		if err := rows.Scan(&item.Id, &item.ClinicAddressId, &item.ProductId, &item.ProductName, &item.ProductUnit, &item.Quantity, &item.UpdatedAt); err != nil {
+			return nil, err
+		}
+		inventory = append(inventory, item)
+	}
+	return inventory, rows.Err()
+}
+
+func (r *inventoryRepo) GetInventoryStatus(clinicId, clinicAddressId uuid.UUID) ([]models.AddressInventory, error) {
+	query := `
+		SELECT ai.id, ca.clinic_id, ai.clinic_address_id, ai.product_id, p.name, p.unit, ai.quantity, ai.updated_at
+		FROM address_inventory ai
+		JOIN clinic_addresses ca ON ca.id = ai.clinic_address_id
+		JOIN products p ON p.id = ai.product_id
+		WHERE ca.clinic_id = $1 AND ai.clinic_address_id = $2
+		ORDER BY p.name
+	`
+	rows, err := r.db.Query(context.Background(), query, clinicId, clinicAddressId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	inventory := make([]models.AddressInventory, 0)
+	for rows.Next() {
+		var item models.AddressInventory
+		if err := rows.Scan(&item.Id, &item.ClinicId, &item.ClinicAddressId, &item.ProductId, &item.ProductName, &item.ProductUnit, &item.Quantity, &item.UpdatedAt); err != nil {
 			return nil, err
 		}
 		inventory = append(inventory, item)

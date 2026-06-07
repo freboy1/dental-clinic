@@ -162,6 +162,18 @@ func (s *InventoryService) GetInventory(clinicAddressId string) ([]models.Addres
 	return s.repo.GetInventoryByAddress(addressId)
 }
 
+func (s *InventoryService) GetInventoryStatus(clinicId, clinicAddressId string) ([]models.AddressInventory, error) {
+	clinicUUID, err := uuid.Parse(clinicId)
+	if err != nil {
+		return nil, errors.New("invalid clinic id")
+	}
+	addressId, err := uuid.Parse(clinicAddressId)
+	if err != nil {
+		return nil, errors.New("invalid clinic address id")
+	}
+	return s.repo.GetInventoryStatus(clinicUUID, addressId)
+}
+
 func (s *InventoryService) UpdateInventory(ctx context.Context, clinicAddressId, inventoryId string, req dto.UpdateInventoryRequest) (*models.AddressInventory, error) {
 	addressId, err := uuid.Parse(clinicAddressId)
 	if err != nil {
