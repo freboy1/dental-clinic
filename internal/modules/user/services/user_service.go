@@ -268,7 +268,10 @@ func (s *UserService) UpdateEmail(tokenStr string, req dto.UpdateEmailRequest) e
 		return err
 	}
 
-	link := fmt.Sprintf("http://localhost:8080/api/users/verify-email?token=%s", verifyToken)
+	link := fmt.Sprintf(
+		"http://161.35.116.104:8080/api/users/verify-email?token=%s",
+		verifyToken,
+	)
 	body := fmt.Sprintf("You need to do to the link: %s", link)
 
 	return utils.SendEmail(&s.cfx, req.NewEmail, "Confirm email", body)

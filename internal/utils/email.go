@@ -14,8 +14,10 @@ func SendVerificationEmail(cfx *config.Config, to, token string) error {
 	smtpHost := cfx.SMTPHost
 	smtpPort := cfx.SMTPPort
 
-	verifyLink := fmt.Sprintf("http://localhost:8080/api/verify?token=%s", token)
-
+	verifyLink := fmt.Sprintf(
+		"http://161.35.116.104:8080/api/verify?token=%s",
+		token,
+	)
 	subject := "Confirm your account\n"
 	body := fmt.Sprintf("click to activate account:\n%s", verifyLink)
 	msg := []byte(subject + "\n" + body)

@@ -70,7 +70,10 @@ func NewRouter(cfg *config.Config, db *pgxpool.Pool) http.Handler {
 
 	// CORS configuration
 	headersOk := gorilla_handler.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
-	originsOk := gorilla_handler.AllowedOrigins([]string{"http://localhost:3000"})
+	originsOk := gorilla_handler.AllowedOrigins([]string{
+		"http://localhost:3000",
+		"http://161.35.116.104:3000",
+	})
 	methodsOk := gorilla_handler.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
 
 	return gorilla_handler.CORS(originsOk, headersOk, methodsOk)(router)
