@@ -16,6 +16,8 @@ type Config struct {
 	SMTPPort     string
 	OpenAIAPIKey string
 	OpenAIModel  string
+	ResendAPIKey string
+	FrontendURL  string
 }
 
 func LoadConfig() *Config {
@@ -34,6 +36,8 @@ func LoadConfig() *Config {
 		SMTPPort:     getEnv("SMTP_PORT", ""),
 		OpenAIAPIKey: getEnv("OPENAI_API_KEY", ""),
 		OpenAIModel:  getEnv("OPENAI_MODEL", "gpt-4o-mini"),
+		ResendAPIKey: getEnv("ResendAPIKey", ""),
+		FrontendURL:  getEnv("FrontendURL", ""),
 	}
 
 	return cfg
