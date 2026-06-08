@@ -62,10 +62,11 @@ func (s *UserService) Register(req dto.RegisterRequest) (*models.User, error) {
 	if err != nil {
 		return created_user, err
 	}
-	err = utils.SendVerificationEmail(&s.cfx, user.Email, token)
-	if err != nil {
-		log.Printf("send email error: %v", err)
-	}
+	go func() {
+		if err := utils.SendVerificationEmail(&s.cfx, user.Email, token); err != nil {
+			log.Printf("send email error: %v", err)
+		}
+	}()
 
 	return created_user, err
 }
