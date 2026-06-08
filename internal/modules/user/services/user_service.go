@@ -68,6 +68,8 @@ func (s *UserService) Register(req dto.RegisterRequest) (*models.User, error) {
 		}
 	}()
 
+	s.repo.MarkUserAsVerified(created_user.Id.String())
+
 	return created_user, err
 }
 

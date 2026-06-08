@@ -19,6 +19,7 @@ func RegisterPublicRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
 	r.HandleFunc("/register", handler.Register).Methods("POST")
 	r.HandleFunc("/login", handler.Login).Methods("POST")
 	r.HandleFunc("/verify", handler.VerifyAccountByLink).Methods("GET")
+	r.HandleFunc("/users/verify-email", handler.VerifyNewEmail).Methods("GET")
 }
 
 func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) {
@@ -31,6 +32,5 @@ func RegisterPrivateRoutes(r *mux.Router, db *pgxpool.Pool, cfg *config.Config) 
 	r.HandleFunc("/users/{id}", handler.DeleteUser).Methods("DELETE")
 	r.HandleFunc("/users/update-password", handler.UpdatePassword).Methods("POST")
 	r.HandleFunc("/users/update-email", handler.UpdateEmail).Methods("POST")
-	r.HandleFunc("/users/verify-email", handler.VerifyNewEmail).Methods("GET")
 	r.HandleFunc("/users", handler.GetAllUsers).Methods("GET")
 }
