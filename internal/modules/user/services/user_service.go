@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 
 	"dental_clinic/internal/config"
@@ -61,7 +62,10 @@ func (s *UserService) Register(req dto.RegisterRequest) (*models.User, error) {
 	if err != nil {
 		return created_user, err
 	}
-	_ = utils.SendVerificationEmail(&s.cfx, user.Email, token)
+	err = utils.SendVerificationEmail(&s.cfx, user.Email, token)
+	if err != nil {
+		log.Printf("send email error: %v", err)
+	}
 
 	return created_user, err
 }
