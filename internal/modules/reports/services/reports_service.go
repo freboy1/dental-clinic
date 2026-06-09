@@ -263,7 +263,7 @@ func renderHeader(pdf *gofpdf.Fpdf, title, from, to string) float64 {
 	text(pdf, cMuted)
 	pdf.SetXY(margin+7, infoY+11)
 	pdf.MultiCell(inner-10, 4,
-		"This report is generated as part of a diploma project — a dental clinic management system. "+
+		"This report is generated as part of a diploma project a dental clinic management system. "+
 			"The system covers appointment scheduling, doctor performance tracking, revenue analytics, "+
 			"and inventory management across clinic locations.",
 		"", "L", false)
@@ -629,9 +629,9 @@ func buildRevenuePDF(title, from, to string, rows []models.RevenueReportRow) ([]
 	}
 
 	cardW := (inner - 6) / 3
-	kpiCard(pdf, margin, y, cardW, 28, fmt.Sprintf("$%.0f", totalRevenue), "Total Revenue", "across all services", cPrimary)
+	kpiCard(pdf, margin, y, cardW, 28, fmt.Sprintf("KZT %.0f", totalRevenue), "Total Revenue", "across all services", cPrimary)
 	kpiCard(pdf, margin+cardW+3, y, cardW, 28, fmt.Sprintf("%d", totalAppts), "Appointments", "in selected period", cAccent)
-	kpiCard(pdf, margin+2*(cardW+3), y, cardW, 28, fmt.Sprintf("$%.0f", avgRevPerAppt), "Avg Revenue / Appt", "across services", color{139, 92, 246})
+	kpiCard(pdf, margin+2*(cardW+3), y, cardW, 28, fmt.Sprintf("KZT %.0f", avgRevPerAppt), "Avg Revenue / Appt", "across services", color{139, 92, 246})
 	y += 36
 
 	y = sectionHeading(pdf, y, "Revenue by Service")
@@ -639,8 +639,8 @@ func buildRevenuePDF(title, from, to string, rows []models.RevenueReportRow) ([]
 	cols := []tableCol{
 		{margin + 2, 62, "Service", "L"},
 		{margin + 68, 22, "Appts", "R"},
-		{margin + 94, 24, "Unit Price", "R"},
-		{margin + 122, 26, "Total ($)", "R"},
+		{margin + 94, 24, "Unit KZT", "R"},
+		{margin + 122, 26, "KZT Total", "R"},
 		{margin + 152, barMaxW, "Share", "L"},
 	}
 	y = tableHeader(pdf, y, cols)
@@ -660,12 +660,12 @@ func buildRevenuePDF(title, from, to string, rows []models.RevenueReportRow) ([]
 
 		text(pdf, cMuted)
 		pdf.SetXY(cols[2].x, y)
-		pdf.CellFormat(cols[2].w, rowH, fmt.Sprintf("$%.2f", r.UnitPrice), "", 0, "R", false, 0, "")
+		pdf.CellFormat(cols[2].w, rowH, fmt.Sprintf("KZT %.2f", r.UnitPrice), "", 0, "R", false, 0, "")
 
 		pdf.SetFont("Helvetica", "B", 8)
 		text(pdf, cDark)
 		pdf.SetXY(cols[3].x, y)
-		pdf.CellFormat(cols[3].w, rowH, fmt.Sprintf("$%.2f", r.TotalRevenue), "", 0, "R", false, 0, "")
+		pdf.CellFormat(cols[3].w, rowH, fmt.Sprintf("KZT %.2f", r.TotalRevenue), "", 0, "R", false, 0, "")
 
 		progressBar(pdf, cols[4].x, y, barMaxW, pct, c)
 		y += rowH
@@ -708,7 +708,7 @@ func buildDoctorPDF(title, from, to string, rows []models.DoctorPerformanceRow) 
 
 	cardW := (inner - 6) / 3
 	kpiCard(pdf, margin, y, cardW, 28, fmt.Sprintf("%d", len(rows)), "Doctors", "in this period", cPrimary)
-	kpiCard(pdf, margin+cardW+3, y, cardW, 28, fmt.Sprintf("$%.0f", totalRevenue), "Total Revenue", fmt.Sprintf("%d appointments", totalAppts), cAccent)
+	kpiCard(pdf, margin+cardW+3, y, cardW, 28, fmt.Sprintf("KZT %.0f", totalRevenue), "Total Revenue", fmt.Sprintf("%d appointments", totalAppts), cAccent)
 	kpiCard(pdf, margin+2*(cardW+3), y, cardW, 28, fmt.Sprintf("%.2f / 5", avgRating), "Avg Rating", "across all doctors", color{245, 158, 11})
 	y += 36
 
@@ -718,7 +718,7 @@ func buildDoctorPDF(title, from, to string, rows []models.DoctorPerformanceRow) 
 		{margin + 50, 34, "Specialization", "L"},
 		{margin + 88, 18, "Appts", "R"},
 		{margin + 110, 20, "Completed", "R"},
-		{margin + 134, 24, "Revenue ($)", "R"},
+		{margin + 134, 24, "KZT Revenue", "R"},
 		{margin + 162, 27, "Rating", "L"},
 	}
 	y = tableHeader(pdf, y, cols)
@@ -763,7 +763,7 @@ func buildDoctorPDF(title, from, to string, rows []models.DoctorPerformanceRow) 
 		pdf.SetFont("Helvetica", "B", 8)
 		text(pdf, cDark)
 		pdf.SetXY(cols[4].x, y)
-		pdf.CellFormat(cols[4].w, rowH, fmt.Sprintf("$%.0f", r.Revenue), "", 0, "R", false, 0, "")
+		pdf.CellFormat(cols[4].w, rowH, fmt.Sprintf("KZT %.0f", r.Revenue), "", 0, "R", false, 0, "")
 
 		starRating(pdf, cols[5].x, y, r.AverageRating)
 		pdf.SetFont("Helvetica", "", 7)
@@ -799,7 +799,7 @@ func buildDoctorPDF(title, from, to string, rows []models.DoctorPerformanceRow) 
 			}
 			text(pdf, cMuted)
 			pdf.SetXY(margin+58+barTrackW+2, y)
-			pdf.Cell(20, 8, fmt.Sprintf("$%.0f", r.Revenue))
+			pdf.Cell(20, 8, fmt.Sprintf("KZT %.0f", r.Revenue))
 			y += 8
 		}
 	}
