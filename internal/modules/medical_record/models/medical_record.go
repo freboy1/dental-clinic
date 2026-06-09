@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,6 +15,9 @@ type MedicalRecord struct {
 	Diagnosis      string
 	Notes          string
 	Is_checked     bool
+
+	AppointmentName    string
+	AppointmentEndTime sql.NullTime
 
 	Created_at time.Time
 	Updated_at time.Time

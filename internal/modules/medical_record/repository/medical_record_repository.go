@@ -139,7 +139,23 @@ func (r *medical_report_Repo) GetMedicalRecordByAppointmentId(id string) (*model
 }
 
 func (r *medical_report_Repo) GetMedicalRecordsByDoctorId(id string) ([]models.MedicalRecord, error) {
-	query := `SELECT id, appointment_id, doctor_id, patient_id, diagnosis, notes, is_checked, created_at, updated_at FROM medical_records WHERE doctor_id = $1`
+	query := `
+		SELECT
+			mr.id,
+			mr.appointment_id,
+			mr.doctor_id,
+			mr.patient_id,
+			mr.diagnosis,
+			mr.notes,
+			mr.is_checked,
+			mr.created_at,
+			mr.updated_at,
+			COALESCE(a.name, ''),
+			a.end_time
+		FROM medical_records mr
+		LEFT JOIN appointments a ON a.id = mr.appointment_id
+		WHERE mr.doctor_id = $1
+	`
 
 	rows, err := r.db.Query(context.Background(), query, id)
 	if err != nil {
@@ -150,7 +166,19 @@ func (r *medical_report_Repo) GetMedicalRecordsByDoctorId(id string) ([]models.M
 	var medical_records []models.MedicalRecord
 	for rows.Next() {
 		var medical_record models.MedicalRecord
-		if err := rows.Scan(&medical_record.Id, &medical_record.Appointment_id, &medical_record.Doctor_id, &medical_record.Patient_id, &medical_record.Diagnosis, &medical_record.Notes, &medical_record.Is_checked, &medical_record.Created_at, &medical_record.Updated_at); err != nil {
+		if err := rows.Scan(
+			&medical_record.Id,
+			&medical_record.Appointment_id,
+			&medical_record.Doctor_id,
+			&medical_record.Patient_id,
+			&medical_record.Diagnosis,
+			&medical_record.Notes,
+			&medical_record.Is_checked,
+			&medical_record.Created_at,
+			&medical_record.Updated_at,
+			&medical_record.AppointmentName,
+			&medical_record.AppointmentEndTime,
+		); err != nil {
 			return nil, err
 		}
 		medical_records = append(medical_records, medical_record)

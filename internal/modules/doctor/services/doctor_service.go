@@ -11,6 +11,7 @@ import (
 	"dental_clinic/internal/modules/doctor/models"
 	"dental_clinic/internal/modules/doctor/repository"
 
+	medical_recordModels "dental_clinic/internal/modules/medical_record/models"
 	medical_recordServices "dental_clinic/internal/modules/medical_record/services"
 	userServices "dental_clinic/internal/modules/user/services"
 
@@ -185,6 +186,27 @@ func ToDoctorResponseList(doctors []models.Doctor) []dto.DoctorResponse {
 	return result
 }
 
+func ToMedicalRecordDoctorResponseList(medicalRecords []medical_recordModels.MedicalRecord) []dto.GetMedicalRecordDoctorResponse {
+	result := make([]dto.GetMedicalRecordDoctorResponse, 0, len(medicalRecords))
+	for _, medicalRecord := range medicalRecords {
+		endTime := ""
+		if medicalRecord.AppointmentEndTime.Valid {
+			endTime = medicalRecord.AppointmentEndTime.Time.Format("2006-01-02 15:04:05")
+		}
+
+		result = append(result, dto.GetMedicalRecordDoctorResponse{
+			Id:         medicalRecord.Id.String(),
+			Name:       medicalRecord.AppointmentName,
+			Diagnosis:  medicalRecord.Diagnosis,
+			Notes:      medicalRecord.Notes,
+			Is_checked: medicalRecord.Is_checked,
+			Created_at: medicalRecord.Created_at.Format("2006-01-02"),
+			End_time:   endTime,
+		})
+	}
+	return result
+}
+
 func (s *DoctorService) GetDoctorByIdMedicalRecords(id string) ([]dto.GetMedicalRecordDoctorResponse, error) {
 	doctor, err := s.repo.GetByID(id)
 	if err != nil {
@@ -198,19 +220,7 @@ func (s *DoctorService) GetDoctorByIdMedicalRecords(id string) ([]dto.GetMedical
 		return nil, err
 	}
 
-	var responses []dto.GetMedicalRecordDoctorResponse
-	for _, medical_record := range medical_records {
-
-		response := dto.GetMedicalRecordDoctorResponse{
-			Id:         medical_record.Id.String(),
-			Diagnosis:  medical_record.Diagnosis,
-			Notes:      medical_record.Notes,
-			Is_checked: medical_record.Is_checked,
-			Created_at: medical_record.Created_at.Format("2006-01-02"),
-		}
-		responses = append(responses, response)
-	}
-	return responses, nil
+	return ToMedicalRecordDoctorResponseList(medical_records), nil
 }
 func (s *DoctorService) GetDoctorByUserIdMedicalRecords(id string) ([]dto.GetMedicalRecordDoctorResponse, error) {
 	doctor, err := s.repo.GetByUserID(id)
@@ -225,19 +235,7 @@ func (s *DoctorService) GetDoctorByUserIdMedicalRecords(id string) ([]dto.GetMed
 		return nil, err
 	}
 
-	var responses []dto.GetMedicalRecordDoctorResponse
-	for _, medical_record := range medical_records {
-
-		response := dto.GetMedicalRecordDoctorResponse{
-			Id:         medical_record.Id.String(),
-			Diagnosis:  medical_record.Diagnosis,
-			Notes:      medical_record.Notes,
-			Is_checked: medical_record.Is_checked,
-			Created_at: medical_record.Created_at.Format("2006-01-02"),
-		}
-		responses = append(responses, response)
-	}
-	return responses, nil
+	return ToMedicalRecordDoctorResponseList(medical_records), nil
 }
 
 func (s *DoctorService) UpdateDoctorPhoto(id string, req dto.DoctorPhotoRequest) error {

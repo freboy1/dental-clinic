@@ -44,10 +44,12 @@ type DoctorActionResponse struct {
 
 type GetMedicalRecordDoctorResponse struct {
 	Id         string `json:"id"`
+	Name       string `json:"name"`
 	Diagnosis  string `json:"diagnosis"`
 	Notes      string `json:"notes"`
 	Is_checked bool   `json:"is_checked"`
 	Created_at string `json:"created_at"`
+	End_time   string `json:"end_time"`
 }
 
 type DoctorPhotoRequest struct {
