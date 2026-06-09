@@ -138,9 +138,9 @@ func (r *reportsRepo) GetInventoryReport(filters models.ReportFilters) ([]models
 			p.id::text,
 			p.name,
 			p.unit,
-			COALESCE(inv.current_quantity, 0)::float8,
-			COALESCE(tx.restocked_quantity, 0)::float8,
-			COALESCE(tx.used_quantity, 0)::float8,
+			ABS(COALESCE(inv.current_quantity, 0))::float8,
+			ABS(COALESCE(tx.restocked_quantity, 0))::float8,
+			ABS(COALESCE(tx.used_quantity, 0))::float8,
 			COALESCE(tx.adjustment_quantity, 0)::float8
 		FROM products p
 		JOIN (

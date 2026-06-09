@@ -2,6 +2,8 @@ package services
 
 import (
 	"bytes"
+	"dental_clinic/internal/modules/reports/models"
+	"dental_clinic/internal/modules/reports/repository"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -9,9 +11,6 @@ import (
 	"reflect"
 	"strings"
 	"time"
-
-	"dental_clinic/internal/modules/reports/models"
-	"dental_clinic/internal/modules/reports/repository"
 
 	"github.com/google/uuid"
 	"github.com/jung-kurt/gofpdf"
@@ -230,9 +229,9 @@ func renderHeader(pdf *gofpdf.Fpdf, title, from, to string) float64 {
 	text(pdf, cMuted)
 	pdf.SetXY(margin+7, infoY+11)
 	pdf.MultiCell(inner-10, 4,
-		"Providing comprehensive dental care since 2005. Our certified specialists offer general dentistry, "+
-			"orthodontics, cosmetic treatments, and emergency services. Committed to exceptional patient "+
-			"experiences with state-of-the-art technology across all locations.",
+		"This report is generated as part of a diploma project — a dental clinic management system. "+
+			"The system covers appointment scheduling, doctor performance tracking, revenue analytics, "+
+			"and inventory management across clinic locations.",
 		"", "L", false)
 
 	return infoY + infoBoxH + 8
@@ -620,7 +619,7 @@ func buildRevenuePDF(title, from, to string, rows []models.RevenueReportRow) ([]
 		pdf.SetFont("Helvetica", "", 8)
 		text(pdf, cDark)
 		pdf.SetXY(cols[0].x, y)
-		pdf.CellFormat(cols[0].w, rowH, truncate(r.ServiceName, 30), "", 0, "L", false, 0, "")
+		pdf.CellFormat(cols[0].w, rowH, truncate(utf8safe(r.ServiceName), 30), "", 0, "L", false, 0, "")
 
 		pdf.SetXY(cols[1].x, y)
 		pdf.CellFormat(cols[1].w, rowH, fmt.Sprintf("%d", r.AppointmentCount), "", 0, "R", false, 0, "")
@@ -645,7 +644,7 @@ func buildRevenuePDF(title, from, to string, rows []models.RevenueReportRow) ([]
 	values := make([]float64, len(rows))
 	colors := make([]color, len(rows))
 	for i, r := range rows {
-		labels[i] = truncate(r.ServiceName, 18)
+		labels[i] = truncate(utf8safe(r.ServiceName), 18)
 		values[i] = r.TotalRevenue
 		colors[i] = chartColors[i%len(chartColors)]
 	}
@@ -711,12 +710,12 @@ func buildDoctorPDF(title, from, to string, rows []models.DoctorPerformanceRow) 
 		pdf.SetFont("Helvetica", "B", 7.5)
 		text(pdf, cDark)
 		pdf.SetXY(cols[0].x, y)
-		pdf.CellFormat(cols[0].w, rowH, truncate(r.DoctorName, 18), "", 0, "L", false, 0, "")
+		pdf.CellFormat(cols[0].w, rowH, truncate(utf8safe(r.DoctorName), 18), "", 0, "L", false, 0, "")
 
 		pdf.SetFont("Helvetica", "", 7.5)
 		text(pdf, cMuted)
 		pdf.SetXY(cols[1].x, y)
-		pdf.CellFormat(cols[1].w, rowH, truncate(r.Specialization, 16), "", 0, "L", false, 0, "")
+		pdf.CellFormat(cols[1].w, rowH, truncate(utf8safe(r.Specialization), 16), "", 0, "L", false, 0, "")
 
 		pdf.SetFont("Helvetica", "", 8)
 		text(pdf, cDark)
@@ -756,7 +755,7 @@ func buildDoctorPDF(title, from, to string, rows []models.DoctorPerformanceRow) 
 			pdf.SetFont("Helvetica", "", 7.5)
 			text(pdf, cDark)
 			pdf.SetXY(margin, y)
-			pdf.CellFormat(56, 8, truncate(r.DoctorName, 22), "", 0, "L", false, 0, "")
+			pdf.CellFormat(56, 8, truncate(utf8safe(r.DoctorName), 22), "", 0, "L", false, 0, "")
 
 			fill(pdf, cBorder)
 			pdf.RoundedRect(margin+58, y+2, barTrackW, 4, 1.5, "1234", "F")
@@ -832,12 +831,12 @@ func buildInventoryPDF(title, from, to string, rows []models.InventoryReportRow)
 		pdf.SetFont("Helvetica", "B", 7.5)
 		text(pdf, cDark)
 		pdf.SetXY(cols[0].x, y)
-		pdf.CellFormat(cols[0].w, rowH, truncate(r.ProductName, 22), "", 0, "L", false, 0, "")
+		pdf.CellFormat(cols[0].w, rowH, truncate(utf8safe(r.ProductName), 22), "", 0, "L", false, 0, "")
 
 		pdf.SetFont("Helvetica", "", 7.5)
 		text(pdf, cMuted)
 		pdf.SetXY(cols[1].x, y)
-		pdf.CellFormat(cols[1].w, rowH, r.Unit, "", 0, "C", false, 0, "")
+		pdf.CellFormat(cols[1].w, rowH, utf8safe(r.Unit), "", 0, "C", false, 0, "")
 
 		pdf.SetFont("Helvetica", "B", 8)
 		text(pdf, stockColor)
@@ -878,7 +877,7 @@ func buildInventoryPDF(title, from, to string, rows []models.InventoryReportRow)
 			pdf.SetFont("Helvetica", "", 7.5)
 			text(pdf, cDark)
 			pdf.SetXY(margin, y)
-			pdf.CellFormat(68, 8, truncate(r.ProductName+" ("+r.Unit+")", 28), "", 0, "L", false, 0, "")
+			pdf.CellFormat(68, 8, truncate(utf8safe(r.ProductName)+" ("+utf8safe(r.Unit)+")", 28), "", 0, "L", false, 0, "")
 
 			fill(pdf, cBorder)
 			pdf.RoundedRect(margin+70, y+2, barTrackW, 4, 1.5, "1234", "F")
